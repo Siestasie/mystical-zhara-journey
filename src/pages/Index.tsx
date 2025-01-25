@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { AirVent, Settings, Wrench } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
@@ -15,7 +18,7 @@ const Index = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Монтаж, обслуживание и ремонт систем кондиционирования любой сложности
           </p>
-          <Button size="lg" className="mt-8">
+          <Button size="lg" className="mt-8" onClick={() => navigate("/consultation")}>
             Заказать консультацию <AirVent className="ml-2" />
           </Button>
         </div>
@@ -125,7 +128,7 @@ const Index = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Свяжитесь с нами для получения профессиональной консультации по вашему проекту
           </p>
-          <Button size="lg" variant="secondary">
+          <Button size="lg" variant="secondary" onClick={() => navigate("/consultation")}>
             Оставить заявку
           </Button>
         </div>

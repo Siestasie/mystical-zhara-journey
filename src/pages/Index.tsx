@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { AirVent, Settings, Wrench } from "lucide-react";
+import { AirVent, Settings, Wrench, LogIn, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -9,6 +9,18 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Auth Buttons */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Button variant="outline" className="flex items-center gap-2">
+          <LogIn className="h-4 w-4" />
+          Войти
+        </Button>
+        <Button className="flex items-center gap-2">
+          <UserPlus className="h-4 w-4" />
+          Регистрация
+        </Button>
+      </div>
+
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center space-y-6">

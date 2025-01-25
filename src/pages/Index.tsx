@@ -3,23 +3,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { AirVent, Settings, Wrench, LogIn, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { AuthDialogs } from "@/components/auth/AuthDialogs";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Auth Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsLoginOpen(true)}>
           <LogIn className="h-4 w-4" />
           Войти
         </Button>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={() => setIsRegisterOpen(true)}>
           <UserPlus className="h-4 w-4" />
           Регистрация
         </Button>
       </div>
+
+      <AuthDialogs
+        isLoginOpen={isLoginOpen}
+        isRegisterOpen={isRegisterOpen}
+        onLoginClose={() => setIsLoginOpen(false)}
+        onRegisterClose={() => setIsRegisterOpen(false)}
+      />
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20">

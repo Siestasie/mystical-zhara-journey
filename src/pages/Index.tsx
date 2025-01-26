@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign } from "lucide-react";
+import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthDialogs } from "@/components/auth/AuthDialogs";
@@ -153,6 +153,40 @@ const Index = () => {
           <CarouselPrevious />
           <CarouselNext />
         </Carousel>
+      </section>
+
+      {/* Quick Access Buttons Section */}
+      <section className="container mx-auto px-4 py-16 bg-gray-50 rounded-lg">
+        <div className="flex flex-col md:flex-row justify-center items-center gap-6">
+          <Button 
+            size="lg"
+            className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-6 text-lg h-auto"
+            onClick={() => navigate("/price-list")}
+          >
+            <DollarSign className="h-6 w-6" />
+            Прайс-Лист
+          </Button>
+          
+          <Button 
+            size="lg"
+            variant="secondary"
+            className="w-full md:w-auto px-8 py-6 text-lg h-auto"
+            onClick={() => navigate("/gallery")}
+          >
+            <Image className="h-6 w-6" />
+            Галерея
+          </Button>
+          
+          <Button 
+            size="lg"
+            variant="secondary"
+            className="w-full md:w-auto px-8 py-6 text-lg h-auto"
+            onClick={() => navigate("/contacts")}
+          >
+            <Phone className="h-6 w-6" />
+            Контактная информация
+          </Button>
+        </div>
       </section>
 
       {/* CTA Section */}

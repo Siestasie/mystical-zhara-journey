@@ -49,17 +49,6 @@ const Index = () => {
 
       {/* Services Section */}
       <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-8">
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="flex items-center gap-2"
-            onClick={() => navigate("/price-list")}
-          >
-            <DollarSign className="h-5 w-5" />
-            Прайс-Лист
-          </Button>
-        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>

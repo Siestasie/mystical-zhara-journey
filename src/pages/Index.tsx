@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone } from "lucide-react";
+import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone, PhoneCall } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthDialogs } from "@/components/auth/AuthDialogs";
@@ -13,6 +13,46 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Contact Header */}
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-2 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <PhoneCall className="h-4 w-4 text-blue-600" />
+            <span className="font-medium">+7 (999) 123-45-67</span>
+            <span className="ml-4 text-gray-600">г. Мариуполь</span>
+          </div>
+          <div className="flex items-center gap-4">
+            {/* VK */}
+            <a 
+              href="#" // TODO: Add VK link
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700"
+            >
+              VK
+            </a>
+            {/* WhatsApp */}
+            <a 
+              href="#" // TODO: Add WhatsApp link
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-green-600 hover:text-green-700"
+            >
+              WhatsApp
+            </a>
+            {/* Telegram */}
+            <a 
+              href="#" // TODO: Add Telegram link
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-600"
+            >
+              Telegram
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Auth Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
         <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsLoginOpen(true)}>

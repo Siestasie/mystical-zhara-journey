@@ -1,7 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { BarChart } from "lucide-react";
 
 const AdminPanel = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const { data: visitorCount } = useQuery({
     queryKey: ['visitorCount'],
     queryFn: async () => {
@@ -11,21 +16,32 @@ const AdminPanel = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Панель администратора</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <>
+      <Button
+        variant="outline"
+        className="flex items-center gap-2"
+        onClick={() => setIsOpen(true)}
+      >
+        <BarChart className="h-4 w-4" />
+        <span className="hidden sm:inline">Админ панель</span>
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Панель администратора</DialogTitle>
+          </DialogHeader>
           <div className="space-y-6">
-            <div className="p-6 bg-white rounded-lg shadow">
-              <h3 className="text-xl font-semibold mb-4">Статистика посещений</h3>
-              <p className="text-3xl font-bold text-purple-600">{visitorCount} посетителей</p>
-            </div>
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="text-xl font-semibold mb-4">Статистика посещений</h3>
+                <p className="text-3xl font-bold text-purple-600">{visitorCount} посетителей</p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

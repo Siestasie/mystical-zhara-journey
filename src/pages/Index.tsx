@@ -18,23 +18,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Admin Buttons */}
-      <div className="absolute top-4 left-4 flex gap-2">
-        <Button
-          variant="outline"
-          className="flex items-center gap-2"
-          onClick={() => navigate("/admin/notifications")}
-        >
-          <Bell className="h-4 w-4" />
-          Уведомления
-        </Button>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2"
-          onClick={() => navigate("/admin/panel")}
-        >
-          <BarChart className="h-4 w-4" />
-          Админ панель
-        </Button>
+      <div className="absolute top-4 left-4 flex flex-col sm:flex-row gap-2">
+        <AdminNotifications />
+        <AdminPanel />
       </div>
 
       {/* Auth Buttons */}

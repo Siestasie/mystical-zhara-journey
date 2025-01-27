@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone, PhoneCall } from "lucide-react";
+import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone, PhoneCall, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthDialogs } from "@/components/auth/AuthDialogs";
-import Vk_Icon from "@/assets/Icon_Vk.svg"
-import Telegram_Icon from "@/assets/Icon_Telegram.svg"
-import Whatsapp_Icon from "@/assets/Icon_Whatsapp.svg"
+import { Separator } from "@/components/ui/separator";
+import Vk_Icon from "@/assets/Icon_Vk.svg";
+import Telegram_Icon from "@/assets/Icon_Telegram.svg";
+import Whatsapp_Icon from "@/assets/Icon_Whatsapp.svg";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -16,6 +17,45 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Contact Header */}
+      <div className="bg-purple-200 border-b w-full">
+        <div className="container mx-auto px-4 py-2 flex justify-between flex-col sm:flex-row items-center">
+          <div className="flex items-center gap-2">
+            <PhoneCall className="h-4 w-4 text-blue-600" />
+            <span className="font-medium">+7 (999) 123-45-67</span>
+            <span className="ml-4 font-bold text-stroke-2 text-gray-900">г. Мариуполь</span>
+          </div>
+          <div className="flex items-center gap-4">
+            {/* VK */}
+            <a 
+              href="#" // TODO: Add VK link
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700"
+            >
+              <img src={Vk_Icon} alt="Иконка" className="h-6 w-6" />
+            </a>
+            {/* WhatsApp */}
+            <a 
+              href="#" // TODO: Add WhatsApp link
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-green-600 hover:text-green-700"
+            >
+              <img src={Whatsapp_Icon} alt="Иконка" className="h-6 w-6" />
+            </a>
+            {/* Telegram */}
+            <a 
+              href="#" // TODO: Add Telegram link
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-600"
+            >
+              <img src={Telegram_Icon} alt="Иконка" className="h-6 w-6" />
+            </a>
+          </div>
+        </div>
+      </div>
 
       {/* Auth Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
@@ -101,6 +141,8 @@ const Index = () => {
         </div>
       </section>
 
+      <Separator className="h-px bg-purple-200 w-full my-8" />
+
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Наши услуги</h2>
@@ -147,6 +189,8 @@ const Index = () => {
           <CarouselNext />
         </Carousel>
       </section>
+
+      <Separator className="h-px bg-purple-200 w-full my-8" />
 
       {/* Quick Access Buttons Section */}
       <section className="container mx-auto px-4 py-16 bg-gray-50 rounded-lg">
@@ -195,45 +239,117 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Contact Header */}
-      <div className="bg-purple-200 border-b w-full">
-        <div className="container mx-auto px-4 py-2 flex justify-between flex-col sm:flex-row items-center">
-          <div className="flex items-center gap-2">
-            <PhoneCall className="h-4 w-4 text-blue-600" />
-            <span className="font-medium">+7 (999) 123-45-67</span>
-            <span className="ml-4 font-bold text-stroke-2 text-gray-900">г. Мариуполь</span>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* VK */}
-            <a 
-              href="#" // TODO: Add VK link
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700"
-            >
-              <img src={Vk_Icon} alt="Иконка" className="h-6 w-6" />
-            </a>
-            {/* WhatsApp */}
-            <a 
-              href="#" // TODO: Add WhatsApp link
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-green-600 hover:text-green-700"
-            >
-              <img src={Whatsapp_Icon} alt="Иконка" className="h-6 w-6" />
-            </a>
-            {/* Telegram */}
-            <a 
-              href="#" // TODO: Add Telegram link
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:text-blue-600"
-            >
-              <img src={Telegram_Icon} alt="Иконка" className="h-6 w-6" />
-            </a>
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Column 1 - About */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">О нас</h3>
+              <p className="text-gray-300">
+                Мы специализируемся на профессиональной установке и обслуживании систем кондиционирования. 
+                Наша команда экспертов обеспечивает высочайшее качество работ и индивидуальный подход к каждому клиенту.
+              </p>
+            </div>
+
+            {/* Column 2 - Service Areas */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Зона обслуживания</h3>
+              <ul className="space-y-2 text-gray-300">
+                <li>г. Мариуполь</li>
+                <li>Мангуш</li>
+                <li>Сартана</li>
+                <li>Талаковка</li>
+                <li>Гнутово</li>
+              </ul>
+            </div>
+
+            {/* Column 3 - Quick Links */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Быстрые ссылки</h3>
+              <ul className="space-y-2">
+                <li>
+                  <a 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate("/price-list");
+                    }}
+                    className="text-gray-300 hover:text-white"
+                  >
+                    Прайс-лист
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate("/gallery");
+                    }}
+                    className="text-gray-300 hover:text-white"
+                  >
+                    Галерея
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate("/contacts");
+                    }}
+                    className="text-gray-300 hover:text-white"
+                  >
+                    Контактная информация
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 4 - Contact */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Связаться с нами</h3>
+              <div className="space-y-4">
+                <p className="flex items-center gap-2 text-gray-300">
+                  <PhoneCall className="h-4 w-4" />
+                  +7 (999) 123-45-67
+                </p>
+                <p className="flex items-center gap-2 text-gray-300">
+                  <Mail className="h-4 w-4" />
+                  info@aircondition.ru
+                </p>
+                <div className="flex gap-4 mt-4">
+                  <a 
+                    href="#" // TODO: Add VK link
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-white"
+                  >
+                    <img src={Vk_Icon} alt="VK" className="h-6 w-6" />
+                  </a>
+                  <a 
+                    href="#" // TODO: Add WhatsApp link
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-white"
+                  >
+                    <img src={Whatsapp_Icon} alt="WhatsApp" className="h-6 w-6" />
+                  </a>
+                  <a 
+                    href="#" // TODO: Add Telegram link
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-white"
+                  >
+                    <img src={Telegram_Icon} alt="Telegram" className="h-6 w-6" />
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };

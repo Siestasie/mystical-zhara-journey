@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import "@/additionally.css"
 
 const PriceList = () => {
   const navigate = useNavigate();
@@ -28,8 +29,8 @@ const PriceList = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8">
       <div className="max-w-4xl mx-auto">
         <Button
-          variant="ghost"
-          className="mb-8 flex items-center gap-2"
+          variant="outline"
+          className="mb-8 flex items-center gap-2 custom-button1"
           onClick={() => navigate("/")}
         >
           <ArrowLeft className="h-4 w-4" />

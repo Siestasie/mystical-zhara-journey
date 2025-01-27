@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Mail, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import "@/additionally.css"
 
 const Contacts = () => {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ const Contacts = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8">
       <Button
         variant="outline"
-        className="mb-8"
+        className="mb-8 custom-button1"
         onClick={() => navigate("/")}
       >
         <ArrowLeft className="mr-2 h-4 w-4" /> Назад

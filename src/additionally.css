@@ -1,0 +1,17 @@
+.custom-button {
+    transform: scale(1);
+    transition: transform 0.1s ease-in-out;
+  }
+  
+  .custom-button:hover {
+   transform: scale(1.07);
+  }
+  
+  .custom-button1 {
+    transform: scale(1);
+    transition: transform 0.14s ease-in-out;
+  }
+  
+  .custom-button1:hover {
+   transform: scale(1.03);
+  }

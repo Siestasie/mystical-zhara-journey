@@ -11,6 +11,7 @@ import Telegram_Icon from "@/assets/Icon_Telegram.svg";
 import Whatsapp_Icon from "@/assets/Icon_Whatsapp.svg";
 import AdminNotifications from "@/pages/AdminNotifications";
 import AdminPanel from "@/pages/AdminPanel";
+import "@/additionally.css"
 
 const Index = () => {
   const navigate = useNavigate();
@@ -27,11 +28,11 @@ const Index = () => {
 
       {/* Auth Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
-        <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsLoginOpen(true)}>
+        <Button variant="outline" className="flex items-center gap-2 custom-button" onClick={() => setIsLoginOpen(true)}>
           <LogIn className="h-4 w-4" />
           Войти
         </Button>
-        <Button className="flex items-center gap-2" onClick={() => setIsRegisterOpen(true)}>
+        <Button className="flex items-center gap-2 custom-button1" onClick={() => setIsRegisterOpen(true)}>
           <UserPlus className="h-4 w-4" />
           Регистрация
         </Button>
@@ -53,7 +54,7 @@ const Index = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Монтаж, обслуживание и ремонт систем кондиционирования любой сложности
           </p>
-          <Button size="lg" className="mt-8" onClick={() => navigate("/consultation")}>
+          <Button size="lg" className="mt-8 custom-button1" onClick={() => navigate("/consultation")}>
             Заказать консультацию <AirVent className="ml-2" />
           </Button>
         </div>
@@ -165,7 +166,7 @@ const Index = () => {
         <div className="flex flex-col md:flex-row justify-center items-center gap-6">
           <Button 
             size="lg"
-            className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-6 text-lg h-auto"
+            className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-6 text-lg h-auto transition duration-200 custom-button"
             onClick={() => navigate("/price-list")}
           >
             <DollarSign className="h-6 w-6" />
@@ -175,7 +176,7 @@ const Index = () => {
           <Button 
             size="lg"
             variant="secondary"
-            className="w-full md:w-auto px-8 py-6 text-lg h-auto"
+            className="w-full md:w-auto px-8 py-6 text-lg h-auto custom-button"
             onClick={() => navigate("/gallery")}
           >
             <Image className="h-6 w-6" />
@@ -185,7 +186,7 @@ const Index = () => {
           <Button 
             size="lg"
             variant="secondary"
-            className="w-full md:w-auto px-8 py-6 text-lg h-auto"
+            className="w-full md:w-auto px-8 py-6 text-lg h-auto custom-button"
             onClick={() => navigate("/contacts")}
           >
             <Phone className="h-6 w-6" />
@@ -201,7 +202,7 @@ const Index = () => {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Свяжитесь с нами для получения профессиональной консультации по вашему проекту
           </p>
-          <Button size="lg" variant="secondary" onClick={() => navigate("/consultation")}>
+          <Button size="lg" className="custom-button" variant="secondary" onClick={() => navigate("/consultation")}>
             Оставить заявку
           </Button>
         </div>
@@ -294,7 +295,7 @@ const Index = () => {
                     rel="noopener noreferrer"
                     className="text-gray-300 hover:text-white"
                   >
-                    <img src={Vk_Icon} alt="VK" className="h-6 w-6" />
+                    <img src={Vk_Icon} alt="VK" className="h-6 w-6 custom-button" />
                   </a>
                   <a 
                     href="#" // TODO: Add WhatsApp link
@@ -302,7 +303,7 @@ const Index = () => {
                     rel="noopener noreferrer"
                     className="text-gray-300 hover:text-white"
                   >
-                    <img src={Whatsapp_Icon} alt="WhatsApp" className="h-6 w-6" />
+                    <img src={Whatsapp_Icon} alt="WhatsApp" className="h-6 w-6 custom-button" />
                   </a>
                   <a 
                     href="#" // TODO: Add Telegram link
@@ -310,7 +311,7 @@ const Index = () => {
                     rel="noopener noreferrer"
                     className="text-gray-300 hover:text-white"
                   >
-                    <img src={Telegram_Icon} alt="Telegram" className="h-6 w-6" />
+                    <img src={Telegram_Icon} alt="Telegram" className="h-6 w-6 custom-button" />
                   </a>
                 </div>
               </div>

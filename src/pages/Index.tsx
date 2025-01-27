@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone, PhoneCall, Mail, Bell, BarChart } from "lucide-react";
+import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone, PhoneCall, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthDialogs } from "@/components/auth/AuthDialogs";
@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import Vk_Icon from "@/assets/Icon_Vk.svg";
 import Telegram_Icon from "@/assets/Icon_Telegram.svg";
 import Whatsapp_Icon from "@/assets/Icon_Whatsapp.svg";
+import AdminNotifications from "@/pages/AdminNotifications";
+import AdminPanel from "@/pages/AdminPanel";
 
 const Index = () => {
   const navigate = useNavigate();

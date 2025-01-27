@@ -8,6 +8,7 @@ import ConsultationPage from "./pages/Consultation";
 import PriceList from "./pages/PriceList";
 import Gallery from "./pages/Gallery";
 import Contacts from "./pages/Contacts";
+import AdminNotifications from "./pages/AdminNotifications";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/price-list" element={<PriceList />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contacts" element={<Contacts />} />
+          <Route path="/admin/notifications" element={<AdminNotifications />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

@@ -1,31 +1,29 @@
 import express from 'express'
 import mysql from 'mysql2'
-import bcrypt from 'bcrypt' // Для безопасного хранения паролей
+import bcrypt from 'bcrypt'
 import cors from 'cors';
 const app = express();
 
 app.use(express.json());
 
 app.use(cors({
-    origin: 'http://localhost:8080', // Укажите адрес вашего клиента
+    origin: 'http://localhost:8080',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  }));
+}));
 
-// Настройка подключения к MySQL через MAMP PRO
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '1234', // Укажите пароль для MySQL, если он задан
-  database: 'klimatholoddatabase', // Замените на вашу базу данных
+    host: 'localhost',
+    user: 'root',
+    password: '1234',
+    database: 'klimatholoddatabase',
 });
 
-// Подключение к базе данных
 db.connect((err) => {
-  if (err) {
-    console.error('Ошибка подключения к базе данных:', err);
-    process.exit(1);
-  }
-  console.log('Подключение к базе данных успешно!');
+    if (err) {
+        console.error('Ошибка подключения к базе данных:', err);
+        process.exit(1);
+    }
+    console.log('Подключение к базе данных успешно!');
 });
 
 // API-эндпоинт для входа
@@ -97,8 +95,52 @@ app.post('/api/register', async (req, res) => {
     });
   });
 
-// Запуск сервера
+// Endpoint для получения всех уведомлений
+app.get('/api/notifications', (req, res) => {
+    db.query(
+        'SELECT * FROM notifications ORDER BY createdAt DESC',
+        (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: 'Ошибка сервера при получении уведомлений.' });
+            }
+            res.json(results);
+        }
+    );
+});
+
+// Endpoint для создания нового уведомления
+app.post('/api/notifications', (req, res) => {
+    const { name, phone, email, description } = req.body;
+    
+    db.query(
+        'INSERT INTO notifications (name, phone, email, description, isRead, createdAt) VALUES (?, ?, ?, ?, false, NOW())',
+        [name, phone, email, description],
+        (err, result) => {
+            if (err) {
+                return res.status(500).json({ error: 'Ошибка сервера при создании уведомления.' });
+            }
+            res.status(201).json({ message: 'Уведомление создано успешно!', id: result.insertId });
+        }
+    );
+});
+
+// Endpoint для отметки уведомления как прочитанного
+app.put('/api/notifications/:id/read', (req, res) => {
+    const { id } = req.params;
+    
+    db.query(
+        'UPDATE notifications SET isRead = true WHERE id = ?',
+        [id],
+        (err) => {
+            if (err) {
+                return res.status(500).json({ error: 'Ошибка сервера при обновлении уведомления.' });
+            }
+            res.json({ message: 'Уведомление отмечено как прочитанное.' });
+        }
+    );
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`Сервер запущен на http://localhost:${PORT}`);
+    console.log(`Сервер запущен на http://localhost:${PORT}`);
 });

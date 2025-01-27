@@ -47,11 +47,11 @@ const AdminNotifications = () => {
     queryKey: ['notifications'],
     queryFn: async () => {
       // Commented out actual API call
-      // const response = await fetch('http://localhost:3000/api/notifications');
-      // if (!response.ok) {
-      //   throw new Error('Network response was not ok');
-      // }
-      // return response.json();
+      const response = await fetch('http://localhost:3000/api/notifications');
+      if (!response.ok) {
+         throw new Error('Network response was not ok');
+       }
+       return response.json();
       
       // Using mock data
       return mockNotifications;

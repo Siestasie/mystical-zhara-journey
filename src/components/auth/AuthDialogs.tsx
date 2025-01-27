@@ -43,14 +43,52 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
   const onLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     console.log("Login data:", data);
-    // Здесь будет логика входа после подключения Supabase
+    try {
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+  
+      const result = await response.json();
+      
+      console.log("post")
+      if (!response.ok) {
+        alert(result.error);
+        return;
+      }
+  
+      console.log('Успешный вход:', result.user);
+      alert('Вы успешно вошли!');
+    } catch (error) {
+      console.error('Ошибка запроса:', error);
+      alert('Что-то пошло не так. Попробуйте еще раз.');
+      setIsLoading(false);
+    } 
     setIsLoading(false);
   };
 
   const onRegister = async (data: RegisterFormData) => {
     setIsLoading(true);
     console.log("Register data:", data);
-    // Здесь будет логика регистрации после подключения Supabase
+    try {
+      const response = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+  
+      const responseData = await response.json(); // Изменено имя переменной
+      if (response.ok) {
+        postMessage(responseData.message);
+      } else {
+        postMessage(responseData.error);
+      }
+    } catch (error) {
+      postMessage('Ошибка сервера');
+    }
     setIsLoading(false);
   };
 

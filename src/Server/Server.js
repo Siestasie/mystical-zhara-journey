@@ -2,6 +2,8 @@ import express from 'express'
 import mysql from 'mysql2'
 import bcrypt from 'bcrypt'
 import cors from 'cors';
+import crypto from 'crypto';
+
 const app = express();
 
 app.use(express.json());
@@ -27,48 +29,55 @@ db.connect((err) => {
 });
 
 // API-эндпоинт для входа
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
     // Проверка пользователя в базе данных
-    db.query(
-      'SELECT * FROM `users` WHERE email = ?',
-      [email],
-      async (err, results) => {
-        if (err) {
-          return res.status(500).json({ error: 'Ошибка сервера.' });
-        }
+    const queryPromise = new Promise((resolve, reject) => {
+        db.query(
+            'SELECT * FROM users WHERE email = ?',
+            [email],
+            (err, results) => {
+                if (err) {
+                    reject({ status: 500, error: 'Ошибка сервера.' });
+                }
+                if (results.length === 0) {
+                    reject({ status: 401, error: 'Неверный email или пароль.' });
+                }
+                resolve(results[0]);  // Возвращаем первого пользователя из результата
+            }
+        );
+    });
 
-        if (results.length === 0) {
-          return res.status(401).json({ error: 'Неверный email или пароль.' });
-        }
+    // Ожидаем завершения запроса и дальнейшей обработки
+    const user = await queryPromise;
 
-        const user = results[0];
+    console.log('Введенный пароль:', password);
+    console.log('Пароль из базы данных:', user);
 
-        // Сравнение пароля с использованием bcrypt
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        console.log(isPasswordValid);
+    // Сравнение пароля с использованием bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.Password);
+    console.log(isPasswordValid);
 
-        if (!isPasswordValid) {
-          return res.status(401).json({ error: 'Неверный email или пароль.' });
-        }
+    if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Неверный email или пароль.' });
+    }
 
-        // Возвращаем успешный ответ
-        res.status(200).json({ message: 'Вход выполнен успешно!', user });
-      }
-    );
+    // Возвращаем успешный ответ
+    res.status(200).json({ message: 'Вход выполнен успешно!', user });
+
   } catch (error) {
-    console.error('Ошибка входа:', error);
-    res.status(500).json({ error: 'Ошибка сервера.' });
+      console.error('Ошибка входа:', error);
+      res.status(error.status || 500).json({ error: error.error || 'Ошибка сервера.' });
   }
 });
 
 app.post('/api/register', async (req, res) => {
     const {name, email, password } = req.body;
-  
+    console.debug(email)
     // Проверить, существует ли пользователь с таким email
-    db.query('SELECT * FROM `users` WHERE email = ?' [email], async (err, results) => {
+    db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
       if (err) {
         return res.status(500).json({ error: 'Ошибка сервера' });
       }
@@ -79,21 +88,40 @@ app.post('/api/register', async (req, res) => {
   
       // Хешировать пароль
       const hashedPassword = await bcrypt.hash(password, 10);
-  
+      
       // Вставить нового пользователя в базу данных
       db.query(
         'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
         [name, email, hashedPassword],
-        (err) => {
+        (err, result) => {
           if (err) {
             return res.status(500).json({ error: 'Ошибка сервера при создании пользователя' });
           }
-  
+
+          const userId = result.insertId;
+          const token = crypto.randomBytes(32).toString('hex');
+          db.query(
+            'INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+            [userId, token, new Date(Date.now() + 3600000)], // Токен истекает через 1 час
+            (err) => {
+                if (err) {
+                    console.error('Ошибка при сохранении токена:', err);
+                  }
+              }
+          );
           res.status(201).json({ message: 'Регистрация успешна!' });
         }
       );
     });
   });
+
+
+
+
+
+
+
+
 
 // Endpoint для получения всех уведомлений
 app.get('/api/notifications', (req, res) => {

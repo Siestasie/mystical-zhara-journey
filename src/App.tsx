@@ -9,6 +9,7 @@ import PriceList from "./pages/PriceList";
 import Gallery from "./pages/Gallery";
 import Contacts from "./pages/Contacts";
 import AdminNotifications from "./pages/AdminNotifications";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/admin/notifications" element={<AdminNotifications />} />
+          <Route path="/admin/panel" element={<AdminPanel />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

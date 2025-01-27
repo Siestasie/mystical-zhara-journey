@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone, PhoneCall, Mail } from "lucide-react";
+import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone, PhoneCall, Mail, Bell, BarChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthDialogs } from "@/components/auth/AuthDialogs";
@@ -17,6 +17,26 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Admin Buttons */}
+      <div className="absolute top-4 left-4 flex gap-2">
+        <Button
+          variant="outline"
+          className="flex items-center gap-2"
+          onClick={() => navigate("/admin/notifications")}
+        >
+          <Bell className="h-4 w-4" />
+          Уведомления
+        </Button>
+        <Button
+          variant="outline"
+          className="flex items-center gap-2"
+          onClick={() => navigate("/admin/panel")}
+        >
+          <BarChart className="h-4 w-4" />
+          Админ панель
+        </Button>
+      </div>
+
       {/* Auth Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
         <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsLoginOpen(true)}>

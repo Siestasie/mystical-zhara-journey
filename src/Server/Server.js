@@ -3,6 +3,9 @@ import mysql from 'mysql2'
 import bcrypt from 'bcrypt'
 import cors from 'cors';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 
@@ -91,10 +94,11 @@ app.post('/api/register', async (req, res) => {
       
       // Вставить нового пользователя в базу данных
       db.query(
-        'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-        [name, email, hashedPassword],
+        'INSERT INTO users (name, email, password, is_verified) VALUES (?, ?, ?, ?)',
+        [name, email, hashedPassword, 0],
         (err, result) => {
           if (err) {
+            console.debug(err)
             return res.status(500).json({ error: 'Ошибка сервера при создании пользователя' });
           }
 
@@ -107,20 +111,87 @@ app.post('/api/register', async (req, res) => {
                 if (err) {
                     console.error('Ошибка при сохранении токена:', err);
                   }
+
+                sendVerificationEmail(email, token);
+                res.status(201).json({ message: 'Пользователь зарегистрирован. Проверьте почту для подтверждения.' });
               }
           );
-          res.status(201).json({ message: 'Регистрация успешна!' });
         }
       );
     });
   });
 
+  app.get('/verify-email', (req, res) => {
+    const { token } = req.query;
 
+    // Проверяем токен в базе данных
+    db.query(
+        'SELECT * FROM email_verification_tokens WHERE token = ?',
+        [token],
+        (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: 'Ошибка сервера.' });
+            }
 
+            if (results.length === 0) {
+                return res.status(400).json({ error: 'Неверный или истекший токен.' });
+            }
 
+            const userId = results[0].user_id;
 
+            // Обновляем статус пользователя
+            db.query(
+                'UPDATE users SET is_verified = 1 WHERE id = ?',
+                [userId],
+                (err) => {
+                    if (err) {
+                        return res.status(500).json({ error: 'Ошибка сервера.' });
+                    }
 
+                    // Удаляем токен после успешной активации
+                    db.query('DELETE FROM email_verification_tokens WHERE token = ?', [token]);
 
+                    res.status(200).json({ message: 'Ваша почта успешно подтверждена!' });
+                }
+            );
+        }
+    );
+});
+
+async function sendVerificationEmail(email, token) {
+  console.debug("start")
+  console.log('EMAIL_USER:', process.env.EMAIL_USER);
+  console.log('EMAIL_PASS:', process.env.EMAIL_PASS);
+
+  const transporter = nodemailer.createTransport({
+      service: 'gmail', // Используйте свой email-сервис (например, Gmail)
+      auth: {
+          user: process.env.EMAIL_USER, //Удалить
+          pass: process.env.EMAIL_PASS //Удалить
+      }
+  });
+
+  transporter.verify((error, success) => {
+    if (error) {
+        console.error('Ошибка проверки соединения:', error);
+    } else {
+        console.log('Соединение установлено:', success);
+    }
+  });
+
+  const verificationLink = `http://localhost:3000/verify-email?token=${token}`;
+
+  const mailOptions = {
+      from: 'verifkon@gmail.com',
+      to: email,
+      subject: 'Подтверждение вашей почты',
+      text: `Перейдите по ссылке для подтверждения: ${verificationLink}`,
+      html: `<p>Перейдите по <a href="${verificationLink}">ссылке</a> для подтверждения вашей почты.</p>`
+    };
+
+  await transporter.sendMail(mailOptions);
+  console.log('Письмо отправлено на адрес:', email);
+}
 
 
 // Endpoint для получения всех уведомлений

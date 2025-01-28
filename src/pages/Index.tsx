@@ -193,14 +193,13 @@ const Index = () => {
       <Separator className="h-px bg-border w-full my-8" />
 
       {/* Quick Access Buttons Section */}
-      <section className="container mx-auto px-4 py-16 bg-accent rounded-lg animate-fade-in">
+      <section className="container mx-auto px-4 py-16 bg-background rounded-lg animate-fade-in">
         <div className="flex flex-col md:flex-row justify-center items-center gap-6">
           <Button 
             size="lg"
             className="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-8 py-6 text-lg h-auto transition duration-200 custom-button"
             onClick={() => navigate("/price-list")}
           >
-            <DollarSign className="h-6 w-6" />
             Прайс-Лист
           </Button>
           
@@ -240,12 +239,12 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-secondary text-secondary-foreground py-12 animate-fade-in">
+      <footer className="bg-card-foreground text-secondary-foreground py-12 animate-fade-in">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Column 1 - About */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">О нас</h3>
+              <h3 className="text-white font-semibold mb-4">О нас</h3>
               <p className="text-gray-300">
                 Мы специализируемся на профессиональной установке и обслуживании систем кондиционирования. 
                 Наша команда экспертов обеспечивает высочайшее качество работ и индивидуальный подход к каждому клиенту.
@@ -254,7 +253,7 @@ const Index = () => {
 
             {/* Column 2 - Service Areas */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Зона обслуживания</h3>
+              <h3 className="text-white font-semibold mb-4">Зона обслуживания</h3>
               <ul className="space-y-2 text-gray-300">
                 <li>г. Мариуполь</li>
                 <li>Мангуш</li>
@@ -266,7 +265,7 @@ const Index = () => {
 
             {/* Column 3 - Quick Links */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Быстрые ссылки</h3>
+              <h3 className="text-white font-semibold mb-4">Быстрые ссылки</h3>
               <ul className="space-y-2">
                 <li>
                   <a 
@@ -309,7 +308,7 @@ const Index = () => {
 
             {/* Column 4 - Contact */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Связаться с нами</h3>
+              <h3 className="text-white font-semibold mb-4">Связаться с нами</h3>
               <div className="space-y-4">
                 <p className="flex items-center gap-2 text-gray-300">
                   <PhoneCall className="h-4 w-4" />

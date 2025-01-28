@@ -14,6 +14,7 @@ import AdminNotifications from "@/pages/AdminNotifications";
 import AdminPanel from "@/pages/AdminPanel";
 import "@/additionally.css";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -351,3 +352,4 @@ const Index = () => {
 };
 
 export default Index;
+

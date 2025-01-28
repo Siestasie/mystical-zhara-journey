@@ -79,10 +79,10 @@ const Index = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 animate-fade-in">
         <div className="text-center space-y-6">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900">
+          <h1 className="text-4xl md:text-6xl font-bold text-test ">
             Профессиональные системы кондиционирования
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-ColorP max-w-2xl mx-auto">
             Монтаж, обслуживание и ремонт систем кондиционирования любой сложности
           </p>
           <Button size="lg" className="mt-8 custom-button1" onClick={() => navigate("/consultation")}>
@@ -103,7 +103,7 @@ const Index = () => {
               <CardDescription>Профессиональная установка</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-ColorP">
                 Установка кондиционеров и монтаж мультизональных систем любой сложности
               </p>
             </CardContent>
@@ -118,7 +118,7 @@ const Index = () => {
               <CardDescription>Регулярный сервис</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-ColorP">
                 Чистка, дезинфекция и профилактическое обслуживание систем кондиционирования
               </p>
             </CardContent>
@@ -133,7 +133,7 @@ const Index = () => {
               <CardDescription>Оперативный ремонт</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-ColorP">
                 Диагностика неисправностей и ремонт систем кондиционирования всех типов
               </p>
             </CardContent>
@@ -153,7 +153,7 @@ const Index = () => {
                 <CardContent className="flex items-center justify-center p-6">
                   <div className="text-center space-y-4">
                     <h3 className="text-2xl font-semibold">Проектирование</h3>
-                    <p className="text-gray-600">
+                    <p className="text-ColorP">
                       Профессиональное проектирование мультизональных систем кондиционирования
                     </p>
                   </div>
@@ -165,7 +165,7 @@ const Index = () => {
                 <CardContent className="flex items-center justify-center p-6">
                   <div className="text-center space-y-4">
                     <h3 className="text-2xl font-semibold">Монтаж</h3>
-                    <p className="text-gray-600">
+                    <p className="text-ColorP">
                       Качественный монтаж систем кондиционирования с гарантией
                     </p>
                   </div>
@@ -177,7 +177,7 @@ const Index = () => {
                 <CardContent className="flex items-center justify-center p-6">
                   <div className="text-center space-y-4">
                     <h3 className="text-2xl font-semibold">Обслуживание</h3>
-                    <p className="text-gray-600">
+                    <p className="text-ColorP">
                       Регулярное техническое обслуживание и чистка кондиционеров
                     </p>
                   </div>
@@ -229,7 +229,7 @@ const Index = () => {
       <section className="container mx-auto px-4 py-20 animate-fade-in">
         <div className="text-center space-y-6">
           <h2 className="text-3xl font-bold">Нужна консультация?</h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-ColorP max-w-2xl mx-auto">
             Свяжитесь с нами для получения профессиональной консультации по вашему проекту
           </p>
           <Button size="lg" className="custom-button" variant="secondary" onClick={() => navigate("/consultation")}>
@@ -239,7 +239,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-card-foreground text-secondary-foreground py-12 animate-fade-in">
+      <footer className="bg-[hsl(var(--card-foregroundF))] text-secondary-foreground py-12 animate-fade-in">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Column 1 - About */}

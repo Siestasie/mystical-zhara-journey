@@ -4,8 +4,8 @@ import bcrypt from 'bcrypt'
 import cors from 'cors';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
-//import dotenv from 'dotenv';
-//dotenv.config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 
@@ -166,8 +166,8 @@ async function sendVerificationEmail(email, token) {
   const transporter = nodemailer.createTransport({
       service: 'gmail', // Используйте свой email-сервис (например, Gmail)
       auth: {
-          //user: process.env.EMAIL_USER, //Удалить
-          //pass: process.env.EMAIL_PASS //Удалить
+          user: process.env.EMAIL_USER, //Удалить
+          pass: process.env.EMAIL_PASS //Удалить
       }
   });
 

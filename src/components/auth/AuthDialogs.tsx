@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Неверный формат email"),
@@ -31,6 +33,7 @@ interface AuthDialogsProps {
 
 export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegisterClose }: AuthDialogsProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { setUser } = useAuth();
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -42,7 +45,6 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
 
   const onLogin = async (data: LoginFormData) => {
     setIsLoading(true);
-    console.log("Login data:", data);
     try {
       const response = await fetch('http://localhost:3000/api/login', {
         method: 'POST',
@@ -54,25 +56,24 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
   
       const result = await response.json();
       
-      console.log("post")
       if (!response.ok) {
-        alert(result.error);
+        toast.error(result.error);
         return;
       }
   
-      console.log('Успешный вход:', result.user);
-      alert('Вы успешно вошли!');
+      setUser(result.user);
+      toast.success('Вы успешно вошли!');
+      onLoginClose();
     } catch (error) {
       console.error('Ошибка запроса:', error);
-      alert('Что-то пошло не так. Попробуйте еще раз.');
+      toast.error('Что-то пошло не так. Попробуйте еще раз.');
+    } finally {
       setIsLoading(false);
-    } 
-    setIsLoading(false);
+    }
   };
 
   const onRegister = async (data: RegisterFormData) => {
     setIsLoading(true);
-    console.log("Register data:", data);
     try {
       const response = await fetch('http://localhost:3000/api/register', {
         method: 'POST',
@@ -80,14 +81,14 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
         body: JSON.stringify(data),
       });
   
-      const responseData = await response.json(); // Изменено имя переменной
+      const responseData = await response.json();
       if (response.ok) {
-        postMessage(responseData.message);
+        toast.success(responseData.message);
       } else {
-        postMessage(responseData.error);
+        toast.error(responseData.error);
       }
     } catch (error) {
-      postMessage('Ошибка сервера');
+      toast.error('Ошибка сервера');
     }
     setIsLoading(false);
   };

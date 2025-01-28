@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import ConsultationPage from "./pages/Consultation";
 import PriceList from "./pages/PriceList";
@@ -17,21 +18,23 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/consultation" element={<ConsultationPage />} />
-            <Route path="/price-list" element={<PriceList />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/contacts" element={<Contacts />} />
-            <Route path="/admin/notifications" element={<AdminNotifications />} />
-            <Route path="/admin/panel" element={<AdminPanel />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/consultation" element={<ConsultationPage />} />
+              <Route path="/price-list" element={<PriceList />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/admin/notifications" element={<AdminNotifications />} />
+              <Route path="/admin/panel" element={<AdminPanel />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

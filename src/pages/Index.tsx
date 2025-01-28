@@ -13,11 +13,13 @@ import Whatsapp_Icon from "@/assets/Icon_Whatsapp.svg";
 import AdminNotifications from "@/pages/AdminNotifications";
 import AdminPanel from "@/pages/AdminPanel";
 import "@/additionally.css";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
@@ -30,21 +32,37 @@ const Index = () => {
       {/* Theme Toggle and Auth Buttons */}
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <ThemeToggle />
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-2 custom-button animate-fade-in" 
-          onClick={() => setIsLoginOpen(true)}
-        >
-          <LogIn className="h-4 w-4" />
-          <span className="hidden sm:inline">Войти</span>
-        </Button>
-        <Button 
-          className="flex items-center gap-2 custom-button1 animate-fade-in" 
-          onClick={() => setIsRegisterOpen(true)}
-        >
-          <UserPlus className="h-4 w-4" />
-          <span className="hidden sm:inline">Регистрация</span>
-        </Button>
+        {user ? (
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2 custom-button animate-fade-in" 
+            onClick={() => {
+              logout();
+              toast.success('Вы успешно вышли из аккаунта');
+            }}
+          >
+            <LogIn className="h-4 w-4" />
+            <span className="hidden sm:inline">Выйти</span>
+          </Button>
+        ) : (
+          <>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 custom-button animate-fade-in" 
+              onClick={() => setIsLoginOpen(true)}
+            >
+              <LogIn className="h-4 w-4" />
+              <span className="hidden sm:inline">Войти</span>
+            </Button>
+            <Button 
+              className="flex items-center gap-2 custom-button1 animate-fade-in" 
+              onClick={() => setIsRegisterOpen(true)}
+            >
+              <UserPlus className="h-4 w-4" />
+              <span className="hidden sm:inline">Регистрация</span>
+            </Button>
+          </>
+        )}
       </div>
 
       <AuthDialogs

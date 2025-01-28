@@ -6,12 +6,13 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthDialogs } from "@/components/auth/AuthDialogs";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/theme-toggle";
 import Vk_Icon from "@/assets/Icon_Vk.svg";
 import Telegram_Icon from "@/assets/Icon_Telegram.svg";
 import Whatsapp_Icon from "@/assets/Icon_Whatsapp.svg";
 import AdminNotifications from "@/pages/AdminNotifications";
 import AdminPanel from "@/pages/AdminPanel";
-import "@/additionally.css"
+import "@/additionally.css";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -19,22 +20,30 @@ const Index = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-background transition-colors duration-300">
       {/* Admin Buttons */}
       <div className="absolute top-4 left-4 flex flex-col sm:flex-row gap-2">
         <AdminNotifications />
         <AdminPanel />
       </div>
 
-      {/* Auth Buttons */}
-      <div className="absolute top-4 right-4 flex gap-2">
-        <Button variant="outline" className="flex items-center gap-2 custom-button" onClick={() => setIsLoginOpen(true)}>
+      {/* Theme Toggle and Auth Buttons */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <ThemeToggle />
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2 custom-button animate-fade-in" 
+          onClick={() => setIsLoginOpen(true)}
+        >
           <LogIn className="h-4 w-4" />
-          Войти
+          <span className="hidden sm:inline">Войти</span>
         </Button>
-        <Button className="flex items-center gap-2 custom-button1" onClick={() => setIsRegisterOpen(true)}>
+        <Button 
+          className="flex items-center gap-2 custom-button1 animate-fade-in" 
+          onClick={() => setIsRegisterOpen(true)}
+        >
           <UserPlus className="h-4 w-4" />
-          Регистрация
+          <span className="hidden sm:inline">Регистрация</span>
         </Button>
       </div>
 
@@ -46,7 +55,7 @@ const Index = () => {
       />
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20">
+      <section className="container mx-auto px-4 py-20 animate-fade-in">
         <div className="text-center space-y-6">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900">
             Профессиональные системы кондиционирования
@@ -61,7 +70,7 @@ const Index = () => {
       </section>
 
       {/* Services Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-16 animate-fade-in">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
@@ -110,10 +119,10 @@ const Index = () => {
         </div>
       </section>
 
-      <Separator className="h-px bg-purple-200 w-full my-8" />
+      <Separator className="h-px bg-border w-full my-8" />
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-16 animate-fade-in">
         <h2 className="text-3xl font-bold text-center mb-12">Наши услуги</h2>
         <Carousel className="max-w-3xl mx-auto">
           <CarouselContent>
@@ -159,10 +168,10 @@ const Index = () => {
         </Carousel>
       </section>
 
-      <Separator className="h-px bg-purple-200 w-full my-8" />
+      <Separator className="h-px bg-border w-full my-8" />
 
       {/* Quick Access Buttons Section */}
-      <section className="container mx-auto px-4 py-16 bg-gray-50 rounded-lg">
+      <section className="container mx-auto px-4 py-16 bg-accent rounded-lg animate-fade-in">
         <div className="flex flex-col md:flex-row justify-center items-center gap-6">
           <Button 
             size="lg"
@@ -196,7 +205,7 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20">
+      <section className="container mx-auto px-4 py-20 animate-fade-in">
         <div className="text-center space-y-6">
           <h2 className="text-3xl font-bold">Нужна консультация?</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -209,7 +218,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-secondary text-secondary-foreground py-12 animate-fade-in">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Column 1 - About */}

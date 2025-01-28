@@ -39,7 +39,10 @@ const Index = () => {
             className="flex items-center gap-2 custom-button animate-fade-in" 
             onClick={() => {
               logout();
-              toast.success('Вы успешно вышли из аккаунта');
+              toast({
+                title: "Успешно",
+                description: "Вы успешно вышли из аккаунта",
+              });
             }}
           >
             <LogIn className="h-4 w-4" />
@@ -352,4 +355,3 @@ const Index = () => {
 };
 
 export default Index;
-

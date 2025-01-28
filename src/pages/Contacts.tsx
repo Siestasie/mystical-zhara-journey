@@ -8,7 +8,7 @@ const Contacts = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8">
+    <div className="min-h-screen bg-background transition-colors duration-300 p-8">
       <Button
         variant="outline"
         className="mb-8 custom-button1"
@@ -18,31 +18,33 @@ const Contacts = () => {
       </Button>
 
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-12">Контактная информация</h1>
+        <h1 className="text-4xl font-bold text-center mb-12 text-foreground animate-fade-in">
+          Контактная информация
+        </h1>
         
-        <Card className="mb-8">
+        <Card className="mb-8 animate-scale-in">
           <CardContent className="pt-6">
             <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <Phone className="h-6 w-6 text-blue-600" />
+              <div className="flex items-center gap-4 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                <Phone className="h-6 w-6 text-primary" />
                 <div>
-                  <h3 className="font-semibold mb-1">Телефон</h3>
-                  <p className="text-lg">+7 (999) 123-45-67</p>
+                  <h3 className="font-semibold mb-1 text-foreground">Телефон</h3>
+                  <p className="text-lg text-foreground">+7 (999) 123-45-67</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-4">
-                <Mail className="h-6 w-6 text-blue-600" />
+              <div className="flex items-center gap-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                <Mail className="h-6 w-6 text-primary" />
                 <div>
-                  <h3 className="font-semibold mb-1">Электронная почта</h3>
-                  <p className="text-lg">info@aircondition.ru</p>
+                  <h3 className="font-semibold mb-1 text-foreground">Электронная почта</h3>
+                  <p className="text-lg text-foreground">info@aircondition.ru</p>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <p className="text-center text-gray-600">
+        <p className="text-center text-muted-foreground animate-fade-in" style={{ animationDelay: '0.3s' }}>
           Мы всегда на связи и готовы ответить на ваши вопросы
         </p>
       </div>

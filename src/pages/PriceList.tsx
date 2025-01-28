@@ -26,7 +26,7 @@ const PriceList = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8">
+    <div className="min-h-screen bg-background transition-colors duration-300 p-8">
       <div className="max-w-4xl mx-auto">
         <Button
           variant="outline"
@@ -37,23 +37,23 @@ const PriceList = () => {
           Назад
         </Button>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+        <div className="bg-card rounded-lg shadow-md p-6">
+          <h1 className="text-3xl font-bold text-foreground mb-8 text-center animate-fade-in">
             Прайс-лист на услуги
           </h1>
 
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-[70%]">Услуга</TableHead>
-                <TableHead className="text-right">Стоимость (₽)</TableHead>
+              <TableRow className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                <TableHead className="w-[70%] text-foreground">Услуга</TableHead>
+                <TableHead className="text-right text-foreground">Стоимость (₽)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {priceList.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{item.service}</TableCell>
-                  <TableCell className="text-right">
+                <TableRow key={index} className="animate-fade-in" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
+                  <TableCell className="font-medium text-foreground">{item.service}</TableCell>
+                  <TableCell className="text-right text-foreground">
                     {item.price.toLocaleString()} ₽
                   </TableCell>
                 </TableRow>
@@ -61,7 +61,7 @@ const PriceList = () => {
             </TableBody>
           </Table>
 
-          <p className="text-sm text-gray-500 mt-6 text-center">
+          <p className="text-sm text-muted-foreground mt-6 text-center animate-fade-in" style={{ animationDelay: '0.8s' }}>
             * Цены указаны приблизительно и могут варьироваться в зависимости от сложности работ
           </p>
         </div>

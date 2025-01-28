@@ -7,7 +7,7 @@ const Gallery = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8">
+    <div className="min-h-screen bg-background transition-colors duration-300 p-8">
       <Button
         variant="outline"
         className="mb-8 custom-button1"
@@ -17,8 +17,8 @@ const Gallery = () => {
       </Button>
 
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-12">Наши проекты</h1>
-        <p className="text-xl text-gray-600 text-center mb-12">
+        <h1 className="text-4xl font-bold text-center mb-12 text-foreground animate-fade-in">Наши проекты</h1>
+        <p className="text-xl text-muted-foreground text-center mb-12 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           В этом разделе представлены фотографии наших выполненных работ по установке и обслуживанию систем кондиционирования
         </p>
 
@@ -26,9 +26,10 @@ const Gallery = () => {
           {[1, 2, 3, 4, 5, 6].map((index) => (
             <div
               key={index}
-              className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center"
+              className="aspect-square bg-card rounded-lg flex items-center justify-center animate-scale-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <p className="text-gray-400">Фото {index}</p>
+              <p className="text-muted-foreground">Фото {index}</p>
             </div>
           ))}
         </div>

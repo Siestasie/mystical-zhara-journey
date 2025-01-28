@@ -60,10 +60,10 @@ const ConsultationPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
-      <Card className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-background transition-colors duration-300 py-12 px-4">
+      <Card className="max-w-2xl mx-auto animate-scale-in">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Заказать консультацию</CardTitle>
+          <CardTitle className="text-2xl text-center text-foreground">Заказать консультацию</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -72,10 +72,10 @@ const ConsultationPage = () => {
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ваше имя</FormLabel>
+                  <FormItem className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                    <FormLabel className="text-foreground">Ваше имя</FormLabel>
                     <FormControl>
-                      <Input placeholder="Иван Иванов" {...field} />
+                      <Input placeholder="Иван Иванов" {...field} className="bg-background text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -86,10 +86,10 @@ const ConsultationPage = () => {
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Номер телефона</FormLabel>
+                  <FormItem className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                    <FormLabel className="text-foreground">Номер телефона</FormLabel>
                     <FormControl>
-                      <Input placeholder="+7 (999) 999-99-99" {...field} />
+                      <Input placeholder="+7 (999) 999-99-99" {...field} className="bg-background text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -100,10 +100,10 @@ const ConsultationPage = () => {
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
+                  <FormItem className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                    <FormLabel className="text-foreground">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="example@mail.ru" {...field} />
+                      <Input placeholder="example@mail.ru" {...field} className="bg-background text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,12 +114,12 @@ const ConsultationPage = () => {
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Описание проекта</FormLabel>
+                  <FormItem className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                    <FormLabel className="text-foreground">Описание проекта</FormLabel>
                     <FormControl>
                       <Textarea 
                         placeholder="Опишите ваш проект или вопрос..."
-                        className="min-h-[120px]"
+                        className="min-h-[120px] bg-background text-foreground"
                         {...field}
                       />
                     </FormControl>
@@ -128,7 +128,7 @@ const ConsultationPage = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full animate-fade-in" style={{ animationDelay: '0.5s' }}>
                 Отправить заявку
               </Button>
             </form>

@@ -140,8 +140,8 @@ app.post('/api/register', async (req, res) => {
       
       // Вставить нового пользователя в базу данных
       db.query(
-        'INSERT INTO users (name, email, password, is_verified) VALUES (?, ?, ?, ?)',
-        [name, email, hashedPassword, 0],
+        'INSERT INTO users (name, email, password, is_verified, isAdmin) VALUES (?, ?, ?, ?, ?)',
+        [name, email, hashedPassword, 0, 0],
         (err, result) => {
           if (err) {
             console.debug(err)

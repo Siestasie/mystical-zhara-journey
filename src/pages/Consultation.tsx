@@ -10,16 +10,16 @@ import { useNavigate } from "react-router-dom";
 import * as z from "zod";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Имя должно содержать минимум 2 символа"),
+  name: z.string().optional(),
   phone: z.string().min(10, "Введите корректный номер телефона"),
-  email: z.string().email("Введите корректный email"),
-  description: z.string().min(10, "Опишите ваш проект подробнее (минимум 10 символов)"),
+  email: z.string().email("Введите корректный email").optional().or(z.literal("")),
+  description: z.string().optional(),
 });
 
 const ConsultationPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,7 +48,7 @@ const ConsultationPage = () => {
         title: "Заявка отправлена!",
         description: "Мы свяжемся с вами в ближайшее время.",
       });
-      
+
       setTimeout(() => navigate("/"), 2000);
     } catch (error) {
       toast({
@@ -87,7 +87,7 @@ const ConsultationPage = () => {
                 name="phone"
                 render={({ field }) => (
                   <FormItem className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                    <FormLabel className="text-foreground">Номер телефона</FormLabel>
+                    <FormLabel className="text-foreground">Номер телефона *</FormLabel>
                     <FormControl>
                       <Input placeholder="+7 (999) 999-99-99" {...field} className="bg-background text-foreground" />
                     </FormControl>
@@ -115,9 +115,9 @@ const ConsultationPage = () => {
                 name="description"
                 render={({ field }) => (
                   <FormItem className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                    <FormLabel className="text-foreground">Описание проекта</FormLabel>
+                    <FormLabel className="text-foreground">Описание</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <Textarea
                         placeholder="Опишите ваш проект или вопрос..."
                         className="min-h-[120px] bg-background text-foreground"
                         {...field}

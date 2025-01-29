@@ -31,6 +31,52 @@ db.connect((err) => {
     console.log('Подключение к базе данных успешно!');
 });
 
+// Add this new endpoint after the existing endpoints
+app.post('/api/resend-verification', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Проверяем существование пользователя
+    const [user] = await new Promise((resolve, reject) => {
+      db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+        if (err) reject(err);
+        resolve(results);
+      });
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    if (user.is_verified) {
+      return res.status(400).json({ error: 'Email уже подтвержден' });
+    }
+
+    // Создаем новый токен
+    const token = crypto.randomBytes(32).toString('hex');
+    
+    // Обновляем или создаем новый токен верификации
+    await new Promise((resolve, reject) => {
+      db.query(
+        'INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)',
+        [user.id, token, new Date(Date.now() + 3600000)],
+        (err) => {
+          if (err) reject(err);
+          resolve();
+        }
+      );
+    });
+
+    // Отправляем новое письмо
+    await sendVerificationEmail(email, token);
+    
+    res.json({ message: 'Письмо с подтверждением отправлено' });
+  } catch (error) {
+    console.error('Ошибка при повторной отправке:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 // API-эндпоинт для входа
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;

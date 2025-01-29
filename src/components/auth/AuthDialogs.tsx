@@ -8,7 +8,7 @@ import * as z from "zod";
 import { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   email: z.string().email("Неверный формат email"),
@@ -33,6 +33,7 @@ interface AuthDialogsProps {
 
 export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegisterClose }: AuthDialogsProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const { setUser } = useAuth();
 
   const loginForm = useForm<LoginFormData>({
@@ -57,16 +58,27 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
       const result = await response.json();
       
       if (!response.ok) {
-        toast.error(result.error);
+        toast({
+          title: "Ошибка",
+          description: result.error,
+          variant: "destructive"
+        });
         return;
       }
   
       setUser(result.user);
-      toast.success('Вы успешно вошли!');
+      toast({
+        title: "Успешно",
+        description: "Вы успешно вошли!"
+      });
       onLoginClose();
     } catch (error) {
       console.error('Ошибка запроса:', error);
-      toast.error('Что-то пошло не так. Попробуйте еще раз.');
+      toast({
+        title: "Ошибка",
+        description: "Что-то пошло не так. Попробуйте еще раз.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -82,14 +94,59 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
       });
       const responseData = await response.json();
       if (response.ok) {
-        toast.success(responseData.message);
+        setRegisteredEmail(data.email);
+        toast({
+          title: "Успешно",
+          description: "Регистрация прошла успешно! Пожалуйста, проверьте вашу почту для подтверждения аккаунта."
+        });
       } else {
-        toast.error(responseData.error);
+        toast({
+          title: "Ошибка",
+          description: responseData.error,
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      toast.error('Ошибка сервера');
+      toast({
+        title: "Ошибка",
+        description: "Ошибка сервера",
+        variant: "destructive"
+      });
     }
     setIsLoading(false);
+  };
+
+  const handleResendVerification = async () => {
+    if (!registeredEmail) return;
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registeredEmail }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: "Успешно",
+          description: "Письмо с подтверждением отправлено повторно"
+        });
+      } else {
+        toast({
+          title: "Ошибка",
+          description: data.error,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Ошибка при отправке письма",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -146,61 +203,85 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
           <DialogHeader>
             <DialogTitle>Регистрация</DialogTitle>
           </DialogHeader>
-          <Form {...registerForm}>
-            <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
-              <FormField
-                control={registerForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Имя</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input className="pl-9" placeholder="Иван Иванов" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input className="pl-9" placeholder="email@example.com" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Пароль</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input className="pl-9" type="password" {...field} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                Зарегистрироваться
+          {registeredEmail ? (
+            <div className="space-y-4">
+              <p className="text-center">
+                Письмо с подтверждением отправлено на адрес {registeredEmail}
+              </p>
+              <Button 
+                onClick={handleResendVerification}
+                className="w-full"
+                variant="outline"
+              >
+                Отправить письмо повторно
               </Button>
-            </form>
-          </Form>
+              <Button 
+                onClick={() => {
+                  setRegisteredEmail(null);
+                  registerForm.reset();
+                }}
+                className="w-full"
+              >
+                Регистрация нового аккаунта
+              </Button>
+            </div>
+          ) : (
+            <Form {...registerForm}>
+              <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
+                <FormField
+                  control={registerForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Имя</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input className="pl-9" placeholder="Иван Иванов" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input className="pl-9" placeholder="email@example.com" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Пароль</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input className="pl-9" type="password" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  Зарегистрироваться
+                </Button>
+              </form>
+            </Form>
+          )}
         </DialogContent>
       </Dialog>
     </>

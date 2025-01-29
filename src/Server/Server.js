@@ -39,6 +39,7 @@ app.post('/api/resend-verification', async (req, res) => {
     // Проверяем существование пользователя
     const [user] = await new Promise((resolve, reject) => {
       db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+        console.log(err)
         if (err) reject(err);
         resolve(results);
       });
@@ -94,6 +95,9 @@ app.post('/api/login', async (req, res) => {
                 if (results.length === 0) {
                     reject({ status: 401, error: 'Неверный email или пароль.' });
                 }
+                if (!results.is_verified) {
+                  reject({ status: 403, error: 'Аккаунт не подтвержден. Проверьте вашу почту.' })
+                }
                 resolve(results[0]);  // Возвращаем первого пользователя из результата
             }
         );
@@ -102,7 +106,7 @@ app.post('/api/login', async (req, res) => {
     // Ожидаем завершения запроса и дальнейшей обработки
     const user = await queryPromise;
 
-    console.log('Введенный пароль:', password);
+    console.log('Введенный пароль:', password); 
     console.log('Пароль из базы данных:', user);
 
     // Сравнение пароля с использованием bcrypt

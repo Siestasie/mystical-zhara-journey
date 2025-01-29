@@ -2,6 +2,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Table,
   TableBody,
   TableCell,
@@ -10,21 +16,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import "@/additionally.css"
-import {priceconditioners} from "@/prices/priceconditioners"
+import { priceconditioners } from "@/prices/priceconditioners"
 
 const PriceList = () => {
   const navigate = useNavigate();
-
-  const priceList = [
-    { service: "Монтаж сплит-системы (стандартный)", price: 8000 },
-    { service: "Демонтаж кондиционера", price: 3000 },
-    { service: "Техническое обслуживание (базовое)", price: 4000 },
-    { service: "Дозаправка фреоном", price: 3500 },
-    { service: "Чистка и дезинфекция", price: 2500 },
-    { service: "Диагностика неисправностей", price: 1500 },
-    { service: "Ремонт электроники", price: 5000 },
-    { service: "Замена компрессора", price: 15000 },
-  ];
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 p-8">
@@ -43,24 +38,44 @@ const PriceList = () => {
             Прайс-лист на услуги
           </h1>
 
-          <Table>
-            <TableHeader>
-              <TableRow className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
-                <TableHead className="w-[70%] text-foreground">Услуга</TableHead>
-                <TableHead className="text-right text-foreground">Стоимость (₽)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {priceconditioners.map((item, index) => (
-                <TableRow key={index} className="animate-fade-in" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
-                  <TableCell className="font-medium text-foreground">{item.service}</TableCell>
-                  <TableCell className="text-right text-foreground">
-                    {item.price.toLocaleString()} ₽
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Accordion type="single" collapsible className="w-full">
+            {priceconditioners.map((category, index) => (
+              <AccordionItem 
+                key={index} 
+                value={`item-${index}`}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <AccordionTrigger className="text-lg font-semibold text-foreground">
+                  {category.category}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[70%] text-foreground">Услуга</TableHead>
+                        <TableHead className="text-right text-foreground">Стоимость (₽)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {category.items.map((item, itemIndex) => (
+                        <TableRow 
+                          key={itemIndex} 
+                          className="animate-fade-in"
+                          style={{ animationDelay: `${(index + itemIndex + 1) * 0.1}s` }}
+                        >
+                          <TableCell className="font-medium text-foreground">{item.service}</TableCell>
+                          <TableCell className="text-right text-foreground">
+                            {item.price.toLocaleString()} ₽
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
 
           <p className="text-sm text-muted-foreground mt-6 text-center animate-fade-in" style={{ animationDelay: '0.8s' }}>
             * Цены указаны приблизительно и могут варьироваться в зависимости от сложности работ

@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as z from "zod";
+import { ArrowLeft, Mail, Phone } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -61,6 +62,13 @@ const ConsultationPage = () => {
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 py-12 px-4">
+      <Button
+        variant="outline"
+        className="absolute top-4 left-4 custom-button1"
+        onClick={() => navigate("/")}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" /> Назад
+      </Button>
       <Card className="max-w-2xl mx-auto animate-scale-in">
         <CardHeader>
           <CardTitle className="text-2xl text-center text-foreground">Заказать консультацию</CardTitle>

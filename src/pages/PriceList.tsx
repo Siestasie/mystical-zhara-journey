@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import "@/additionally.css"
+import {priceconditioners} from "@/prices/priceconditioners"
 
 const PriceList = () => {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ const PriceList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {priceList.map((item, index) => (
+              {priceconditioners.map((item, index) => (
                 <TableRow key={index} className="animate-fade-in" style={{ animationDelay: `${(index + 1) * 0.1}s` }}>
                   <TableCell className="font-medium text-foreground">{item.service}</TableCell>
                   <TableCell className="text-right text-foreground">

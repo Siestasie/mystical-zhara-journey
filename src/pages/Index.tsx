@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { AirVent, Settings, Wrench, LogIn, UserPlus, DollarSign, Image, Phone, PhoneCall, Mail } from "lucide-react";
+import { AirVent, Settings, Wrench, LogIn, UserPlus, Image, Phone, PhoneCall, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthDialogs } from "@/components/auth/AuthDialogs";
@@ -24,11 +24,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
-      {/* Admin Buttons */}
-      <div className="absolute top-4 left-4 flex flex-col sm:flex-row gap-2">
-        <AdminNotifications />
-        <AdminPanel />
-      </div>
+      {/* Admin Buttons - Only show for admin users */}
+      {user?.isAdmin && (
+        <div className="absolute top-4 left-4 flex flex-col sm:flex-row gap-2">
+          <AdminNotifications />
+          <AdminPanel />
+        </div>
+      )}
 
       {/* Theme Toggle and Auth Buttons */}
       <div className="absolute top-4 right-4 flex items-center gap-2">

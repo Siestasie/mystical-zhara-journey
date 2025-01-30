@@ -59,7 +59,7 @@ const Shop = () => {
           className="mb-6 hidden lg:flex"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 mr-2" />
           Назад
         </Button>
         
@@ -80,7 +80,10 @@ const Shop = () => {
               <CardContent>
                 <div className="flex justify-between items-center">
                   <span className="text-xl font-bold">{product.price}</span>
-                  <Button className="custom-button">
+                  <Button 
+                    className="custom-button"
+                    onClick={() => navigate(`/shop/${product.id}`)}
+                  >
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Подробнее
                   </Button>

@@ -1,44 +1,35 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import ConsultationPage from "./pages/Consultation";
+import Shop from "./pages/Shop";
+import ProductDetails from "./pages/ProductDetails";
 import PriceList from "./pages/PriceList";
 import Gallery from "./pages/Gallery";
 import Contacts from "./pages/Contacts";
-import AdminNotifications from "./pages/AdminNotifications";
+import Consultation from "./pages/Consultation";
 import AdminPanel from "./pages/AdminPanel";
-import Shop from "./pages/Shop";
+import AdminNotifications from "./pages/AdminNotifications";
+import { ThemeProvider } from "./components/theme-provider";
+import { Toaster } from "./components/ui/toaster";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+function App() {
+  return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/consultation" element={<ConsultationPage />} />
-              <Route path="/price-list" element={<PriceList />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/contacts" element={<Contacts />} />
-              <Route path="/admin/notifications" element={<AdminNotifications />} />
-              <Route path="/admin/panel" element={<AdminPanel />} />
-              <Route path="/shop" element={<Shop />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/shop/:id" element={<ProductDetails />} />
+          <Route path="/price-list" element={<PriceList />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/consultation" element={<Consultation />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/admin/notifications" element={<AdminNotifications />} />
+        </Routes>
+      </Router>
+      <Toaster />
     </ThemeProvider>
-  </QueryClientProvider>
-);
+  );
+}
 
 export default App;

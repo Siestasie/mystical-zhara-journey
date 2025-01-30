@@ -95,11 +95,14 @@ app.post('/api/login', async (req, res) => {
                 if (results.length === 0) {
                     reject({ status: 401, error: 'Неверный email или пароль.' });
                 }
-                if (!results.is_verified) {
-                  reject({ status: 403, error: 'Аккаунт не подтвержден. Проверьте вашу почту.' })
+                const user = results[0]; // Берем первого пользователя
+          
+                if (!user.is_verified) { 
+                  return reject({ status: 403, error: 'Аккаунт не подтвержден. Проверьте вашу почту.' });
                 }
-                resolve(results[0]);  // Возвращаем первого пользователя из результата
-            }
+
+                resolve(user); 
+          }
         );
     });
 

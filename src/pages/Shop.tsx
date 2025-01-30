@@ -27,6 +27,27 @@ const Shop = () => {
       description: "Для нескольких комнат",
       price: "от 85,000 ₽",
       image: "/placeholder.svg"
+    },
+    {
+      id: 4,
+      name: "Промышленный кондиционер",
+      description: "Для коммерческих помещений",
+      price: "от 120,000 ₽",
+      image: "/placeholder.svg"
+    },
+    {
+      id: 5,
+      name: "Канальный кондиционер",
+      description: "Скрытый монтаж в потолке",
+      price: "от 95,000 ₽",
+      image: "/placeholder.svg"
+    },
+    {
+      id: 6,
+      name: "Кассетный кондиционер",
+      description: "Для офисов и магазинов",
+      price: "от 110,000 ₽",
+      image: "/placeholder.svg"
     }
   ];
 

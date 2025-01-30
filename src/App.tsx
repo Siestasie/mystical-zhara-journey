@@ -12,6 +12,7 @@ import Gallery from "./pages/Gallery";
 import Contacts from "./pages/Contacts";
 import AdminNotifications from "./pages/AdminNotifications";
 import AdminPanel from "./pages/AdminPanel";
+import Shop from "./pages/Shop";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/admin/notifications" element={<AdminNotifications />} />
               <Route path="/admin/panel" element={<AdminPanel />} />
+              <Route path="/shop" element={<Shop />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

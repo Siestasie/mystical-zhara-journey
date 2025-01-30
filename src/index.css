@@ -82,12 +82,18 @@
   transform: scale(1.03);
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in;
+/* Remove the animate-fade-in class and use opacity-0 initially */
+[data-animate] {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
-.animate-scale-in {
-  animation: scaleIn 0.2s ease-out;
+[data-animate].animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+[data-animate].animate-scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
 }
 
 @keyframes fadeIn {

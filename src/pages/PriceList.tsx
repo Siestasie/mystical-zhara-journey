@@ -26,7 +26,7 @@ const PriceList = () => {
       <div className="max-w-4xl mx-auto">
         <Button
           variant="outline"
-          className="mb-8 flex items-center gap-2 custom-button1"
+          className="absolute top-4 left-4 custom-button1 hidden lg:flex"
           onClick={() => navigate("/")}
         >
           <ArrowLeft className="h-4 w-4" />

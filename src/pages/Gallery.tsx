@@ -35,7 +35,7 @@ const Gallery = () => {
     <div className="min-h-screen bg-background transition-colors duration-300 p-8">
       <Button
         variant="outline"
-        className="absolute top-4 left-4 custom-button1"
+        className="absolute top-4 left-4 custom-button1 hidden lg:flex"
         onClick={() => navigate("/")}
       >
         <ArrowLeft className="mr-2 h-4 w-4" /> Назад

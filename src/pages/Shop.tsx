@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, ArrowLeft} from "lucide-react";
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -35,9 +35,10 @@ const Shop = () => {
       <div className="container mx-auto">
         <Button 
           variant="outline" 
-          className="mb-6"
+          className="mb-6 hidden lg:flex"
           onClick={() => navigate(-1)}
         >
+          <ArrowLeft className="h-4 w-4" />
           Назад
         </Button>
         

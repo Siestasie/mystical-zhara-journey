@@ -3,11 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ShoppingCart, Phone } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ProductDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams();
+  const isMobile = useIsMobile();
 
   const products = [
     {
@@ -106,7 +108,7 @@ const ProductDetails = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-background p-4 sm:p-6 flex items-center justify-center">
         <Card className="w-full max-w-2xl animate-fade-in">
           <CardHeader>
             <CardTitle>Товар не найден</CardTitle>
@@ -115,8 +117,8 @@ const ProductDetails = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate(-1)}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
+            <Button onClick={() => navigate(-1)} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
               Вернуться назад
             </Button>
           </CardContent>
@@ -133,39 +135,45 @@ const ProductDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="container mx-auto max-w-6xl">
         <Button 
           variant="outline" 
-          className="mb-6"
+          className="mb-6 flex items-center gap-2"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
+          <ArrowLeft className="h-4 w-4" />
+          {!isMobile && "Назад"}
         </Button>
 
         <Card className="animate-fade-in">
           <CardHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <div className="aspect-video relative overflow-hidden rounded-lg">
                 <img 
                   src={product.image} 
                   alt={product.name} 
-                  className="w-full h-[300px] object-cover rounded-lg"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 />
               </div>
-              <div>
-                <CardTitle className="text-3xl mb-4">{product.name}</CardTitle>
-                <CardDescription className="text-lg mb-4">
+              <div className="space-y-4">
+                <CardTitle className="text-2xl sm:text-3xl">{product.name}</CardTitle>
+                <CardDescription className="text-base sm:text-lg">
                   {product.fullDescription}
                 </CardDescription>
-                <p className="text-2xl font-bold mb-4">{product.price}</p>
-                <div className="flex gap-4">
-                  <Button className="custom-button" onClick={handleContactClick}>
+                <p className="text-xl sm:text-2xl font-bold">{product.price}</p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    className="w-full sm:w-auto custom-button" 
+                    onClick={handleContactClick}
+                  >
                     <Phone className="mr-2 h-4 w-4" />
                     Заказать звонок
                   </Button>
-                  <Button variant="outline" className="custom-button">
+                  <Button 
+                    variant="outline" 
+                    className="w-full sm:w-auto custom-button"
+                  >
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     В корзину
                   </Button>
@@ -174,12 +182,14 @@ const ProductDetails = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <h4 className="text-xl font-semibold mb-4">Характеристики</h4>
-            <ul className="list-disc pl-6 space-y-2">
-              {product.specs.map((spec, index) => (
-                <li key={index} className="text-muted-foreground">{spec}</li>
-              ))}
-            </ul>
+            <div className="space-y-4">
+              <h4 className="text-xl font-semibold">Характеристики</h4>
+              <ul className="list-disc pl-6 space-y-2">
+                {product.specs.map((spec, index) => (
+                  <li key={index} className="text-muted-foreground">{spec}</li>
+                ))}
+              </ul>
+            </div>
           </CardContent>
         </Card>
       </div>

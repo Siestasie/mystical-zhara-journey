@@ -212,9 +212,6 @@ app.post('/api/register', async (req, res) => {
 });
 
 async function sendVerificationEmail(email, token) {
-  console.debug("start")
-  console.log('EMAIL_USER:', process.env.EMAIL_USER);
-  console.log('EMAIL_PASS:', process.env.EMAIL_PASS);
 
   const transporter = nodemailer.createTransport({
       service: 'gmail', // Используйте свой email-сервис (например, Gmail)
@@ -262,8 +259,13 @@ app.get('/api/notifications', (req, res) => {
 
 // Endpoint для создания нового уведомления
 app.post('/api/notifications', (req, res) => {
-    const { name, phone, email, description } = req.body;
-    
+    let { name, phone, email, description } = req.body;
+
+    name = name || "Нет данных";
+    phone = phone || "Нет данных";
+    email = email || "Нет данных";
+    description = description || "Нет данных";
+
     db.query(
         'INSERT INTO notifications (name, phone, email, description, isRead, createdAt) VALUES (?, ?, ?, ?, false, NOW())',
         [name, phone, email, description],
@@ -290,6 +292,24 @@ app.put('/api/notifications/:id/read', (req, res) => {
             res.json({ message: 'Уведомление отмечено как прочитанное.' });
         }
     );
+});
+
+app.delete('/api/notifications/:id/delete', (req, res) => {
+  const { id } = req.params;
+    
+  db.query(
+      'DELETE FROM notifications WHERE id = ?',
+      [id],
+      (err, result) => {
+          if (err) {
+              return res.status(500).json({ error: 'Ошибка сервера при удалении уведомления.', details: err });
+          }
+          if (result.affectedRows === 0) {
+              return res.status(404).json({ error: 'Уведомление с таким ID не найдено.' });
+          }
+          res.json({ message: 'Уведомление успешно удалено.' });
+      }
+  );
 });
 
 const PORT = 3000;

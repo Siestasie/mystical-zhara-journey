@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -17,30 +17,9 @@ interface Notification {
   isRead: boolean;
 }
 
-// Mock data for notifications
-const mockNotifications: Notification[] = [
-  {
-    id: 1,
-    name: "Иван Петров",
-    phone: "+7 999 123-45-67",
-    email: "ivan@example.com",
-    description: "Нужна консультация по установке кондиционера в квартире",
-    createdAt: "2024-02-20T10:30:00",
-    isRead: false
-  },
-  {
-    id: 2,
-    name: "Мария Сидорова",
-    phone: "+7 999 765-43-21",
-    email: "maria@example.com",
-    description: "Интересует обслуживание системы кондиционирования",
-    createdAt: "2024-02-19T15:45:00",
-    isRead: true
-  }
-];
-
 const AdminNotifications = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
   
   // Commented out real API call, using mock data instead
   const { data: notifications, isLoading } = useQuery({
@@ -52,15 +31,35 @@ const AdminNotifications = () => {
          throw new Error('Network response was not ok');
        }
        return response.json();
-      
-      // Using mock data
-      return mockNotifications;
     },
   });
 
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Загрузка...</div>;
   }
+
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`http://localhost:3000/api/notifications/${id}/delete`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate the 'notifications' query to refetch the updated list
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+    onError: (error) => {
+      console.error('Ошибка при удалении уведомления:', error);
+    },
+  });
+
+  const handleDeleteNotification = (id: number) => {
+    deleteNotificationMutation.mutate(id);
+  };
 
   return (
     <>
@@ -81,7 +80,7 @@ const AdminNotifications = () => {
           <ScrollArea className="h-[500px] rounded-md border p-4">
             <div className="space-y-4">
               {notifications?.map((notification) => (
-                <Card key={notification.id} className={notification.isRead ? 'bg-gray-50' : 'bg-white'}>
+                <Card key={notification.id} className={notification.isRead ? 'bg-gray-50' : 'primary'}>
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-lg">
@@ -104,6 +103,13 @@ const AdminNotifications = () => {
                       <p><strong>Описание:</strong> {notification.description}</p>
                     </div>
                   </CardContent>
+                  <Button
+                    variant="outline"
+                    className="flex items-right gap-2"
+                    onClick={() => handleDeleteNotification(notification.id)}
+                  >
+                    <span className="hidden sm:inline">Удалить уведомление</span>
+                  </Button>
                 </Card>
               ))}
             </div>

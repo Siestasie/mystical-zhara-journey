@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"; // ⬅ Добавлено
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
@@ -11,24 +12,29 @@ import AdminNotifications from "./pages/AdminNotifications";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/toaster";
 
+// Создаём клиент TanStack Query
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/shop/:id" element={<ProductDetails />} />
-          <Route path="/price-list" element={<PriceList />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/consultation" element={<Consultation />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/admin/notifications" element={<AdminNotifications />} />
-        </Routes>
-      </Router>
-      <Toaster />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <Router>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/:id" element={<ProductDetails />} />
+            <Route path="/price-list" element={<PriceList />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/consultation" element={<Consultation />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin/notifications" element={<AdminNotifications />} />
+          </Routes>
+        </Router>
+        <Toaster />
+      </ThemeProvider>
+    </QueryClientProvider> 
   );
 }
 

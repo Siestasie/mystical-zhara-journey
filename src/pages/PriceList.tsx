@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -15,11 +16,58 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import "@/additionally.css"
-import { priceconditioners } from "@/prices/priceconditioners"
+import "@/additionally.css";
 
 const PriceList = () => {
   const navigate = useNavigate();
+
+  const [priceconditioners, setPriceconditioners] = useState([]);
+  const [discount, setDiscount] = useState(0);
+
+  useEffect(() => {
+    const GetPrice = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/price', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        setDiscount(data[0].Discount);
+
+        // Фильтруем данные
+        //const filteredData = data.filter(item => item.Discount === 0);
+        //console.log(filteredData)
+
+        data.splice(0, 1);
+
+        console.log(data)
+        setPriceconditioners(data);
+      } catch (error) {
+        console.log("Ошибка", error);
+      }
+    };
+
+    GetPrice();
+  }, []);
+
+  // Функция обновления цен
+  function updatePrices(data, percentage) {
+    if (isNaN(percentage) || percentage < 0) {
+      console.error("Введите корректное число!");
+      return data;
+    }
+
+    return data.map(category => ({
+      ...category,
+      items: category.items.map(item => ({
+        ...item,
+        oldPrice: item.price,
+        price: Math.round(item.price * (1 - percentage / 100))
+      }))
+    }));
+  }
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 p-8">
@@ -39,7 +87,7 @@ const PriceList = () => {
           </h1>
 
           <Accordion type="single" collapsible className="w-full">
-            {priceconditioners.map((category, index) => (
+            {priceconditioners.length > 0 && (discount !== 0 ? updatePrices(priceconditioners, discount) : priceconditioners).map((category, index) => (
               <AccordionItem 
                 key={index} 
                 value={`item-${index}`}
@@ -55,6 +103,9 @@ const PriceList = () => {
                       <TableRow>
                         <TableHead className="w-[70%] text-foreground">Услуга</TableHead>
                         <TableHead className="text-right text-foreground">Стоимость (₽)</TableHead>
+                        {discount !== 0 && (
+                          <TableHead className="text-right text-foreground">Старая цена (₽)</TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -68,6 +119,11 @@ const PriceList = () => {
                           <TableCell className="text-right text-foreground">
                             {item.price.toLocaleString()} ₽
                           </TableCell>
+                          {discount !== 0 && (
+                            <TableCell className="text-right text-foreground">
+                              {item.oldPrice} ₽
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>

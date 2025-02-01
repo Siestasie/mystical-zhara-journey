@@ -5,6 +5,7 @@ import cors from 'cors';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import fs from 'fs';
 dotenv.config();
 
 const app = express();
@@ -310,6 +311,17 @@ app.delete('/api/notifications/:id/delete', (req, res) => {
           res.json({ message: 'Уведомление успешно удалено.' });
       }
   );
+});
+
+app.get('/api/price', (req, res) => {
+  fs.readFile('src/Server/Price.json', 'utf8', (err, data) => {
+      if (err) {
+          console.log(err)
+          return res.status(500).send('Error reading file');
+      }
+      const jsonData = JSON.parse(data);  // Преобразуем строку в объект
+      res.json(jsonData);  // Отправляем объект как JSON ответ
+  });
 });
 
 const PORT = 3000;

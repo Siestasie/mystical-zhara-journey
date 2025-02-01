@@ -7,6 +7,8 @@ import { BarChart } from "lucide-react";
 
 const AdminPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
+  let [inputValue, setInputValue] = useState('');
+
   const { data: visitorCount } = useQuery({
     queryKey: ['visitorCount'],
     queryFn: async () => {
@@ -14,6 +16,10 @@ const AdminPanel = () => {
       return 100;
     },
   });
+
+  const handleChange = (event) => {
+    setInputValue(event.target.value);
+  };
 
   return (
     <>
@@ -38,6 +44,22 @@ const AdminPanel = () => {
                 <p className="text-3xl font-bold text-purple-600">{visitorCount} посетителей</p>
               </CardContent>
             </Card>
+            <label>
+              Введите текст:
+              <input
+                type="text"
+                value={inputValue}
+                onChange={handleChange} // Обработчик изменения значения
+              />
+            </label>
+            <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={() => setIsOpen(true)}
+              >
+                <BarChart className="h-4 w-4" />
+                <span className="hidden sm:inline">Админ панель</span>
+              </Button>
           </div>
         </DialogContent>
       </Dialog>

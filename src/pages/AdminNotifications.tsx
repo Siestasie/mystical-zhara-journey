@@ -1,43 +1,29 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-
-interface Notification {
-  id: number;
-  name: string;
-  phone: string;
-  email: string;
-  description: string;
-  createdAt: string;
-  isRead: boolean;
-}
+import { Bell } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const AdminNotifications = () => {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
-  
-  // Commented out real API call, using mock data instead
+
+  // Запрос уведомлений
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      // Commented out actual API call
       const response = await fetch('http://localhost:3000/api/notifications');
       if (!response.ok) {
-         throw new Error('Network response was not ok');
-       }
-       return response.json();
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
     },
   });
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center min-h-screen">Загрузка...</div>;
-  }
-
+  // Мутация для удаления уведомления
   const deleteNotificationMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await fetch(`http://localhost:3000/api/notifications/${id}/delete`, {
@@ -49,7 +35,6 @@ const AdminNotifications = () => {
       return response.json();
     },
     onSuccess: () => {
-      // Invalidate the 'notifications' query to refetch the updated list
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error) => {
@@ -60,6 +45,11 @@ const AdminNotifications = () => {
   const handleDeleteNotification = (id: number) => {
     deleteNotificationMutation.mutate(id);
   };
+
+  // Загрузка данных
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-screen">Загрузка...</div>;
+  }
 
   return (
     <>

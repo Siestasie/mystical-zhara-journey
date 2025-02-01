@@ -5,46 +5,49 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BarChart } from "lucide-react";
-import { number } from "zod";
+import { toast } from "sonner";
 
 const AdminPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
-  let [inputdiscount, setInputdiscount] = useState('');
+  const [inputdiscount, setInputdiscount] = useState('');
 
   const { data: visitorCount } = useQuery({
     queryKey: ['visitorCount'],
     queryFn: async () => {
-      // This is a placeholder. You'll need to implement actual visitor tracking
       return 100;
     },
   });
 
   const handleChange = (event) => {
     setInputdiscount(event.target.value);
-    updateDiscount
-    console.log(inputdiscount)
   };
 
-  const updateDiscount = async (Discount) => {
+  const updateDiscount = async () => {
     try {
+      const numericDiscount = parseFloat(inputdiscount);
+      
+      if (isNaN(numericDiscount)) {
+        toast.error("Пожалуйста, введите корректное число");
+        return;
+      }
+
       const response = await fetch('http://localhost:3000/api/update-discount', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ Discount: inputdiscount }), // Отправка нового значения Discount
+        body: JSON.stringify({ Discount: numericDiscount }),
       });
-      console.log(typeof inputdiscount)
 
-      const result = await response.json();
-  
       if (response.ok) {
-        console.log('Discount успешно обновлен:', result);
+        toast.success('Скидка успешно обновлена');
+        setInputdiscount('');
       } else {
-        console.error('Ошибка при обновлении Discount:', result.error);
+        toast.error('Ошибка при обновлении скидки');
       }
     } catch (error) {
-      console.error('Ошибка сети:', error);
+      toast.error('Произошла ошибка при отправке данных');
+      console.error('Ошибка:', error);
     }
   };
 
@@ -77,16 +80,17 @@ const AdminPanel = () => {
               </label>
               <Input
                 id="adminInput"
-                type="text"
+                type="number"
                 value={inputdiscount}
+                onChange={handleChange}
                 className="w-full transition-colors focus:border-purple-500"
-                placeholder="Введите ваш текст..."
+                placeholder="Введите процент скидки..."
               />
             </div>
             <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900"
-              onClick={handleChange}
+              onClick={updateDiscount}
             >
               <BarChart className="h-4 w-4" />
               <span>Применить</span>

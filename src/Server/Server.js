@@ -32,6 +32,63 @@ db.connect((err) => {
     console.log('Подключение к базе данных успешно!');
 });
 
+// Add this SQL query after database connection
+db.query(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    fullDescription TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    category VARCHAR(255) NOT NULL,
+    specs JSON,
+    image VARCHAR(255),
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Add these new endpoints after existing endpoints
+app.post('/api/products', (req, res) => {
+    const { name, description, fullDescription, price, category, specs, image } = req.body;
+
+    db.query(
+        'INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [name, description, fullDescription, price, category, JSON.stringify(specs), image],
+        (err, result) => {
+            if (err) {
+                console.error('Error adding product:', err);
+                return res.status(500).json({ error: 'Error adding product' });
+            }
+            res.status(201).json({ id: result.insertId, message: 'Product added successfully' });
+        }
+    );
+});
+
+app.get('/api/products', (req, res) => {
+    db.query('SELECT * FROM products', (err, results) => {
+        if (err) {
+            console.error('Error fetching products:', err);
+            return res.status(500).json({ error: 'Error fetching products' });
+        }
+        res.json(results);
+    });
+});
+
+app.delete('/api/products/:id', (req, res) => {
+    const { id } = req.params;
+    
+    db.query('DELETE FROM products WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            console.error('Error deleting product:', err);
+            return res.status(500).json({ error: 'Error deleting product' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        res.json({ message: 'Product deleted successfully' });
+    });
+});
+
 // Add this new endpoint after the existing endpoints
 app.post('/api/resend-verification', async (req, res) => {
   const { email } = req.body;

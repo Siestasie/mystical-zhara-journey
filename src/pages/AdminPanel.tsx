@@ -45,19 +45,30 @@ const AdminPanel = () => {
   });
 
   const addProductMutation = useMutation({
-    mutationFn: async (productData) => {
+    mutationFn: async (productData: {
+      name: string;
+      description: string;
+      fullDescription: string;
+      price: string;
+      category: string;
+      specs: string[];
+      image: string;
+    }) => {
       const response = await fetch('http://localhost:3000/api/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(productData),
+        body: JSON.stringify({
+          ...productData,
+          price: parseFloat(productData.price)
+        }),
       });
       if (!response.ok) throw new Error('Failed to add product');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['products']);
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Продукт успешно добавлен');
       setNewProduct({
         name: '',
@@ -75,7 +86,7 @@ const AdminPanel = () => {
   });
 
   const deleteProductMutation = useMutation({
-    mutationFn: async (id) => {
+    mutationFn: async (id: number) => {
       const response = await fetch(`http://localhost:3000/api/products/${id}`, {
         method: 'DELETE',
       });
@@ -83,7 +94,7 @@ const AdminPanel = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['products']);
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Продукт успешно удален');
     },
     onError: () => {
@@ -98,7 +109,7 @@ const AdminPanel = () => {
     }));
   };
 
-  const handleSpecChange = (index, value) => {
+  const handleSpecChange = (index: number, value: string) => {
     const newSpecs = [...newProduct.specs];
     newSpecs[index] = value;
     setNewProduct(prev => ({
@@ -107,16 +118,12 @@ const AdminPanel = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const productData = {
-      ...newProduct,
-      price: parseFloat(newProduct.price)
-    };
-    addProductMutation.mutate(productData);
+    addProductMutation.mutate(newProduct);
   };
 
-  const handleChange = (event) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputdiscount(event.target.value);
   };
 
@@ -148,6 +155,8 @@ const AdminPanel = () => {
       console.error('Ошибка:', error);
     }
   };
+
+  // ... keep existing code (JSX return statement)
 
   return (
     <>

@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { BarChart } from "lucide-react";
 
 const AdminPanel = () => {
@@ -44,22 +45,26 @@ const AdminPanel = () => {
                 <p className="text-3xl font-bold text-purple-600">{visitorCount} посетителей</p>
               </CardContent>
             </Card>
-            <label>
-              Введите текст:
-              <input
+            <div className="space-y-2">
+              <label htmlFor="adminInput" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Введите текст:
+              </label>
+              <Input
+                id="adminInput"
                 type="text"
                 value={inputValue}
-                onChange={handleChange} // Обработчик изменения значения
+                onChange={handleChange}
+                className="w-full transition-colors focus:border-purple-500"
+                placeholder="Введите ваш текст..."
               />
-            </label>
+            </div>
             <Button
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={() => setIsOpen(true)}
-              >
-                <BarChart className="h-4 w-4" />
-                <span className="hidden sm:inline">Админ панель</span>
-              </Button>
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900"
+            >
+              <BarChart className="h-4 w-4" />
+              <span>Применить</span>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

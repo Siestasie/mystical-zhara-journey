@@ -5,10 +5,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BarChart } from "lucide-react";
+import { number } from "zod";
 
 const AdminPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
-  let [inputValue, setInputValue] = useState('');
+  let [inputdiscount, setInputdiscount] = useState('');
 
   const { data: visitorCount } = useQuery({
     queryKey: ['visitorCount'],
@@ -19,7 +20,32 @@ const AdminPanel = () => {
   });
 
   const handleChange = (event) => {
-    setInputValue(event.target.value);
+    setInputdiscount(event.target.value);
+    updateDiscount
+    console.log(inputdiscount)
+  };
+
+  const updateDiscount = async (Discount) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/update-discount', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ Discount: inputdiscount }), // Отправка нового значения Discount
+      });
+      console.log(typeof inputdiscount)
+
+      const result = await response.json();
+  
+      if (response.ok) {
+        console.log('Discount успешно обновлен:', result);
+      } else {
+        console.error('Ошибка при обновлении Discount:', result.error);
+      }
+    } catch (error) {
+      console.error('Ошибка сети:', error);
+    }
   };
 
   return (
@@ -47,13 +73,12 @@ const AdminPanel = () => {
             </Card>
             <div className="space-y-2">
               <label htmlFor="adminInput" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Введите текст:
+                Введите скидку:
               </label>
               <Input
                 id="adminInput"
                 type="text"
-                value={inputValue}
-                onChange={handleChange}
+                value={inputdiscount}
                 className="w-full transition-colors focus:border-purple-500"
                 placeholder="Введите ваш текст..."
               />
@@ -61,6 +86,7 @@ const AdminPanel = () => {
             <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900"
+              onClick={handleChange}
             >
               <BarChart className="h-4 w-4" />
               <span>Применить</span>

@@ -324,6 +324,35 @@ app.get('/api/price', (req, res) => {
   });
 });
 
+app.put('/api/update-discount', (req, res) => {
+  const { Discount } = req.body;
+
+  if (typeof Discount !== 'number') {
+    return res.status(400).json({ error: 'Discount должен быть числом' });
+  }
+
+  // Чтение текущего файла JSON
+  fs.readFile("src/Server/Price.json", 'utf8', (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: 'Ошибка при чтении файла' });
+    }
+
+    let jsonData = JSON.parse(data);
+
+    // Обновление значения Discount
+    jsonData[0].Discount = Discount;
+
+    // Запись изменений обратно в файл
+    fs.writeFile("src/Server/Price.json", JSON.stringify(jsonData, null, 2), 'utf8', (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Ошибка при записи в файл' });
+      }
+
+      return res.status(200).json({ message: 'Discount успешно обновлен' });
+    });
+  });
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Сервер запущен на http://localhost:${PORT}`);

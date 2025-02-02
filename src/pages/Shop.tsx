@@ -213,7 +213,7 @@ const Shop = () => {
               <CardHeader className="space-y-2">
                 <div className="aspect-video relative overflow-hidden rounded-t-lg">
                   <img 
-                    src={product.image} 
+                    src={`http://localhost:3000${product.image}`}
                     alt={product.name} 
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                   />

@@ -6,19 +6,32 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import path from 'path';
+import multer from "multer";
 dotenv.config();
 
 const app = express();
+const upload = multer({ dest: 'uploads/' }); // Сохраняем в папке 'uploads
 
 // Увеличиваем лимит для JSON
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({limit: '50mb', extended: true}));
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+
 app.use(cors({
     origin: 'http://localhost:8080',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
+
+app.use('/uploads', express.static(uploadsDir));
 
 const db = mysql.createConnection({
     host: 'localhost',
@@ -50,20 +63,27 @@ db.query(`
   )
 `);
 
-// Add these new endpoints after existing endpoints
-
 // Обновляем endpoint для добавления продукта
 app.post('/api/products', (req, res) => {
     const { name, description, fullDescription, price, category, specs, image } = req.body;
     
     // Проверяем, что image это base64 строка
     if (image && image.startsWith('data:image')) {
+        // Декодирование Base64 изображения в файл
+        const imageBuffer = Buffer.from(image.split(',')[1], 'base64'); // Убираем префикс "data:image/jpeg;base64," и конвертируем
+
+        // Путь для сохранения изображения
+        const imagePath = path.join(uploadsDir, `${Date.now()}.jpg`);
+
+        // Сохраняем файл на диск
+        fs.writeFileSync(imagePath, imageBuffer);
         db.query(
             'INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [name, description, fullDescription, price, category, JSON.stringify(specs), image],
+            [name, description, fullDescription, price, category, JSON.stringify(specs), `/uploads/${path.basename(imagePath)}`],
             (err, result) => {
                 if (err) {
-                    console.error('Error adding product:', err);
+                    console.log(image)
+                    console.error('Error adding product:');
                     return res.status(500).json({ error: 'Error adding product' });
                 }
                 res.status(201).json({ id: result.insertId, message: 'Product added successfully' });
@@ -419,6 +439,7 @@ app.put('/api/update-discount', (req, res) => {
     });
   });
 });
+
 
 // const __dirname = path.resolve();
 

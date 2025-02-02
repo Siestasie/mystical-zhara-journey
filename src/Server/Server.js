@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import path from 'path';
 dotenv.config();
 
 const app = express();
@@ -409,6 +410,14 @@ app.put('/api/update-discount', (req, res) => {
     });
   });
 });
+
+// const __dirname = path.resolve();
+
+// app.use(express.static(path.join(__dirname, 'dist')));
+
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// });
 
 const PORT = 3000;
 app.listen(PORT, () => {

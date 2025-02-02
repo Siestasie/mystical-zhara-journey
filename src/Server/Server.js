@@ -11,7 +11,9 @@ dotenv.config();
 
 const app = express();
 
-app.use(express.json());
+// Увеличиваем лимит для JSON
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb', extended: true}));
 
 app.use(cors({
     origin: 'http://localhost:8080',
@@ -49,20 +51,27 @@ db.query(`
 `);
 
 // Add these new endpoints after existing endpoints
+
+// Обновляем endpoint для добавления продукта
 app.post('/api/products', (req, res) => {
     const { name, description, fullDescription, price, category, specs, image } = req.body;
-
-    db.query(
-        'INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [name, description, fullDescription, price, category, JSON.stringify(specs), image],
-        (err, result) => {
-            if (err) {
-                console.error('Error adding product:', err);
-                return res.status(500).json({ error: 'Error adding product' });
+    
+    // Проверяем, что image это base64 строка
+    if (image && image.startsWith('data:image')) {
+        db.query(
+            'INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [name, description, fullDescription, price, category, JSON.stringify(specs), image],
+            (err, result) => {
+                if (err) {
+                    console.error('Error adding product:', err);
+                    return res.status(500).json({ error: 'Error adding product' });
+                }
+                res.status(201).json({ id: result.insertId, message: 'Product added successfully' });
             }
-            res.status(201).json({ id: result.insertId, message: 'Product added successfully' });
-        }
-    );
+        );
+    } else {
+        res.status(400).json({ error: 'Invalid image format' });
+    }
 });
 
 app.get('/api/products', (req, res) => {

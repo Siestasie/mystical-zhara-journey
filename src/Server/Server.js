@@ -63,7 +63,6 @@ db.query(`
   )
 `);
 
-// Обновляем endpoint для добавления продукта
 app.post('/api/products', (req, res) => {
     const { name, description, fullDescription, price, category, specs, image } = req.body;
     
@@ -119,12 +118,10 @@ app.delete('/api/products/:id', (req, res) => {
     });
 });
 
-// Add this new endpoint after the existing endpoints
 app.post('/api/resend-verification', async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Проверяем существование пользователя
     const [user] = await new Promise((resolve, reject) => {
       db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
         console.log(err)
@@ -141,10 +138,8 @@ app.post('/api/resend-verification', async (req, res) => {
       return res.status(400).json({ error: 'Email уже подтвержден' });
     }
 
-    // Создаем новый токен
     const token = crypto.randomBytes(32).toString('hex');
     
-    // Обновляем или создаем новый токен верификации
     await new Promise((resolve, reject) => {
       db.query(
         'INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)',
@@ -156,7 +151,6 @@ app.post('/api/resend-verification', async (req, res) => {
       );
     });
 
-    // Отправляем новое письмо
     await sendVerificationEmail(email, token);
     
     res.json({ message: 'Письмо с подтверждением отправлено' });
@@ -166,12 +160,10 @@ app.post('/api/resend-verification', async (req, res) => {
   }
 });
 
-// API-эндпоинт для входа
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Проверка пользователя в базе данных
     const queryPromise = new Promise((resolve, reject) => {
         db.query(
             'SELECT * FROM users WHERE email = ?',
@@ -183,7 +175,7 @@ app.post('/api/login', async (req, res) => {
                 if (results.length === 0) {
                     reject({ status: 401, error: 'Неверный email или пароль.' });
                 }
-                const user = results[0]; // Берем первого пользователя
+                const user = results[0];
           
                 if (!user.is_verified) { 
                   return reject({ status: 403, error: 'Аккаунт не подтвержден. Проверьте вашу почту.' });
@@ -194,13 +186,8 @@ app.post('/api/login', async (req, res) => {
         );
     });
 
-    // Ожидаем завершения запроса и дальнейшей обработки
     const user = await queryPromise;
 
-    console.log('Введенный пароль:', password); 
-    console.log('Пароль из базы данных:', user);
-
-    // Сравнение пароля с использованием bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.Password);
     console.log(isPasswordValid);
 
@@ -208,7 +195,6 @@ app.post('/api/login', async (req, res) => {
         return res.status(401).json({ error: 'Неверный email или пароль.' });
     }
 
-    // Возвращаем успешный ответ
     res.status(200).json({ message: 'Вход выполнен успешно!', user });
 
   } catch (error) {
@@ -219,8 +205,6 @@ app.post('/api/login', async (req, res) => {
 
 app.post('/api/register', async (req, res) => {
     const {name, email, password } = req.body;
-    console.debug(email)
-    // Проверить, существует ли пользователь с таким email
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
       if (err) {
         return res.status(500).json({ error: 'Ошибка сервера' });
@@ -230,10 +214,8 @@ app.post('/api/register', async (req, res) => {
         return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
       }
   
-      // Хешировать пароль
       const hashedPassword = await bcrypt.hash(password, 10);
       
-      // Вставить нового пользователя в базу данных
       db.query(
         'INSERT INTO users (name, email, password, is_verified, isAdmin) VALUES (?, ?, ?, ?, ?)',
         [name, email, hashedPassword, 0, 0],
@@ -265,7 +247,6 @@ app.post('/api/register', async (req, res) => {
   app.get('/verify-email', (req, res) => {
     const { token } = req.query;
 
-    // Проверяем токен в базе данных
     db.query(
         'SELECT * FROM email_verification_tokens WHERE token = ?',
         [token],
@@ -280,7 +261,6 @@ app.post('/api/register', async (req, res) => {
 
             const userId = results[0].user_id;
 
-            // Обновляем статус пользователя
             db.query(
                 'UPDATE users SET is_verified = 1 WHERE id = ?',
                 [userId],
@@ -289,7 +269,6 @@ app.post('/api/register', async (req, res) => {
                         return res.status(500).json({ error: 'Ошибка сервера.' });
                     }
 
-                    // Удаляем токен после успешной активации
                     db.query('DELETE FROM email_verification_tokens WHERE token = ?', [token]);
 
                     res.status(200).json({ message: 'Ваша почта успешно подтверждена!' });
@@ -302,10 +281,10 @@ app.post('/api/register', async (req, res) => {
 async function sendVerificationEmail(email, token) {
 
   const transporter = nodemailer.createTransport({
-      service: 'gmail', // Используйте свой email-сервис (например, Gmail)
+      service: 'gmail', 
       auth: {
-          user: process.env.EMAIL_USER, //Удалить
-          pass: process.env.EMAIL_PASS //Удалить
+          user: process.env.EMAIL_USER, 
+          pass: process.env.EMAIL_PASS 
       }
   });
 
@@ -331,8 +310,6 @@ async function sendVerificationEmail(email, token) {
   console.log('Письмо отправлено на адрес:', email);
 }
 
-
-// Endpoint для получения всех уведомлений
 app.get('/api/notifications', (req, res) => {
     db.query(
         'SELECT * FROM notifications ORDER BY createdAt DESC',
@@ -345,7 +322,6 @@ app.get('/api/notifications', (req, res) => {
     );
 });
 
-// Endpoint для создания нового уведомления
 app.post('/api/notifications', (req, res) => {
     let { name, phone, email, description } = req.body;
 
@@ -366,7 +342,6 @@ app.post('/api/notifications', (req, res) => {
     );
 });
 
-// Endpoint для отметки уведомления как прочитанного
 app.put('/api/notifications/:id/read', (req, res) => {
     const { id } = req.params;
     
@@ -406,8 +381,8 @@ app.get('/api/price', (req, res) => {
           console.log(err)
           return res.status(500).send('Error reading file');
       }
-      const jsonData = JSON.parse(data);  // Преобразуем строку в объект
-      res.json(jsonData);  // Отправляем объект как JSON ответ
+      const jsonData = JSON.parse(data);
+      res.json(jsonData);
   });
 });
 
@@ -418,7 +393,6 @@ app.put('/api/update-discount', (req, res) => {
     return res.status(400).json({ error: 'Discount должен быть числом' });
   }
 
-  // Чтение текущего файла JSON
   fs.readFile("src/Server/Price.json", 'utf8', (err, data) => {
     if (err) {
       return res.status(500).json({ error: 'Ошибка при чтении файла' });
@@ -426,10 +400,8 @@ app.put('/api/update-discount', (req, res) => {
 
     let jsonData = JSON.parse(data);
 
-    // Обновление значения Discount
     jsonData[0].Discount = Discount;
 
-    // Запись изменений обратно в файл
     fs.writeFile("src/Server/Price.json", JSON.stringify(jsonData, null, 2), 'utf8', (err) => {
       if (err) {
         return res.status(500).json({ error: 'Ошибка при записи в файл' });

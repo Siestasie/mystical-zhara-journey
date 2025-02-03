@@ -412,14 +412,94 @@ app.put('/api/update-discount', (req, res) => {
   });
 });
 
+// New endpoints for account settings
+app.post('/api/change-password', async (req, res) => {
+  const { userId, currentPassword, newPassword } = req.body;
 
-// const __dirname = path.resolve();
+  try {
+    // Получаем текущий пароль пользователя из базы данных
+    const [user] = await new Promise((resolve, reject) => {
+      db.query('SELECT password FROM users WHERE id = ?', [userId], (err, results) => {
+        if (err) reject(err);
+        resolve(results);
+      });
+    });
 
-// app.use(express.static(path.join(__dirname, 'dist')));
+    // Проверяем текущий пароль
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Неверный текущий пароль' });
+    }
 
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-// });
+    // Хешируем новый пароль
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Обновляем пароль в базе данных
+    await new Promise((resolve, reject) => {
+      db.query('UPDATE users SET password = ? WHERE id = ?', [hashedNewPassword, userId], (err) => {
+        if (err) reject(err);
+        resolve();
+      });
+    });
+
+    res.json({ message: 'Пароль успешно изменен' });
+  } catch (error) {
+    console.error('Ошибка при изменении пароля:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/update-user-info', (req, res) => {
+  const { userId, phone, address } = req.body;
+
+  db.query(
+    'UPDATE users SET phone = ?, address = ? WHERE id = ?',
+    [phone, address, userId],
+    (err) => {
+      if (err) {
+        console.error('Ошибка при обновлении информации:', err);
+        return res.status(500).json({ error: 'Ошибка сервера' });
+      }
+      res.json({ message: 'Информация успешно обновлена' });
+    }
+  );
+});
+
+app.put('/api/products/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, description, fullDescription, price, category, specs, image } = req.body;
+
+  if (image && image.startsWith('data:image')) {
+    // Декодирование Base64 изображения в файл
+    const imageBuffer = Buffer.from(image.split(',')[1], 'base64');
+    const imagePath = path.join(uploadsDir, `${Date.now()}.jpg`);
+    fs.writeFileSync(imagePath, imageBuffer);
+
+    db.query(
+      'UPDATE products SET name = ?, description = ?, fullDescription = ?, price = ?, category = ?, specs = ?, image = ? WHERE id = ?',
+      [name, description, fullDescription, price, category, JSON.stringify(specs), `/uploads/${path.basename(imagePath)}`, id],
+      (err) => {
+        if (err) {
+          console.error('Error updating product:', err);
+          return res.status(500).json({ error: 'Error updating product' });
+        }
+        res.json({ message: 'Product updated successfully' });
+      }
+    );
+  } else {
+    db.query(
+      'UPDATE products SET name = ?, description = ?, fullDescription = ?, price = ?, category = ?, specs = ? WHERE id = ?',
+      [name, description, fullDescription, price, category, JSON.stringify(specs), id],
+      (err) => {
+        if (err) {
+          console.error('Error updating product:', err);
+          return res.status(500).json({ error: 'Error updating product' });
+        }
+        res.json({ message: 'Product updated successfully' });
+      }
+    );
+  }
+});
 
 const PORT = 3000;
 app.listen(PORT, () => {

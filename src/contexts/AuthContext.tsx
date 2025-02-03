@@ -4,7 +4,9 @@ interface User {
   id: number;
   email: string;
   name: string;
-  isAdmin?: boolean; // Added isAdmin flag
+  isAdmin?: boolean;
+  phone?: string;
+  address?: string;
 }
 
 interface AuthContextType {

@@ -16,13 +16,18 @@ interface BlogPost {
   content: string;
   createdAt: string;
   author: string;
+  image?: string;
 }
 
 const Blog = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [newPost, setNewPost] = useState({ title: "", content: "" });
+  const [newPost, setNewPost] = useState({ 
+    title: "", 
+    content: "",
+    image: "" 
+  });
   const queryClient = useQueryClient();
 
   const { data: posts = [] } = useQuery<BlogPost[]>({
@@ -35,7 +40,7 @@ const Blog = () => {
   });
 
   const addPostMutation = useMutation({
-    mutationFn: async (postData: { title: string; content: string }) => {
+    mutationFn: async (postData: typeof newPost) => {
       const response = await fetch('http://localhost:3000/api/blog-posts', {
         method: 'POST',
         headers: {
@@ -53,7 +58,7 @@ const Blog = () => {
         description: "Пост успешно добавлен",
       });
       setIsOpen(false);
-      setNewPost({ title: "", content: "" });
+      setNewPost({ title: "", content: "", image: "" });
     },
     onError: () => {
       toast({
@@ -63,6 +68,20 @@ const Blog = () => {
       });
     }
   });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewPost(prev => ({
+          ...prev,
+          image: reader.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
@@ -96,7 +115,16 @@ const Blog = () => {
                   Автор: {post.author} | {new Date(post.createdAt).toLocaleDateString()}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {post.image && (
+                  <div className="aspect-video relative overflow-hidden rounded-lg">
+                    <img 
+                      src={`http://localhost:3000${post.image}`}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <p className="whitespace-pre-wrap">{post.content}</p>
               </CardContent>
             </Card>
@@ -127,6 +155,11 @@ const Blog = () => {
                 onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
                 required
                 className="min-h-[200px]"
+              />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
               />
               <Button type="submit" className="w-full">
                 Опубликовать

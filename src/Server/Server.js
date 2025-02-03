@@ -70,6 +70,7 @@ db.query(`
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     author VARCHAR(255) NOT NULL,
+    image VARCHAR(255),
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `);
@@ -140,19 +141,37 @@ app.get('/api/blog-posts', (req, res) => {
 });
 
 app.post('/api/blog-posts', (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, image } = req.body;
   
-  db.query(
-    'INSERT INTO blog_posts (title, content, author) VALUES (?, ?, ?)',
-    [title, content, 'Admin'],
-    (err, result) => {
-      if (err) {
-        console.error('Error adding blog post:', err);
-        return res.status(500).json({ error: 'Error adding blog post' });
+  if (image && image.startsWith('data:image')) {
+    const imageBuffer = Buffer.from(image.split(',')[1], 'base64');
+    const imagePath = path.join(uploadsDir, `${Date.now()}.jpg`);
+    fs.writeFileSync(imagePath, imageBuffer);
+
+    db.query(
+      'INSERT INTO blog_posts (title, content, author, image) VALUES (?, ?, ?, ?)',
+      [title, content, 'Admin', `/uploads/${path.basename(imagePath)}`],
+      (err, result) => {
+        if (err) {
+          console.error('Error adding blog post:', err);
+          return res.status(500).json({ error: 'Error adding blog post' });
+        }
+        res.status(201).json({ id: result.insertId, message: 'Blog post added successfully' });
       }
-      res.status(201).json({ id: result.insertId, message: 'Blog post added successfully' });
-    }
-  );
+    );
+  } else {
+    db.query(
+      'INSERT INTO blog_posts (title, content, author) VALUES (?, ?, ?)',
+      [title, content, 'Admin'],
+      (err, result) => {
+        if (err) {
+          console.error('Error adding blog post:', err);
+          return res.status(500).json({ error: 'Error adding blog post' });
+        }
+        res.status(201).json({ id: result.insertId, message: 'Blog post added successfully' });
+      }
+    );
+  }
 });
 
 app.post('/api/resend-verification', async (req, res) => {

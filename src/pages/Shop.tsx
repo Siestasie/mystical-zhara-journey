@@ -233,13 +233,21 @@ const Shop = () => {
                       Подробнее
                     </Button>
                     {user?.isAdmin && (
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => deleteProductMutation.mutate(product.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate(`/shop/${product.id}`)}
+                        >
+                          Редактировать
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => deleteProductMutation.mutate(product.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>

@@ -115,6 +115,20 @@ app.get('/api/products', (req, res) => {
     });
 });
 
+app.get('/api/products/:id', (req, res) => {
+  const productId = req.params.id;
+  db.query('SELECT * FROM products WHERE id = ?', [productId], (err, results) => {
+      if (err) {
+          console.error('Error fetching product:', err);
+          return res.status(500).json({ error: 'Error fetching product' });
+      }
+      if (results.length === 0) {
+          return res.status(404).json({ error: 'Product not found' });
+      }
+      res.json(results[0]); // Возвращаем первый найденный продукт
+  });
+});
+
 app.delete('/api/products/:id', (req, res) => {
     const { id } = req.params;
     
@@ -137,6 +151,20 @@ app.get('/api/blog-posts', (req, res) => {
       return res.status(500).json({ error: 'Error fetching blog posts' });
     }
     res.json(results);
+  });
+});
+
+app.delete('/api/blog-posts/:id', (req, res) => {
+  const postId = req.params.id;
+  db.query('DELETE FROM blog_posts WHERE id = ?', [postId], (err, result) => {
+    if (err) {
+      console.error('Error deleting post:', err);
+      return res.status(500).json({ error: 'Error deleting post' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    res.json({ message: 'Post deleted successfully' });
   });
 });
 

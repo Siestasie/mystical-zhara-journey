@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
@@ -37,6 +38,30 @@ const Blog = () => {
       if (!response.ok) throw new Error('Failed to fetch posts');
       return response.json();
     }
+  });
+
+  const deletePostMutation = useMutation({
+    mutationFn: async (postId: number) => {
+      const response = await fetch(`http://localhost:3000/api/blog-posts/${postId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete post');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
+      toast({
+        title: "Успешно",
+        description: "Пост успешно удалён",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить пост",
+        variant: "destructive",
+      });
+    },
   });
 
   const addPostMutation = useMutation({
@@ -125,6 +150,12 @@ const Blog = () => {
                     />
                   </div>
                 )}
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => deletePostMutation.mutate(post.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
                 <p className="whitespace-pre-wrap">{post.content}</p>
               </CardContent>
             </Card>

@@ -135,25 +135,17 @@ const Shop = () => {
     addProductMutation.mutate(newProduct);
   };
 
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
   const filteredProducts = products.filter(product => {
     const categoryMatch = selectedCategory === "all" || product.category === selectedCategory;
-    
-    if (priceRange === "all") return categoryMatch;
-    
-    const [min, max] = priceRange.split("-").map(Number);
-    if (max) {
-      return categoryMatch && product.price >= min && product.price <= max;
-    } else {
-      return categoryMatch && product.price >= min;
-    }
-  });
-
-  const priceRanges = [
-    { label: "До 30 000 ₽", value: "0-30000" },
-    { label: "30 000 ₽ - 60 000 ₽", value: "30000-60000" },
-    { label: "60 000 ₽ - 100 000 ₽", value: "60000-100000" },
-    { label: "Более 100 000 ₽", value: "100000+" }
-  ];
+    const priceMatch =
+      (!minPrice || product.price >= Number(minPrice)) &&
+      (!maxPrice || product.price <= Number(maxPrice));
+  
+    return categoryMatch && priceMatch;
+  });  
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
@@ -197,19 +189,23 @@ const Shop = () => {
             </SelectContent>
           </Select>
 
-          <Select value={priceRange} onValueChange={setPriceRange}>
-            <SelectTrigger className="w-full sm:w-[250px]">
-              <SelectValue placeholder="Ценовой диапазон" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Любая цена</SelectItem>
-              {priceRanges.map((range) => (
-                <SelectItem key={range.value} value={range.value}>
-                  {range.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              placeholder="Мин. цена"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="w-full sm:w-[120px]"
+            />
+            <Input
+              type="number"
+              placeholder="Макс. цена"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="w-full sm:w-[120px]"
+            />
+          </div>
+
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

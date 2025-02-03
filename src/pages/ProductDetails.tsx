@@ -27,8 +27,23 @@ const ProductDetails = () => {
     price: '',
     category: '',
     specs: [''],
-    image: ''
+    images: [] as string[]
   });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditProduct(prev => ({
+          ...prev,
+          images: [reader.result as string] // Добавляем изображение в массив
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
 
   const categories = [
     "Бытовые сплит-системы",
@@ -54,7 +69,7 @@ const ProductDetails = () => {
         price: data.price.toString(),
         category: data.category,
         specs: data.specs || [''],
-        image: data.image
+        images: data.images || []
       });
       return data;
     }
@@ -69,7 +84,8 @@ const ProductDetails = () => {
         },
         body: JSON.stringify({
           ...productData,
-          price: parseFloat(productData.price)
+          price: parseFloat(productData.price),
+          images: productData.images,
         }),
       });
       if (!response.ok) throw new Error('Failed to update product');
@@ -276,21 +292,7 @@ const ProductDetails = () => {
               </div>
 
               <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setEditProduct(prev => ({
-                        ...prev,
-                        image: reader.result as string
-                      }));
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
+                onChange={handleFileUpload}
               />
 
               <Button type="submit" className="w-full">

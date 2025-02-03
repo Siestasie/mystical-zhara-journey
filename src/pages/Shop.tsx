@@ -27,7 +27,7 @@ const Shop = () => {
     price: '',
     category: '',
     specs: [''],
-    image: '/placeholder.svg'
+    images: [] as string[],
   });
 
   const categories = [
@@ -58,7 +58,7 @@ const Shop = () => {
       price: string;
       category: string;
       specs: string[];
-      image: string;
+      images: string[]; // Изменили image на images (массив)
     }) => {
       const response = await fetch('http://localhost:3000/api/products', {
         method: 'POST',
@@ -67,15 +67,18 @@ const Shop = () => {
         },
         body: JSON.stringify({
           ...productData,
-          price: parseFloat(productData.price)
+          price: parseFloat(productData.price),
+          images: productData.images, // Отправляем массив изображений
         }),
       });
+  
       if (!response.ok) throw new Error('Failed to add product');
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('Продукт успешно добавлен');
+      
       setNewProduct({
         name: '',
         description: '',
@@ -83,14 +86,16 @@ const Shop = () => {
         price: '',
         category: '',
         specs: [''],
-        image: '/placeholder.svg'
+        images: [] // Сбрасываем массив изображений
       });
+  
       setIsOpen(false);
     },
     onError: () => {
       toast.error('Ошибка при добавлении продукта');
     }
   });
+  
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -328,20 +333,45 @@ const Shop = () => {
             <Input
               type="file"
               accept="image/*"
+              multiple // Позволяет выбрать несколько файлов
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    setNewProduct(prev => ({
-                      ...prev,
-                      image: reader.result as string
-                    }));
-                  };
-                  reader.readAsDataURL(file);
+                const files = Array.from(e.target.files || []);
+                
+                if (files.length > 3) {
+                  alert("Вы можете загрузить не более 3 изображений.");
+                  return;
                 }
+
+                const readers = files.map(file => {
+                  return new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(file);
+                  });
+                });
+
+                Promise.all(readers).then((images) => {
+                  // Добавляем новые изображения к существующим
+                  setNewProduct(prev => ({ 
+                    ...prev, 
+                    images: [...prev.images, ...images] 
+                  }));
+                });
               }}
             />
+
+            <div className="mt-4">
+              {newProduct.images.length > 0 && (
+                <div className="flex gap-2">
+                  {newProduct.images.map((image, index) => (
+                    <div key={index} className="w-20 h-20 overflow-hidden rounded-md">
+                      <img src={image} alt={`Uploaded image ${index + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
 
             <Button type="submit" className="w-full">
               Добавить продукт

@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"; // ⬅ Добавлено
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
@@ -9,10 +9,10 @@ import Contacts from "./pages/Contacts";
 import Consultation from "./pages/Consultation";
 import AdminPanel from "./pages/AdminPanel";
 import AdminNotifications from "./pages/AdminNotifications";
+import AccountSettings from "./components/AccountSettings";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/toaster";
 
-// Создаём клиент TanStack Query
 const queryClient = new QueryClient();
 
 function App() {
@@ -30,6 +30,7 @@ function App() {
             <Route path="/consultation" element={<Consultation />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/admin/notifications" element={<AdminNotifications />} />
+            <Route path="/account-settings" element={<AccountSettings />} />
           </Routes>
         </Router>
         <Toaster />

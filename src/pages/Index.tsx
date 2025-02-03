@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { AirVent, Settings, Wrench, LogIn, UserPlus, Image, Phone, PhoneCall, Mail, ShoppingCart } from "lucide-react";
+import { AirVent, Settings, Wrench, LogIn, UserPlus, Image, Phone, PhoneCall, Mail, ShoppingCart, Cog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AuthDialogs } from "@/components/auth/AuthDialogs";
@@ -36,20 +36,40 @@ const Index = () => {
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <ThemeToggle />
         {user ? (
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 custom-button animate-fade-in" 
-            onClick={() => {
-              logout();
-              toast({
-                title: "Успешно",
-                description: "Вы успешно вышли из аккаунта",
-              });
-            }}
-          >
-            <LogIn className="h-4 w-4" />
-            <span className="hidden sm:inline">Выйти</span>
-          </Button>
+          <>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 custom-button animate-fade-in"
+              onClick={() => navigate('/account-settings')}
+            >
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Настройки аккаунта</span>
+            </Button>
+            {user.isAdmin && (
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2 custom-button animate-fade-in"
+                onClick={() => navigate('/shop')}
+              >
+                <Cog className="h-4 w-4" />
+                <span className="hidden sm:inline">Управление товарами</span>
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 custom-button animate-fade-in" 
+              onClick={() => {
+                logout();
+                toast({
+                  title: "Успешно",
+                  description: "Вы успешно вышли из аккаунта",
+                });
+              }}
+            >
+              <LogIn className="h-4 w-4" />
+              <span className="hidden sm:inline">Выйти</span>
+            </Button>
+          </>
         ) : (
           <>
             <Button 

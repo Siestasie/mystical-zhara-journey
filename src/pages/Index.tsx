@@ -119,6 +119,14 @@ const Index = () => {
             >
               Магазин кондиционеров <ShoppingCart className="ml-2" />
             </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="custom-button1"
+              onClick={() => navigate("/blog")}
+            >
+              Блог
+            </Button>
           </div>
         </div>
       </section>

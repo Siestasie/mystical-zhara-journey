@@ -10,6 +10,7 @@ import Consultation from "./pages/Consultation";
 import AdminPanel from "./pages/AdminPanel";
 import AdminNotifications from "./pages/AdminNotifications";
 import AccountSettings from "./components/AccountSettings";
+import Blog from "./pages/Blog";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/toaster";
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/admin/notifications" element={<AdminNotifications />} />
             <Route path="/account-settings" element={<AccountSettings />} />
+            <Route path="/blog" element={<Blog />} />
           </Routes>
         </Router>
         <Toaster />

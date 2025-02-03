@@ -12,7 +12,7 @@ import multer from "multer";
 dotenv.config();
 
 const app = express();
-const upload = multer({ dest: 'uploads/' }); // Сохраняем в папке 'uploads
+const upload = multer({ dest: 'uploads/' }); // Сохраняем в папке 'uploads'
 
 // Увеличиваем лимит для JSON
 app.use(express.json({limit: '50mb'}));
@@ -59,6 +59,17 @@ db.query(`
     category VARCHAR(255) NOT NULL,
     specs JSON,
     image VARCHAR(255),
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Add this SQL query for blog posts
+db.query(`
+  CREATE TABLE IF NOT EXISTS blog_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    author VARCHAR(255) NOT NULL,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `);
@@ -116,6 +127,32 @@ app.delete('/api/products/:id', (req, res) => {
         }
         res.json({ message: 'Product deleted successfully' });
     });
+});
+
+app.get('/api/blog-posts', (req, res) => {
+  db.query('SELECT * FROM blog_posts ORDER BY createdAt DESC', (err, results) => {
+    if (err) {
+      console.error('Error fetching blog posts:', err);
+      return res.status(500).json({ error: 'Error fetching blog posts' });
+    }
+    res.json(results);
+  });
+});
+
+app.post('/api/blog-posts', (req, res) => {
+  const { title, content } = req.body;
+  
+  db.query(
+    'INSERT INTO blog_posts (title, content, author) VALUES (?, ?, ?)',
+    [title, content, 'Admin'],
+    (err, result) => {
+      if (err) {
+        console.error('Error adding blog post:', err);
+        return res.status(500).json({ error: 'Error adding blog post' });
+      }
+      res.status(201).json({ id: result.insertId, message: 'Blog post added successfully' });
+    }
+  );
 });
 
 app.post('/api/resend-verification', async (req, res) => {

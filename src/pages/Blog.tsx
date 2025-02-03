@@ -115,9 +115,9 @@ const Blog = () => {
           <Button 
             variant="outline" 
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2"
+            className="absolute top-4 left-4 custom-button1 hidden lg:flex"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4"/>
             Назад
           </Button>
           {user?.isAdmin && (

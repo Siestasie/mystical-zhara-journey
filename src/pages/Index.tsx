@@ -39,7 +39,7 @@ const Index = () => {
           <>
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 custom-button animate-fade-in"
+              className="flex items-center gap-2 custom-button1 animate-fade-in"
               onClick={() => navigate('/account-settings')}
             >
               <Settings className="h-4 w-4" />
@@ -48,7 +48,7 @@ const Index = () => {
             {user.isAdmin && (
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2 custom-button animate-fade-in"
+                className="flex items-center gap-2 custom-button1 animate-fade-in"
                 onClick={() => navigate('/shop')}
               >
                 <Cog className="h-4 w-4" />
@@ -57,7 +57,7 @@ const Index = () => {
             )}
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 custom-button animate-fade-in" 
+              className="flex items-center gap-2 custom-button1 animate-fade-in" 
               onClick={() => {
                 logout();
                 toast({
@@ -122,7 +122,7 @@ const Index = () => {
             <Button 
               size="lg" 
               variant="outline"
-              className="custom-button1"
+              className="custom-button"
               onClick={() => navigate("/blog")}
             >
               Блог

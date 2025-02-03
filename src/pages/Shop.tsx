@@ -153,7 +153,7 @@ const Shop = () => {
         <div className="flex items-center justify-between mb-6">
           <Button 
             variant="outline" 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 custom-button1"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -166,7 +166,7 @@ const Shop = () => {
             <Button 
               variant="outline"
               onClick={() => setIsOpen(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 custom-button1"
             >
               <Plus className="h-4 w-4" />
               {!isMobile && "Добавить товар"}
@@ -223,34 +223,24 @@ const Shop = () => {
                 <CardDescription className="line-clamp-2">{product.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <span className="text-lg sm:text-xl font-bold">{product.price.toLocaleString()} ₽</span>
-                  <div className="flex gap-2">
-                    <Button 
-                      className="w-full sm:w-auto"
-                      onClick={() => navigate(`/shop/${product.id}`)}
-                    >
+                <div className="flex flex-wrap justify-between items-center gap-2">
+                  <div className="flex gap-2 w-full">
+                    <Button className="w-full sm:w-auto custom-button1" onClick={() => navigate(`/shop/${product.id}`)}>
                       <ShoppingCart className="mr-2 h-4 w-4" />
                       Подробнее
                     </Button>
                     {user?.isAdmin && (
                       <>
-                        <Button
-                          variant="outline"
-                          onClick={() => navigate(`/shop/${product.id}`)}
-                        >
+                        <Button className="custom-button1" variant="outline" onClick={() => navigate(`/shop/${product.id}`)}>
                           Редактировать
                         </Button>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => deleteProductMutation.mutate(product.id)}
-                        >
+                        <Button variant="destructive" size="icon" onClick={() => deleteProductMutation.mutate(product.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </>
                     )}
                   </div>
+                  <span className="text-lg sm:text-xl font-bold">{product.price.toLocaleString()} ₽</span>
                 </div>
               </CardContent>
             </Card>

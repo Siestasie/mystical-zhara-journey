@@ -157,10 +157,10 @@ const ProductDetails = () => {
       <div className="container mx-auto max-w-6xl">
         <Button 
           variant="outline" 
-          className="mb-6 flex items-center gap-2"
+          className="absolute top-4 left-4 custom-button1 hidden lg:flex"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           {!isMobile && "Назад"}
         </Button>
 
@@ -182,7 +182,7 @@ const ProductDetails = () => {
                 <p className="text-xl sm:text-2xl font-bold">{product.price.toLocaleString()} ₽</p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button 
-                    className="w-full sm:w-auto custom-button" 
+                    className="w-full sm:w-auto custom-button1" 
                     onClick={handleContactClick}
                   >
                     <Phone className="mr-2 h-4 w-4" />
@@ -190,7 +190,7 @@ const ProductDetails = () => {
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full sm:w-auto custom-button"
+                    className="w-full sm:w-auto custom-button1"
                   >
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     В корзину
@@ -198,7 +198,7 @@ const ProductDetails = () => {
                   {user?.isAdmin && (
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto custom-button"
+                      className="w-full sm:w-auto custom-button1"
                       onClick={() => setIsEditOpen(true)}
                     >
                       <Edit className="mr-2 h-4 w-4" />

@@ -46,9 +46,7 @@ const ProductDetails = () => {
     queryFn: async () => {
       const response = await fetch(`http://localhost:3000/api/products/${id}`);
       if (!response.ok) throw new Error('Failed to fetch product');
-      return response.json();
-    },
-    onSuccess: (data) => {
+      const data = await response.json();
       setEditProduct({
         name: data.name,
         description: data.description,
@@ -58,6 +56,7 @@ const ProductDetails = () => {
         specs: data.specs || [''],
         image: data.image
       });
+      return data;
     }
   });
 

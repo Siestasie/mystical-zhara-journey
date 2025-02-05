@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Console } from "console";
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ const Shop = () => {
     price: '',
     category: '',
     specs: [''],
-    images: [] as string[],
+    image: [] as string[],
   });
 
   const categories = [
@@ -58,7 +59,7 @@ const Shop = () => {
       price: string;
       category: string;
       specs: string[];
-      images: string[]; // Изменили image на images (массив)
+      image: string[]; // Изменили image на image (массив)
     }) => {
       const response = await fetch('http://localhost:3000/api/products', {
         method: 'POST',
@@ -68,10 +69,12 @@ const Shop = () => {
         body: JSON.stringify({
           ...productData,
           price: parseFloat(productData.price),
-          images: productData.images, // Отправляем массив изображений
+          image: productData.image, // Отправляем массив изображений
         }),
       });
-  
+
+      
+      console.log(response.json)
       if (!response.ok) throw new Error('Failed to add product');
       return response.json();
     },
@@ -86,7 +89,7 @@ const Shop = () => {
         price: '',
         category: '',
         specs: [''],
-        images: [] // Сбрасываем массив изображений
+        image: [] // Сбрасываем массив изображений
       });
   
       setIsOpen(false);
@@ -214,7 +217,7 @@ const Shop = () => {
               <CardHeader className="space-y-2">
                 <div className="aspect-video relative overflow-hidden rounded-t-lg">
                   <img 
-                    src={`http://localhost:3000${product.image}`}
+                    src={`http://localhost:3000${product.image[0]}`}
                     alt={product.name} 
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                   />
@@ -336,20 +339,20 @@ const Shop = () => {
                   });
                 });
 
-                Promise.all(readers).then((images) => {
+                Promise.all(readers).then((image) => {
                   // Добавляем новые изображения к существующим
                   setNewProduct(prev => ({ 
                     ...prev, 
-                    images: [...prev.images, ...images] 
+                    image: [...prev.image, ...image] 
                   }));
                 });
               }}
             />
 
             <div className="mt-4">
-              {newProduct.images.length > 0 && (
+              {newProduct.image.length > 0 && (
                 <div className="flex gap-2">
-                  {newProduct.images.map((image, index) => (
+                  {newProduct.image.map((image, index) => (
                     <div key={index} className="w-20 h-20 overflow-hidden rounded-md">
                       <img src={image} alt={`Uploaded image ${index + 1}`} className="w-full h-full object-cover" />
                     </div>

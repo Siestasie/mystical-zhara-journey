@@ -75,34 +75,52 @@ db.query(`
   )
 `);
 
-app.post('/api/products', (req, res) => {
-    const { name, description, fullDescription, price, category, specs, image } = req.body;
-    
-    // Проверяем, что image это base64 строка
-    if (image && image.startsWith('data:image')) {
-        // Декодирование Base64 изображения в файл
-        const imageBuffer = Buffer.from(image.split(',')[1], 'base64'); // Убираем префикс "data:image/jpeg;base64," и конвертируем
+app.post('/api/products', async (req, res) => {
+  try {
+      const { name, description, fullDescription, price, category, specs, image } = req.body;
+      console.log(":Name", name, ":Description", description, ":FullDescription", fullDescription, ":Price", price, ":Category", category, ":Specs", specs, ":Images", image);
 
-        // Путь для сохранения изображения
-        const imagePath = path.join(uploadsDir, `${Date.now()}.jpg`);
+      if (!Array.isArray(image) || image.length === 0 || image.length > 3) {
+          return res.status(400).json({ error: 'Invalid image format or too many image (max 3)' });
+      }
 
-        // Сохраняем файл на диск
-        fs.writeFileSync(imagePath, imageBuffer);
-        db.query(
-            'INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [name, description, fullDescription, price, category, JSON.stringify(specs), `/uploads/${path.basename(imagePath)}`],
-            (err, result) => {
-                if (err) {
-                    console.log(image)
-                    console.error('Error adding product:');
-                    return res.status(500).json({ error: 'Error adding product' });
-                }
-                res.status(201).json({ id: result.insertId, message: 'Product added successfully' });
-            }
-        );
-    } else {
-        res.status(400).json({ error: 'Invalid image format' });
-    }
+      const saveImage = async (img, index) => {
+          if (img && img.startsWith('data:image')) {
+              const imageBuffer = Buffer.from(img.split(',')[1], 'base64');
+              if (imageBuffer.length > 5 * 1024 * 1024) {
+                  throw new Error('Image too large (max 5MB)');
+              }
+              const imagePath = path.join(uploadsDir, `${Date.now()}_${index}.jpg`);
+              await fs.promises.writeFile(imagePath, imageBuffer);
+              return `/uploads/${path.basename(imagePath)}`;
+          }
+          throw new Error('Invalid image format');
+      };
+
+      const saveImagePromises = image.map((img, index) => 
+          Promise.race([
+              saveImage(img, index),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Image processing timeout')), 5000))
+          ])
+      );
+
+      const imagePaths = await Promise.allSettled(saveImagePromises);
+      const validImagePaths = imagePaths.filter(res => res.status === 'fulfilled').map(res => res.value);
+
+      if (validImagePaths.length === 0) {
+          return res.status(400).json({ error: 'All images failed to process' });
+      }
+
+      const [result] = await db.promise().query(
+          'INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [name, description, fullDescription, price, category, JSON.stringify(specs), JSON.stringify(validImagePaths)]
+      );
+
+      res.status(201).json({ id: result.insertId, message: 'Product added successfully' });
+  } catch (error) {
+      console.error('Error processing request:', error);
+      res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
 });
 
 app.get('/api/products', (req, res) => {

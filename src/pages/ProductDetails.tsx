@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, Phone, Edit } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Phone, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,7 +19,10 @@ const ProductDetails = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isImageFullscreen, setIsImageFullscreen] = useState(false);
   const queryClient = useQueryClient();
+
   const [editProduct, setEditProduct] = useState({
     name: '',
     description: '',
@@ -37,13 +40,24 @@ const ProductDetails = () => {
       reader.onloadend = () => {
         setEditProduct(prev => ({
           ...prev,
-          images: [reader.result as string] // Добавляем изображение в массив
+          images: [reader.result as string]
         }));
       };
       reader.readAsDataURL(file);
     }
   };
-  
+
+  const nextImage = () => {
+    if (product?.image) {
+      setCurrentImageIndex((prev) => (prev + 1) % product.image.length);
+    }
+  };
+
+  const previousImage = () => {
+    if (product?.image) {
+      setCurrentImageIndex((prev) => (prev - 1 + product.image.length) % product.image.length);
+    }
+  };
 
   const categories = [
     "Бытовые сплит-системы",
@@ -167,16 +181,44 @@ const ProductDetails = () => {
         <Card className="animate-fade-in">
           <CardHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="aspect-video relative overflow-hidden rounded-t-lg flex gap-2">
-              {product.image.map((imgSrc, index) => (
-                <img 
-                  key={index}
-                  src={`http://localhost:3000${imgSrc}`} 
-                  alt={`${product.name} image ${index + 1}`} 
-                  className="w-1/3 h-full object-cover transition-transform duration-300 hover:scale-105 rounded-md"
+              <div className="aspect-video relative overflow-hidden rounded-lg">
+                <img
+                  src={`http://localhost:3000${product.image[currentImageIndex]}`}
+                  alt={`${product.name} изображение ${currentImageIndex + 1}`}
+                  className="w-full h-full object-cover cursor-pointer transition-transform duration-300 hover:scale-105"
+                  onClick={() => setIsImageFullscreen(true)}
                 />
-              ))}
-            </div>
+                {product.image.length > 1 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+                      onClick={previousImage}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+                      onClick={nextImage}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2">
+                  {product.image.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`w-2 h-2 rounded-full ${
+                        index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
 
               <div className="space-y-4">
                 <CardTitle className="text-2xl sm:text-3xl">{product.name}</CardTitle>
@@ -224,6 +266,42 @@ const ProductDetails = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Dialog open={isImageFullscreen} onOpenChange={setIsImageFullscreen}>
+          <DialogContent className="max-w-4xl">
+            <img
+              src={`http://localhost:3000${product.image[currentImageIndex]}`}
+              alt={`${product.name} изображение ${currentImageIndex + 1}`}
+              className="w-full h-auto"
+            />
+            {product.image.length > 1 && (
+              <div className="flex justify-between absolute left-0 right-0 top-1/2 transform -translate-y-1/2 px-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    previousImage();
+                  }}
+                  className="bg-white/80 hover:bg-white"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }}
+                  className="bg-white/80 hover:bg-white"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
           <DialogContent className="sm:max-w-[800px]">

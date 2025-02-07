@@ -167,13 +167,17 @@ const ProductDetails = () => {
         <Card className="animate-fade-in">
           <CardHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="aspect-video relative overflow-hidden rounded-lg">
+            <div className="aspect-video relative overflow-hidden rounded-t-lg flex gap-2">
+              {product.image.map((imgSrc, index) => (
                 <img 
-                  src={`http://localhost:3000${product.image}`}
-                  alt={product.name} 
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  key={index}
+                  src={`http://localhost:3000${imgSrc}`} 
+                  alt={`${product.name} image ${index + 1}`} 
+                  className="w-1/3 h-full object-cover transition-transform duration-300 hover:scale-105 rounded-md"
                 />
-              </div>
+              ))}
+            </div>
+
               <div className="space-y-4">
                 <CardTitle className="text-2xl sm:text-3xl">{product.name}</CardTitle>
                 <CardDescription className="text-base sm:text-lg">

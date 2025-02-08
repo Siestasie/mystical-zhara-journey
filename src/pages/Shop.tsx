@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Console } from "console";
+import { CartDropdown } from "@/components/CartDropdown";
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -165,16 +165,19 @@ const Shop = () => {
           <h1 className="text-2xl sm:text-4xl font-bold text-center animate-fade-in">
             Магазин кондиционеров
           </h1>
-          {user?.isAdmin && (
-            <Button 
-              variant="outline"
-              onClick={() => setIsOpen(true)}
-              className="flex items-center gap-2 custom-button1"
-            >
-              <Plus className="h-4 w-4" />
-              {!isMobile && "Добавить товар"}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <CartDropdown />
+            {user?.isAdmin && (
+              <Button 
+                variant="outline"
+                onClick={() => setIsOpen(true)}
+                className="flex items-center gap-2 custom-button1"
+              >
+                <Plus className="h-4 w-4" />
+                {!isMobile && "Добавить товар"}
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">

@@ -33,7 +33,6 @@ export const ProductImageCarousel = ({ images, productName }: ProductImageCarous
         {images.length > 1 && (
           <>
             <Button
-              variant="outline"
               size="icon"
               className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
               onClick={previousImage}
@@ -41,10 +40,10 @@ export const ProductImageCarousel = ({ images, productName }: ProductImageCarous
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
               size="icon"
               className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
               onClick={nextImage}
+
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

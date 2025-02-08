@@ -70,6 +70,45 @@ const ProductDetails = () => {
     "Системы для прокладки трасс"
   ];
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const response = await fetch(`http://localhost:3000/api/products/${id}/image`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              image: reader.result,
+              index: index
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update image');
+          }
+
+          const data = await response.json();
+          queryClient.invalidateQueries({ queryKey: ['product', id] });
+          toast({
+            title: "Успешно",
+            description: "Изображение обновлено",
+          });
+        } catch (error) {
+          toast({
+            title: "Ошибка",
+            description: "Не удалось обновить изображение",
+            variant: "destructive",
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const { data: product } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
@@ -373,9 +412,23 @@ const ProductDetails = () => {
                 </Button>
               </div>
 
-              <Input
-                onChange={handleFileUpload}
-              />
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Изображения:</label>
+                {product.image.map((_, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <img
+                      src={`http://localhost:3000${product.image[index]}`}
+                      alt={`Image ${index + 1}`}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageChange(e, index)}
+                    />
+                  </div>
+                ))}
+              </div>
 
               <Button type="submit" className="w-full">
                 Сохранить изменения

@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ProductImageCarousel } from "@/components/product/ProductImageCarousel";
 import { ProductEditForm } from "@/components/product/ProductEditForm";
+import { useCart } from "@/contexts/CartContext";
 
 const ProductDetails = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const ProductDetails = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const { addItem } = useCart();
 
   const [editProduct, setEditProduct] = useState({
     name: '',
@@ -54,6 +56,21 @@ const ProductDetails = () => {
       title: "Заявка принята",
       description: "Наш менеджер свяжется с вами в ближайшее время",
     });
+  };
+
+  const handleAddToCart = () => {
+    if (product) {
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image
+      });
+      toast({
+        title: "Товар добавлен в корзину",
+        description: `${product.name} успешно добавлен в корзину`,
+      });
+    }
   };
 
   if (!product) {
@@ -111,6 +128,7 @@ const ProductDetails = () => {
                   <Button 
                     variant="outline" 
                     className="w-full sm:w-auto custom-button1"
+                    onClick={handleAddToCart}
                   >
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     В корзину
@@ -158,3 +176,4 @@ const ProductDetails = () => {
 };
 
 export default ProductDetails;
+

@@ -351,83 +351,95 @@ const ProductDetails = () => {
               e.preventDefault();
               updateProductMutation.mutate(editProduct);
             }} className="space-y-4">
-              <Input
-                placeholder="Название продукта"
-                value={editProduct.name}
-                onChange={(e) => setEditProduct(prev => ({ ...prev, name: e.target.value }))}
-                required
-              />
-              <Input
-                placeholder="Краткое описание"
-                value={editProduct.description}
-                onChange={(e) => setEditProduct(prev => ({ ...prev, description: e.target.value }))}
-                required
-              />
-              <Textarea
-                placeholder="Полное описание"
-                value={editProduct.fullDescription}
-                onChange={(e) => setEditProduct(prev => ({ ...prev, fullDescription: e.target.value }))}
-                required
-              />
-              <Input
-                type="number"
-                placeholder="Цена"
-                value={editProduct.price}
-                onChange={(e) => setEditProduct(prev => ({ ...prev, price: e.target.value }))}
-                required
-              />
-              <Select
-                value={editProduct.category}
-                onValueChange={(value) => setEditProduct(prev => ({ ...prev, category: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите категорию" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Характеристики:</label>
-                {editProduct.specs.map((spec, index) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <Input
-                    key={index}
-                    placeholder={`Характеристика ${index + 1}`}
-                    value={spec}
-                    onChange={(e) => handleSpecChange(index, e.target.value)}
+                    placeholder="Название продукта"
+                    value={editProduct.name}
+                    onChange={(e) => setEditProduct(prev => ({ ...prev, name: e.target.value }))}
+                    required
                   />
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddSpec}
-                  className="w-full"
-                >
-                  Добавить характеристику
-                </Button>
+                  <Input
+                    placeholder="Краткое описание"
+                    value={editProduct.description}
+                    onChange={(e) => setEditProduct(prev => ({ ...prev, description: e.target.value }))}
+                    required
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Цена"
+                    value={editProduct.price}
+                    onChange={(e) => setEditProduct(prev => ({ ...prev, price: e.target.value }))}
+                    required
+                  />
+                  <Select
+                    value={editProduct.category}
+                    onValueChange={(value) => setEditProduct(prev => ({ ...prev, category: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите категорию" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-4">
+                  <Textarea
+                    placeholder="Полное описание"
+                    value={editProduct.fullDescription}
+                    onChange={(e) => setEditProduct(prev => ({ ...prev, fullDescription: e.target.value }))}
+                    required
+                    className="h-[120px]"
+                  />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Характеристики:</label>
+                    <div className="max-h-[150px] overflow-y-auto space-y-2">
+                      {editProduct.specs.map((spec, index) => (
+                        <Input
+                          key={index}
+                          placeholder={`Характеристика ${index + 1}`}
+                          value={spec}
+                          onChange={(e) => handleSpecChange(index, e.target.value)}
+                        />
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddSpec}
+                      className="w-full"
+                    >
+                      Добавить характеристику
+                    </Button>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <label className="text-sm font-medium">Изображения:</label>
-                {product.image.map((_, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <img
-                      src={`http://localhost:3000${product.image[index]}`}
-                      alt={`Image ${index + 1}`}
-                      className="w-20 h-20 object-cover rounded"
-                    />
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageChange(e, index)}
-                    />
-                  </div>
-                ))}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Изображения товара:</label>
+                <div className="grid grid-cols-2 gap-4">
+                  {product.image.map((_, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded-lg">
+                      <img
+                        src={`http://localhost:3000${product.image[index]}`}
+                        alt={`Image ${index + 1}`}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageChange(e, index)}
+                        className="flex-1"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <Button type="submit" className="w-full">

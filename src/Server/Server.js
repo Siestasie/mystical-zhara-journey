@@ -75,6 +75,65 @@ db.query(`
   )
 `);
 
+app.put('/api/products/:id/image', async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const { image, index } = req.body;
+
+    // Проверка валидности индекса
+    if (typeof index !== 'number' || index < 0 || index > 2) {
+      return res.status(400).json({ error: 'Неверный индекс изображения (допустимо 0-2)' });
+    }
+
+    // Поиск продукта
+    const [products] = await db.promise().query('SELECT * FROM products WHERE id = ?', [productId]);
+    if (products.length === 0) {
+      return res.status(404).json({ error: 'Продукт не найден' });
+    }
+
+    const currentImages = JSON.parse(products[0].image);
+    
+    // Проверка существующего индекса
+    if (index >= currentImages.length) {
+      return res.status(400).json({ error: 'Указанный индекс не существует' });
+    }
+
+    // Сохранение нового изображения
+    const saveImage = async () => {
+      if (image && image.startsWith('data:image')) {
+        const imageBuffer = Buffer.from(image.split(',')[1], 'base64');
+        if (imageBuffer.length > 5 * 1024 * 1024) {
+          throw new Error('Изображение слишком большое (максимум 5MB)');
+        }
+        const imagePath = path.join(uploadsDir, `${Date.now()}_${index}.jpg`);
+        await fs.promises.writeFile(imagePath, imageBuffer);
+        return `/uploads/${path.basename(imagePath)}`;
+      }
+      throw new Error('Неверный формат изображения');
+    };
+
+    const newImagePath = await Promise.race([
+      saveImage(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Таймаут обработки изображения')), 5000))
+    ]);
+
+    // Обновление массива изображений
+    const updatedImages = [...currentImages];
+    updatedImages[index] = newImagePath;
+
+    // Обновление записи в базе данных
+    await db.promise().query(
+      'UPDATE products SET image = ? WHERE id = ?',
+      [JSON.stringify(updatedImages), productId]
+    );
+
+    res.json({ message: 'Изображение успешно обновлено', newImage: newImagePath });
+  } catch (error) {
+    console.error('Ошибка при обновлении изображения:', error);
+    res.status(500).json({ error: error.message || 'Внутренняя ошибка сервера' });
+  }
+});
+
 app.post('/api/products', async (req, res) => {
   try {
       const { name, description, fullDescription, price, category, specs, image } = req.body;

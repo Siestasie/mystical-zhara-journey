@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Settings, Cog } from "lucide-react";
+import { Cog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminNotifications from "@/pages/AdminNotifications";
 import AdminPanel from "@/pages/AdminPanel";
@@ -16,11 +16,9 @@ export const AdminSection = ({ user }: AdminSectionProps) => {
   if (!user?.isAdmin) return null;
 
   return (
-    <>
-      <div className="absolute top-4 left-4 flex flex-col sm:flex-row gap-2">
-        <AdminNotifications />
-        <AdminPanel />
-      </div>
+    <div className="absolute top-4 left-4 flex flex-col sm:flex-row gap-2">
+      <AdminNotifications />
+      <AdminPanel />
       <Button 
         variant="outline" 
         className="flex items-center gap-2 custom-button1 animate-fade-in"
@@ -29,6 +27,6 @@ export const AdminSection = ({ user }: AdminSectionProps) => {
         <Cog className="h-4 w-4" />
         <span className="hidden sm:inline">Управление товарами</span>
       </Button>
-    </>
+    </div>
   );
 };

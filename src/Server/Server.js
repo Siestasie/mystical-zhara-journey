@@ -662,6 +662,22 @@ app.put('/api/products/:id', (req, res) => {
   }
 });
 
+// Serve static files from the React app build directory in production
+if (process.env.NODE_ENV === 'production') {
+  // The directory where your React build files are located
+  const buildPath = path.join(__dirname, '../../dist');
+
+  console.log(buildPath);
+
+  // Serve static files
+  app.use(express.static(buildPath));
+
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+}
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Сервер запущен на http://localhost:${PORT}`);

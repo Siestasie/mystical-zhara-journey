@@ -7,7 +7,10 @@ export interface User {
   name: string;
   isAdmin?: boolean;
   phone?: string;
+  alternativePhone?: string;
   address?: string;
+  notificationsEnabled?: boolean;
+  deliveryNotes?: string;
 }
 
 interface AuthContextType {

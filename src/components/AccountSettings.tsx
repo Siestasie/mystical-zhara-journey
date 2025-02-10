@@ -1,16 +1,24 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const AccountSettings = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [phone, setPhone] = useState(user?.phone || "");
   const [address, setAddress] = useState(user?.address || "");
+  const [name, setName] = useState(user?.name || "");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(user?.notificationsEnabled || false);
+  const [deliveryNotes, setDeliveryNotes] = useState(user?.deliveryNotes || "");
+  const [alternativePhone, setAlternativePhone] = useState(user?.alternativePhone || "");
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,10 +59,24 @@ const AccountSettings = () => {
           userId: user?.id,
           phone,
           address,
+          name,
+          notificationsEnabled,
+          deliveryNotes,
+          alternativePhone,
         }),
       });
 
       if (response.ok) {
+        const updatedUser = {
+          ...user!,
+          phone,
+          address,
+          name,
+          notificationsEnabled,
+          deliveryNotes,
+          alternativePhone,
+        };
+        setUser(updatedUser);
         toast.success("Информация успешно обновлена");
       } else {
         toast.error("Ошибка при обновлении информации");
@@ -69,46 +91,108 @@ const AccountSettings = () => {
       <div className="max-w-2xl mx-auto space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Изменить пароль</CardTitle>
+            <CardTitle>Основная информация</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              <Input
-                type="password"
-                placeholder="Текущий пароль"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-              />
-              <Input
-                type="password"
-                placeholder="Новый пароль"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-              <Button type="submit">Изменить пароль</Button>
+            <form onSubmit={handleInfoUpdate} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Имя</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Ваше имя"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Основной телефон</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="Основной телефон"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="alternativePhone">Дополнительный телефон</Label>
+                <Input
+                  id="alternativePhone"
+                  type="tel"
+                  placeholder="Дополнительный телефон"
+                  value={alternativePhone}
+                  onChange={(e) => setAlternativePhone(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Адрес</Label>
+                <Input
+                  id="address"
+                  type="text"
+                  placeholder="Адрес"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="deliveryNotes">Примечания к доставке</Label>
+                <Textarea
+                  id="deliveryNotes"
+                  placeholder="Особые пожелания к доставке"
+                  value={deliveryNotes}
+                  onChange={(e) => setDeliveryNotes(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="notifications"
+                  checked={notificationsEnabled}
+                  onCheckedChange={setNotificationsEnabled}
+                />
+                <Label htmlFor="notifications">Получать уведомления о заказах</Label>
+              </div>
+
+              <Button type="submit">Обновить информацию</Button>
             </form>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Дополнительная информация</CardTitle>
+            <CardTitle>Изменить пароль</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleInfoUpdate} className="space-y-4">
-              <Input
-                type="tel"
-                placeholder="Телефон"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-              <Input
-                type="text"
-                placeholder="Адрес"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
-              <Button type="submit">Обновить информацию</Button>
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Текущий пароль</Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  placeholder="Текущий пароль"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Новый пароль</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  placeholder="Новый пароль"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+
+              <Button type="submit">Изменить пароль</Button>
             </form>
           </CardContent>
         </Card>

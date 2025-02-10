@@ -12,9 +12,48 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 export const CartDropdown = () => {
-  const { items, total, removeItem, updateQuantity } = useCart();
+  const { items, total, removeItem, updateQuantity, clearCart } = useCart();
+  const { toast } = useToast();
+
+  const handleOrder = async () => {
+    try {
+      // Формируем список товаров для уведомления
+      const productsList = items.map(item => `${item.name} (${item.quantity} шт.)`).join(', ');
+      
+      const response = await fetch('http://localhost:3000/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: "Заказ из корзины",
+          phone: "-",
+          email: "-",
+          description: `Заказ на сумму: ${total} ₽. Товары: ${productsList}`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при отправке заказа');
+      }
+
+      toast({
+        title: "Заказ успешно отправлен!",
+        description: "Наш менеджер свяжется с вами в ближайшее время",
+      });
+
+      clearCart();
+    } catch (error) {
+      toast({
+        title: "Ошибка!",
+        description: "Не удалось отправить заказ. Попробуйте позже.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -102,7 +141,7 @@ export const CartDropdown = () => {
                 <span className="font-medium">Итого:</span>
                 <span className="font-bold">{total.toLocaleString()} ₽</span>
               </div>
-              <Button className="w-full">
+              <Button className="w-full" onClick={handleOrder}>
                 Оформить заказ
               </Button>
             </div>

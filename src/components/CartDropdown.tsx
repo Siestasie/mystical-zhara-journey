@@ -51,6 +51,11 @@ export const CartDropdown = () => {
     }));
   };
 
+  const cleanDescription = (description: string) => {
+    return description.replace(/<\/?pre>/g, "\n\n"); 
+  };  
+  
+
   const handleOrder = async () => {
     if (!orderData.name || !orderData.phone || !orderData.address) {
       toast({
@@ -60,7 +65,7 @@ export const CartDropdown = () => {
       });
       return;
     }
-
+  
     try {      
       const response = await fetch('http://localhost:3000/api/notifications', {
         method: 'POST',
@@ -71,43 +76,42 @@ export const CartDropdown = () => {
           name: orderData.name,
           phone: orderData.phone,
           email: user?.email || "-",
-          description: `
-###### НОВЫЙ ЗАКАЗ ######
-
-====== КОНТАКТНАЯ ИНФОРМАЦИЯ ======
-• Имя заказчика: ${orderData.name}
-• Телефон: ${orderData.phone}
-• Email: ${user?.email || "-"}
-• Адрес доставки: ${orderData.address}
-
-====== ЗАКАЗАННЫЕ ТОВАРЫ ======
-${items.map((item, index) => `
-[Товар ${index + 1}]
-▶ Наименование: ${item.name}
-▶ Количество: ${item.quantity} шт.
-▶ Цена за шт.: ${item.price.toLocaleString()} ₽
-▶ Сумма: ${(item.price * item.quantity).toLocaleString()} ₽
-▶ Ссылка на товар: http://localhost:8080/products/${item.id}
--------------------`).join('\n')}
-
-====== ИТОГОВАЯ ИНФОРМАЦИЯ ======
-• Общая сумма заказа: ${total.toLocaleString()} ₽
-
-====== КОММЕНТАРИИ К ЗАКАЗУ ======
-${orderData.comments || "Комментариев нет"}
-`,
+          description: cleanDescription(
+  `###### НОВЫЙ ЗАКАЗ ######\n
+  ====== КОНТАКТНАЯ ИНФОРМАЦИЯ ======\n
+  • Имя заказчика: ${orderData.name}\n
+  • Телефон: ${orderData.phone}\n
+  • Email: ${user?.email || "-"}\n
+  • Адрес доставки: ${orderData.address}\n
+  \n
+  ====== ЗАКАЗАННЫЕ ТОВАРЫ ======\n
+  ${items.map((item, index) => `
+  [Товар ${index + 1}]\n
+  ▶ Наименование: ${item.name}\n
+  ▶ Количество: ${item.quantity} шт.\n
+  ▶ Цена за шт.: ${item.price.toLocaleString()} ₽\n
+  ▶ Сумма: ${(item.price * item.quantity).toLocaleString()} ₽\n
+  ▶ Ссылка на товар: http://localhost:8080/products/${item.id}\n
+  -------------------\n`).join('')}
+  \n
+  ====== ИТОГОВАЯ ИНФОРМАЦИЯ ======\n
+  • Общая сумма заказа: ${total.toLocaleString()} ₽\n
+  \n
+  ====== КОММЕНТАРИИ К ЗАКАЗУ ======\n
+  ${orderData.comments || "Комментариев нет"}\n`
+          )
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Ошибка при отправке заказа');
       }
-
+  
       toast({
         title: "Заказ успешно отправлен!",
         description: "Наш менеджер свяжется с вами в ближайшее время",
       });
-
+  
       clearCart();
       setShowOrderDialog(false);
     } catch (error) {
@@ -118,6 +122,7 @@ ${orderData.comments || "Комментариев нет"}
       });
     }
   };
+  
 
   return (
     <>

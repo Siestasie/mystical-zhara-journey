@@ -117,35 +117,28 @@ const ProductDetails = () => {
                   {product.fullDescription}
                 </CardDescription>
                 <p className="text-xl sm:text-2xl font-bold">{product.price.toLocaleString()} ₽</p>
-                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
                   <Button 
                     className="w-full sm:w-auto custom-button1" 
-                    onClick={handleContactClick}
-                  >
-                    <Phone className="mr-2 h-4 w-4" />
-                    Заказать звонок
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full sm:w-auto custom-button1"
                     onClick={handleAddToCart}
                   >
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     В корзину
                   </Button>
-                  {user?.isAdmin && (
-                    <Button
-                      variant="outline"
-                      className="w-full sm:w-auto custom-button1"
-                      onClick={() => setIsEditOpen(true)}
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Редактировать
-                    </Button>
-                  )}
+                    {user?.isAdmin && (
+                      <Button
+                        variant="outline"
+                        className="w-full sm:w-auto custom-button1"
+                        onClick={() => setIsEditOpen(true)}
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Редактировать
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+          
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

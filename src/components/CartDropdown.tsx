@@ -22,15 +22,45 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+interface OrderFormData {
+  name: string;
+  phone: string;
+  address: string;
+  comments: string;
+}
 
 export const CartDropdown = () => {
   const { items, total, removeItem, updateQuantity, clearCart } = useCart();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [showPhoneDialog, setShowPhoneDialog] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [orderData, setOrderData] = useState<OrderFormData>({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
+    comments: "",
+  });
 
-  const handleOrder = async (phoneNumber?: string) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setOrderData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleOrder = async () => {
+    if (!orderData.name || !orderData.phone || !orderData.address) {
+      toast({
+        title: "Ошибка",
+        description: "Пожалуйста, заполните все обязательные поля",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const productsList = items.map(item => `${item.name} (${item.quantity} шт.)`).join(', ');
       
@@ -40,10 +70,15 @@ export const CartDropdown = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: "Заказ из корзины",
-          phone: phoneNumber || user?.phone || "-",
+          name: orderData.name,
+          phone: orderData.phone,
           email: user?.email || "-",
-          description: `Заказ на сумму: ${total} ₽. Товары: ${productsList}`,
+          description: `
+            Заказ на сумму: ${total} ₽
+            Товары: ${productsList}
+            Адрес доставки: ${orderData.address}
+            Комментарии к заказу: ${orderData.comments || "Нет комментариев"}
+          `,
         }),
       });
 
@@ -57,21 +92,13 @@ export const CartDropdown = () => {
       });
 
       clearCart();
-      setShowPhoneDialog(false);
+      setShowOrderDialog(false);
     } catch (error) {
       toast({
         title: "Ошибка!",
         description: "Не удалось отправить заказ. Попробуйте позже.",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleOrderClick = () => {
-    if (!user?.phone) {
-      setShowPhoneDialog(true);
-    } else {
-      handleOrder();
     }
   };
 
@@ -162,7 +189,7 @@ export const CartDropdown = () => {
                   <span className="font-medium">Итого:</span>
                   <span className="font-bold">{total.toLocaleString()} ₽</span>
                 </div>
-                <Button className="w-full" onClick={handleOrderClick}>
+                <Button className="w-full" onClick={() => setShowOrderDialog(true)}>
                   Оформить заказ
                 </Button>
               </div>
@@ -171,25 +198,70 @@ export const CartDropdown = () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={showPhoneDialog} onOpenChange={setShowPhoneDialog}>
-        <DialogContent>
+      <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Укажите номер телефона</DialogTitle>
+            <DialogTitle>Оформление заказа</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Номер телефона</Label>
+              <Label htmlFor="name">
+                Имя <span className="text-red-500">*</span>
+              </Label>
               <Input
-                id="phone"
-                placeholder="+7 (999) 999-99-99"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                id="name"
+                name="name"
+                placeholder="Введите ваше имя"
+                value={orderData.name}
+                onChange={handleInputChange}
+                required
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">
+                Телефон <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="phone"
+                name="phone"
+                placeholder="+7 (999) 999-99-99"
+                value={orderData.phone}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">
+                Адрес доставки <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="address"
+                name="address"
+                placeholder="Укажите адрес доставки"
+                value={orderData.address}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="comments">Комментарии к заказу</Label>
+              <Textarea
+                id="comments"
+                name="comments"
+                placeholder="Укажите дополнительные пожелания, например: нужна установка кондиционера"
+                value={orderData.comments}
+                onChange={handleInputChange}
+                className="min-h-[100px]"
+              />
+            </div>
+
             <Button 
               className="w-full" 
-              onClick={() => handleOrder(phone)}
-              disabled={!phone}
+              onClick={handleOrder}
+              disabled={!orderData.name || !orderData.phone || !orderData.address}
             >
               Подтвердить заказ
             </Button>

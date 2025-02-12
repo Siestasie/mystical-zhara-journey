@@ -62,7 +62,7 @@ export const CartDropdown = () => {
     }
 
     try {
-      const productsList = items.map(item => `${item.name} (${item.quantity} шт.)`).join(', ');
+      const productsList = items.map(item => `${item.name} (${item.quantity} шт.)`).join('\n');
       
       const response = await fetch('http://localhost:3000/api/notifications', {
         method: 'POST',
@@ -74,11 +74,25 @@ export const CartDropdown = () => {
           phone: orderData.phone,
           email: user?.email || "-",
           description: `
-            Заказ на сумму: ${total} ₽
-            Товары: ${productsList}
-            Адрес доставки: ${orderData.address}
-            Комментарии к заказу: ${orderData.comments || "Нет комментариев"}
-          `,
+Новый заказ:
+==================
+Контактная информация:
+Имя: ${orderData.name}
+Телефон: ${orderData.phone}
+Email: ${user?.email || "-"}
+Адрес доставки: ${orderData.address}
+
+Заказанные товары:
+${items.map(item => `- ${item.name}
+  Количество: ${item.quantity} шт.
+  Цена за шт.: ${item.price.toLocaleString()} ₽
+  Сумма: ${(item.price * item.quantity).toLocaleString()} ₽`).join('\n')}
+
+Общая сумма заказа: ${total.toLocaleString()} ₽
+
+Комментарии к заказу: 
+${orderData.comments || "Нет комментариев"}
+`,
         }),
       });
 

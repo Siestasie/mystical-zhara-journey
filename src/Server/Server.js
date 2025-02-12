@@ -554,6 +554,17 @@ app.put('/api/update-discount', (req, res) => {
     return res.status(400).json({ error: 'Discount должен быть числом' });
   }
 
+  db.query(
+    'UPDATE products SET discount = ?',
+    [Discount],
+    (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Ошибка сервера при обновлении скидок.' });
+        }
+        res.status(200).json({ message: 'Скидки успешно обновлены!', affectedRows: result.affectedRows });
+    }
+  );
+
   fs.readFile("src/Server/Price.json", 'utf8', (err, data) => {
     if (err) {
       return res.status(500).json({ error: 'Ошибка при чтении файла' });

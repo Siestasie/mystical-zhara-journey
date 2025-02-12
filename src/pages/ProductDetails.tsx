@@ -63,7 +63,7 @@ const ProductDetails = () => {
       addItem({
         id: product.id,
         name: product.name,
-        price: product.price,
+        price: calculateDiscountPrice(product.price, product.discount),
         image: product.image
       });
       toast({
@@ -72,6 +72,16 @@ const ProductDetails = () => {
       });
     }
   };
+
+  function calculateDiscountPrice(price, percentage) {
+    if (isNaN(percentage) || percentage < 0) {
+        console.error("Введите корректное число!");
+        return price; // Возвращаем исходную цену, если процент некорректен
+    }
+
+    // Рассчитываем цену со скидкой
+    return Math.round(price * (1 - percentage / 100));
+  }
 
   if (!product) {
     return (
@@ -119,7 +129,7 @@ const ProductDetails = () => {
                 <p className="text-lg font-semibold text-gray-500">
                   Категория: {product.category}
                 </p>
-                <p className="text-xl sm:text-2xl font-bold">{product.price.toLocaleString()} ₽</p>
+                <p className="text-xl sm:text-2xl font-bold">{calculateDiscountPrice(product.price, product.discount)} ₽</p>
                   <div className="flex flex-col sm:flex-row gap-4">
                   <Button 
                     className="w-full sm:w-auto custom-button1" 

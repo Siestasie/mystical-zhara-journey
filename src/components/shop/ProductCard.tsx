@@ -14,6 +14,7 @@ interface ProductCardProps {
     description: string;
     price: number;
     image: string[];
+    discount: number;
   };
 }
 
@@ -38,6 +39,16 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       toast.error('Ошибка при удалении продукта');
     }
   });
+
+  function calculateDiscountPrice(price, percentage) {
+    if (isNaN(percentage) || percentage < 0) {
+        console.error("Введите корректное число!");
+        return price; // Возвращаем исходную цену, если процент некорректен
+    }
+
+    // Рассчитываем цену со скидкой
+    return Math.round(price * (1 - percentage / 100));
+  }
 
   return (
     <Card className="animate-scale-in">
@@ -70,7 +81,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               </>
             )}
           </div>
-          <span className="text-lg sm:text-xl font-bold">{product.price.toLocaleString()} ₽</span>
+          <span className="text-lg sm:text-xl font-bold">{calculateDiscountPrice(product.price, product.discount)} ₽</span>
         </div>
       </CardContent>
     </Card>

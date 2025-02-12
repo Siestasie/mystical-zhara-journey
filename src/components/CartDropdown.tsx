@@ -72,26 +72,29 @@ export const CartDropdown = () => {
           phone: orderData.phone,
           email: user?.email || "-",
           description: `
-Новый заказ:
-==================
+###### НОВЫЙ ЗАКАЗ ######
 
-Контактная информация:
-Имя: ${orderData.name}
-Телефон: ${orderData.phone}
-Email: ${user?.email || "-"}
-Адрес доставки: ${orderData.address}
+====== КОНТАКТНАЯ ИНФОРМАЦИЯ ======
+• Имя заказчика: ${orderData.name}
+• Телефон: ${orderData.phone}
+• Email: ${user?.email || "-"}
+• Адрес доставки: ${orderData.address}
 
-Заказанные товары:
-${items.map(item => `- ${item.name}
-  Количество: ${item.quantity} шт.
-  Цена за шт.: ${item.price.toLocaleString()} ₽
-  Сумма: ${(item.price * item.quantity).toLocaleString()} ₽
-  Ссылка: http://localhost:8080/products/${item.id}`).join('\n\n')}
+====== ЗАКАЗАННЫЕ ТОВАРЫ ======
+${items.map((item, index) => `
+[Товар ${index + 1}]
+▶ Наименование: ${item.name}
+▶ Количество: ${item.quantity} шт.
+▶ Цена за шт.: ${item.price.toLocaleString()} ₽
+▶ Сумма: ${(item.price * item.quantity).toLocaleString()} ₽
+▶ Ссылка на товар: http://localhost:8080/products/${item.id}
+-------------------`).join('\n')}
 
-Общая сумма заказа: ${total.toLocaleString()} ₽
+====== ИТОГОВАЯ ИНФОРМАЦИЯ ======
+• Общая сумма заказа: ${total.toLocaleString()} ₽
 
-Комментарии к заказу: 
-${orderData.comments || "Нет комментариев"}
+====== КОММЕНТАРИИ К ЗАКАЗУ ======
+${orderData.comments || "Комментариев нет"}
 `,
         }),
       });

@@ -116,6 +116,9 @@ const ProductDetails = () => {
                 <CardDescription className="text-base sm:text-lg">
                   {product.fullDescription}
                 </CardDescription>
+                <p className="text-lg font-semibold text-gray-500">
+                  Категория: {product.category}
+                </p>
                 <p className="text-xl sm:text-2xl font-bold">{product.price.toLocaleString()} ₽</p>
                   <div className="flex flex-col sm:flex-row gap-4">
                   <Button 

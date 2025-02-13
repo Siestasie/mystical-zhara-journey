@@ -221,6 +221,56 @@ app.delete('/api/products/:id', (req, res) => {
     });
 });
 
+app.put("/api/update-discounts", (req, res) => {
+  const products = req.body.products;
+
+  if (!Array.isArray(products)) {
+    return res.status(400).json({ error: "Неверный формат данных" });
+  }
+
+  // Начинаем транзакцию для атомарности
+  db.beginTransaction((err) => {
+    if (err) {
+      return res.status(500).json({ error: "Ошибка начала транзакции: " + err.message });
+    }
+
+    // Массив с запросами для обновления скидок
+    const queries = products.map((product) => {
+      return new Promise((resolve, reject) => {
+        db.execute(
+          "UPDATE products SET discount = ? WHERE id = ?",
+          [product.discount, product.id],
+          (error, results) => {
+            if (error) {
+              return reject(error);
+            }
+            resolve(results);
+          }
+        );
+      });
+    });
+
+    // Выполнение всех запросов параллельно
+    Promise.all(queries)
+      .then(() => {
+        // Завершаем транзакцию
+        db.commit((err) => {
+          if (err) {
+            db.rollback(() => {
+              return res.status(500).json({ error: "Ошибка при коммите транзакции: " + err.message });
+            });
+          }
+          res.json({ message: "Скидки обновлены успешно" });
+        });
+      })
+      .catch((err) => {
+        db.rollback(() => {
+          res.status(500).json({ error: "Ошибка при обновлении данных: " + err.message });
+        });
+      });
+  });
+});
+
 app.get('/api/blog-posts', (req, res) => {
   db.query('SELECT * FROM blog_posts ORDER BY createdAt DESC', (err, results) => {
     if (err) {

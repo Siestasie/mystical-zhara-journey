@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Trash2 } from "lucide-react";
@@ -40,13 +39,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     }
   });
 
-  function calculateDiscountPrice(price, percentage) {
+  function calculateDiscountPrice(price: number, percentage: number) {
     if (isNaN(percentage) || percentage < 0) {
         console.error("Введите корректное число!");
         return price; // Возвращаем исходную цену, если процент некорректен
     }
-
-    // Рассчитываем цену со скидкой
     return Math.round(price * (1 - percentage / 100));
   }
 
@@ -81,7 +78,15 @@ export const ProductCard = ({ product }: ProductCardProps) => {
               </>
             )}
           </div>
-          <span className="text-lg sm:text-xl font-bold">{calculateDiscountPrice(product.price, product.discount)} ₽</span>
+          <div className="flex flex-col items-start">
+            {product.discount > 0 && (
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-gray-500 line-through">{product.price} ₽</span>
+                <span className="text-sm text-red-500 font-bold">-{product.discount}%</span>
+              </div>
+            )}
+            <span className="text-lg sm:text-xl font-bold">{calculateDiscountPrice(product.price, product.discount)} ₽</span>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -1,45 +1,79 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BarChart } from "lucide-react";
+import { BarChart, Check } from "lucide-react";
 import { toast } from "sonner";
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  discount: number;
+  selected: boolean;
+}
 
 const AdminPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [inputdiscount, setInputdiscount] = useState('');
+  const [inputDiscount, setInputDiscount] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [discountTarget, setDiscountTarget] = useState<'all' | 'selected'>('all'); // Новая переменная для выбора типа применения скидки
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data));
+  }, []);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputdiscount(event.target.value);
+    setInputDiscount(event.target.value);
   };
 
-  const updateDiscount = async () => {
-    try {
-      const numericDiscount = parseFloat(inputdiscount);
-      
-      if (isNaN(numericDiscount)) {
-        toast.error("Пожалуйста, введите корректное число");
-        return;
-      }
+  const updateDiscount = (id: number, discount: number) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, discount } : p))
+    );
+  };
 
-      const response = await fetch('http://localhost:3000/api/update-discount', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ Discount: numericDiscount }),
+  const toggleSelect = (id: number) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, selected: !p.selected } : p))
+    );
+  };
+
+  const applyDiscount = async () => {
+    const numericDiscount = parseFloat(inputDiscount);
+    if (isNaN(numericDiscount)) {
+      toast.error("Введите корректное число");
+      return;
+    }
+
+    const updatedProducts = discountTarget === 'all' ? 
+      products.map((p) => ({ ...p, discount: numericDiscount })) : 
+      products.map((p) => (p.selected ? { ...p, discount: numericDiscount } : p));
+
+    setProducts(updatedProducts);
+
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:3000/api/update-discounts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ products: updatedProducts }),
       });
 
       if (response.ok) {
-        toast.success('Скидка успешно обновлена');
-        setInputdiscount('');
+        toast.success(`Скидка ${numericDiscount}% успешно применена`);
       } else {
-        toast.error('Ошибка при обновлении скидки');
+        toast.error("Ошибка при обновлении скидок");
       }
     } catch (error) {
-      toast.error('Произошла ошибка при отправке данных');
-      console.error('Ошибка:', error);
+      toast.error("Ошибка при отправке данных");
+      console.error("Ошибка:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,32 +89,89 @@ const AdminPanel = () => {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[800px]">
+        <DialogContent className="sm:max-w-[600px] p-4">
           <DialogHeader>
             <DialogTitle>Панель администратора</DialogTitle>
           </DialogHeader>
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="text-xl font-semibold mb-4">Управление скидкой</h3>
-                <div className="space-y-2">
-                  <Input
-                    type="number"
-                    value={inputdiscount}
-                    onChange={handleChange}
-                    className="w-full"
-                    placeholder="Введите процент скидки..."
-                  />
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={updateDiscount}
-                  >
-                    Применить скидку
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+
+          <Card>
+            <CardContent className="p-3 space-y-2">
+              <h3 className="text-lg font-semibold">Управление скидками</h3>
+              <Input
+                type="number"
+                value={inputDiscount}
+                onChange={handleChange}
+                className="w-full"
+                placeholder="Введите процент скидки..."
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className={`flex-1 ${discountTarget === 'all' ? 'bg-blue-500 text-white' : ''}`}
+                  onClick={() => setDiscountTarget('all')}
+                >
+                  Всем товарам
+                </Button>
+                <Button
+                  variant="outline"
+                  className={`flex-1 ${discountTarget === 'selected' ? 'bg-blue-500 text-white' : ''}`}
+                  onClick={() => setDiscountTarget('selected')}
+                >
+                  Выбранным
+                </Button>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full mt-2"
+                onClick={applyDiscount}
+                disabled={loading}
+              >
+                Применить скидку
+              </Button>
+            </CardContent>
+          </Card>
+
+          <h3 className="text-lg font-semibold mt-4">Товары</h3>
+          <div className="space-y-2">
+            {products.map((p) => {
+              const discountedPrice = p.price - (p.price * (p.discount / 100));
+              return (
+                <Card key={p.id} className="p-2">
+                  <CardContent className="flex items-center justify-between p-2">
+                    <div className="flex items-center gap-3 w-full">
+                      {/* Квадратный чекбокс */}
+                      <div
+                        className={`w-6 h-6 flex items-center justify-center border-2 rounded-md cursor-pointer transition-all 
+                        ${p.selected ? "bg-blue-500 border-blue-500" : "border-gray-400 hover:border-blue-400"}`}
+                        onClick={() => toggleSelect(p.id)}
+                      >
+                        {p.selected && <Check className="text-white w-4 h-4" />}
+                      </div>
+
+                      {/* Контейнер для выравнивания текста */}
+                      <div className="flex-1 flex items-center">
+                        <span className="text-sm">{p.name}</span>
+                      </div>
+
+                      {/* Цена до скидки */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm line-through text-gray-500">{p.price}₽</span>
+                        {/* Цена после скидки */}
+                        <span className="text-sm text-green-500 font-semibold">{discountedPrice.toFixed(2)}₽</span>
+                      </div>
+
+                      {/* Поле ввода скидки */}
+                      <Input
+                        type="number"
+                        value={p.discount}
+                        onChange={(e) => updateDiscount(p.id, Number(e.target.value))}
+                        className="w-16 h-8 text-sm text-center"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </DialogContent>
       </Dialog>

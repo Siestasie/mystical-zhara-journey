@@ -19,7 +19,7 @@ const AdminPanel = () => {
   const [inputDiscount, setInputDiscount] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [discountTarget, setDiscountTarget] = useState<'all' | 'selected'>('all'); // Новая переменная для выбора типа применения скидки
+  const [discountTarget, setDiscountTarget] = useState<'all' | 'selected'>('all'); 
 
   useEffect(() => {
     fetch("http://localhost:3000/api/products")
@@ -89,50 +89,62 @@ const AdminPanel = () => {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[600px] p-4">
+        <DialogContent className="sm:max-w-[800px] p-4">
           <DialogHeader>
             <DialogTitle>Панель администратора</DialogTitle>
           </DialogHeader>
 
-          <Card>
-            <CardContent className="p-3 space-y-2">
-              <h3 className="text-lg font-semibold">Управление скидками</h3>
-              <Input
-                type="number"
-                value={inputDiscount}
-                onChange={handleChange}
-                className="w-full"
-                placeholder="Введите процент скидки..."
-              />
-              <div className="flex gap-2">
+          {/* Контейнер для размещения панелей */}
+          <div className="flex gap-4">
+            {/* Панель 1 для управления скидками */}
+            <Card className="w-full">
+              <CardContent className="p-3 space-y-2">
+                <h3 className="text-lg font-semibold">Управление скидками</h3>
+                <Input
+                  type="number"
+                  value={inputDiscount}
+                  onChange={handleChange}
+                  className="w-full"
+                  placeholder="Введите процент скидки..."
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className={`flex-1 ${discountTarget === 'all' ? 'bg-blue-500 text-white' : ''}`}
+                    onClick={() => setDiscountTarget('all')}
+                  >
+                    Всем товарам
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className={`flex-1 ${discountTarget === 'selected' ? 'bg-blue-500 text-white' : ''}`}
+                    onClick={() => setDiscountTarget('selected')}
+                  >
+                    Выбранным
+                  </Button>
+                </div>
                 <Button
                   variant="outline"
-                  className={`flex-1 ${discountTarget === 'all' ? 'bg-blue-500 text-white' : ''}`}
-                  onClick={() => setDiscountTarget('all')}
+                  className="w-full mt-2"
+                  onClick={applyDiscount}
+                  disabled={loading}
                 >
-                  Всем товарам
+                  Применить скидку
                 </Button>
-                <Button
-                  variant="outline"
-                  className={`flex-1 ${discountTarget === 'selected' ? 'bg-blue-500 text-white' : ''}`}
-                  onClick={() => setDiscountTarget('selected')}
-                >
-                  Выбранным
-                </Button>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full mt-2"
-                onClick={applyDiscount}
-                disabled={loading}
-              >
-                Применить скидку
-              </Button>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
+            {/* Панель 2 (пустая заготовка) */}
+            <Card className="w-full">
+              <CardContent className="p-4 flex items-center justify-center text-gray-500">
+                <span>Здесь можно добавить новый контент или настройки.</span>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Список товаров */}
           <h3 className="text-lg font-semibold mt-4">Товары</h3>
-          <div className="space-y-2">
+          <div className="space-y-4">
             {products.map((p) => {
               const discountedPrice = p.price - (p.price * (p.discount / 100));
               return (
@@ -148,19 +160,15 @@ const AdminPanel = () => {
                         {p.selected && <Check className="text-white w-4 h-4" />}
                       </div>
 
-                      {/* Контейнер для выравнивания текста */}
                       <div className="flex-1 flex items-center">
                         <span className="text-sm">{p.name}</span>
                       </div>
 
-                      {/* Цена до скидки */}
                       <div className="flex items-center gap-2">
                         <span className="text-sm line-through text-gray-500">{p.price}₽</span>
-                        {/* Цена после скидки */}
                         <span className="text-sm text-green-500 font-semibold">{discountedPrice.toFixed(2)}₽</span>
                       </div>
 
-                      {/* Поле ввода скидки */}
                       <Input
                         type="number"
                         value={p.discount}

@@ -228,18 +228,18 @@ app.put("/api/update-discounts", (req, res) => {
     return res.status(400).json({ error: "Неверный формат данных" });
   }
 
-  // Начинаем транзакцию для атомарности
+  // Начинаем транзакцию
   db.beginTransaction((err) => {
     if (err) {
       return res.status(500).json({ error: "Ошибка начала транзакции: " + err.message });
     }
 
-    // Массив с запросами для обновления скидок
+    // Создаем массив промисов для обновления скидок
     const queries = products.map((product) => {
       return new Promise((resolve, reject) => {
         db.execute(
           "UPDATE products SET discount = ? WHERE id = ?",
-          [product.discount, product.id],
+          [parseFloat(product.discount.toFixed(2)), product.id], // Округляем скидку до 2 знаков
           (error, results) => {
             if (error) {
               return reject(error);
@@ -250,26 +250,29 @@ app.put("/api/update-discounts", (req, res) => {
       });
     });
 
-    // Выполнение всех запросов параллельно
+    // Выполняем все запросы параллельно
     Promise.all(queries)
       .then(() => {
-        // Завершаем транзакцию
-        db.commit((err) => {
-          if (err) {
-            db.rollback(() => {
-              return res.status(500).json({ error: "Ошибка при коммите транзакции: " + err.message });
+        // Фиксируем транзакцию, если все запросы прошли успешно
+        db.commit((commitErr) => {
+          if (commitErr) {
+            return db.rollback(() => {
+              res.status(500).json({ error: "Ошибка при фиксации транзакции: " + commitErr.message });
             });
           }
-          res.json({ message: "Скидки обновлены успешно" });
+          res.json({ message: "Скидки успешно обновлены" });
         });
       })
-      .catch((err) => {
+      .catch((error) => {
+        // Откатываем транзакцию при ошибке
         db.rollback(() => {
-          res.status(500).json({ error: "Ошибка при обновлении данных: " + err.message });
+          res.status(500).json({ error: "Ошибка обновления скидок: " + error.message });
         });
       });
   });
 });
+
+// блог пост обработка
 
 app.get('/api/blog-posts', (req, res) => {
   db.query('SELECT * FROM blog_posts ORDER BY createdAt DESC', (err, results) => {
@@ -597,23 +600,12 @@ app.get('/api/price', (req, res) => {
   });
 });
 
-app.put('/api/update-discount', (req, res) => {
+app.put('/api/update-discount-Pricelist', (req, res) => {
   const { Discount } = req.body;
 
   if (typeof Discount !== 'number') {
     return res.status(400).json({ error: 'Discount должен быть числом' });
   }
-
-  db.query(
-    'UPDATE products SET discount = ?',
-    [Discount],
-    (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: 'Ошибка сервера при обновлении скидок.' });
-        }
-        res.status(200).json({ message: 'Скидки успешно обновлены!', affectedRows: result.affectedRows });
-    }
-  );
 
   fs.readFile("src/Server/Price.json", 'utf8', (err, data) => {
     if (err) {

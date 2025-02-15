@@ -19,7 +19,8 @@ const AdminPanel = () => {
   const [inputDiscount, setInputDiscount] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [discountTarget, setDiscountTarget] = useState<'all' | 'selected'>('all'); 
+  const [discountTarget, setDiscountTarget] = useState<'all' | 'selected'>('all');
+  const [pricelistDiscount, setPricelistDiscount] = useState('');
 
   useEffect(() => {
     fetch("http://localhost:3000/api/products")
@@ -29,11 +30,16 @@ const AdminPanel = () => {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputDiscount(event.target.value);
+    setPricelistDiscount(event.target.value);
+  };
+
+  const handleChangePricelist = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPricelistDiscount(event.target.value);
   };
 
   const updateDiscount = (id: number, discount: number) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, discount } : p))
+      prev.map((p) => (p.id === id ? { ...p, discount: parseFloat(discount.toFixed(2)) } : p))
     );
   };
 
@@ -49,13 +55,13 @@ const AdminPanel = () => {
       toast.error("Введите корректное число");
       return;
     }
-
-    const updatedProducts = discountTarget === 'all' ? 
-      products.map((p) => ({ ...p, discount: numericDiscount })) : 
-      products.map((p) => (p.selected ? { ...p, discount: numericDiscount } : p));
-
+  
+    const updatedProducts = discountTarget === 'all' 
+      ? products.map((p) => ({ ...p, discount: parseFloat(numericDiscount.toFixed(2)) })) 
+      : products.map((p) => (p.selected ? { ...p, discount: parseFloat(numericDiscount.toFixed(2)) } : p));
+  
     setProducts(updatedProducts);
-
+  
     try {
       setLoading(true);
       const response = await fetch("http://localhost:3000/api/update-discounts", {
@@ -63,7 +69,7 @@ const AdminPanel = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ products: updatedProducts }),
       });
-
+  
       if (response.ok) {
         toast.success(`Скидка ${numericDiscount}% успешно применена`);
       } else {
@@ -76,6 +82,21 @@ const AdminPanel = () => {
       setLoading(false);
     }
   };
+
+  const updatePriceListDiscount = async () => {
+    const numericDiscount = parseInt(pricelistDiscount);
+    const response = await fetch("http://localhost:3000/api/update-discount-Pricelist", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Discount: numericDiscount }),
+    });
+
+    if (response.ok) {
+      toast.success(`Скидка ${numericDiscount}% успешно применена`);
+    } else {
+      toast.error("Ошибка при обновлении скидок");
+    }
+  }
 
   return (
     <>
@@ -102,6 +123,7 @@ const AdminPanel = () => {
                 <h3 className="text-lg font-semibold">Управление скидками</h3>
                 <Input
                   type="number"
+                  step="0.01"
                   value={inputDiscount}
                   onChange={handleChange}
                   className="w-full"
@@ -140,15 +162,16 @@ const AdminPanel = () => {
                 <h3 className="text-lg font-semibold">Дополнительные настройки скидок</h3>
                 <Input
                   type="number"
-                  value={inputDiscount}
-                  onChange={handleChange}
+                  step="0.01"
+                  value={pricelistDiscount}
+                  onChange={handleChangePricelist}
                   className="w-full"
                   placeholder="Введите процент скидки..."
                 />
                 <Button
                   variant="outline"
                   className="w-full mt-2"
-                  onClick={applyDiscount}
+                  onClick={updatePriceListDiscount}
                   disabled={loading}
                 >
                   Применить скидку
@@ -186,6 +209,7 @@ const AdminPanel = () => {
 
                       <Input
                         type="number"
+                        step="0.01"
                         value={p.discount}
                         onChange={(e) => updateDiscount(p.id, Number(e.target.value))}
                         className="w-16 h-8 text-sm text-center"

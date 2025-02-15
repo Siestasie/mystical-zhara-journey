@@ -89,15 +89,15 @@ const AdminPanel = () => {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[800px] p-4">
+        <DialogContent className="sm:max-w-[800px] p-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Панель администратора</DialogTitle>
           </DialogHeader>
 
           {/* Контейнер для размещения панелей */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 overflow-hidden">
             {/* Панель 1 для управления скидками */}
-            <Card className="w-full">
+            <Card className="w-full sm:max-w-[350px]">
               <CardContent className="p-3 space-y-2">
                 <h3 className="text-lg font-semibold">Управление скидками</h3>
                 <Input
@@ -107,7 +107,7 @@ const AdminPanel = () => {
                   className="w-full"
                   placeholder="Введите процент скидки..."
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     variant="outline"
                     className={`flex-1 ${discountTarget === 'all' ? 'bg-blue-500 text-white' : ''}`}
@@ -134,10 +134,25 @@ const AdminPanel = () => {
               </CardContent>
             </Card>
 
-            {/* Панель 2 (пустая заготовка) */}
-            <Card className="w-full">
-              <CardContent className="p-4 flex items-center justify-center text-gray-500">
-                <span>Здесь можно добавить новый контент или настройки.</span>
+            {/* Панель 2 для дополнительных настроек */}
+            <Card className="w-full sm:max-w-[350px]">
+              <CardContent className="p-3 space-y-2">
+                <h3 className="text-lg font-semibold">Дополнительные настройки скидок</h3>
+                <Input
+                  type="number"
+                  value={inputDiscount}
+                  onChange={handleChange}
+                  className="w-full"
+                  placeholder="Введите процент скидки..."
+                />
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={applyDiscount}
+                  disabled={loading}
+                >
+                  Применить скидку
+                </Button>
               </CardContent>
             </Card>
           </div>

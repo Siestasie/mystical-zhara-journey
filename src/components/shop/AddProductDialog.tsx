@@ -16,6 +16,8 @@ interface AddProductDialogProps {
 
 export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDialogProps) => {
   const queryClient = useQueryClient();
+  
+  // 🟢 Теперь `image` хранит массив `File[]`
   const [newProduct, setNewProduct] = React.useState({
     name: '',
     description: '',
@@ -23,22 +25,32 @@ export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDial
     price: '',
     category: '',
     specs: [''],
-    image: [] as string[],
+    image: [] as File[],
   });
 
   const addProductMutation = useMutation({
     mutationFn: async (productData: typeof newProduct) => {
+      const formData = new FormData();
+      
+      formData.append('name', productData.name);
+      formData.append('description', productData.description);
+      formData.append('fullDescription', productData.fullDescription);
+      formData.append('price', productData.price);
+      formData.append('category', productData.category);
+      productData.specs.forEach((spec, index) => {
+        formData.append(`specs[${index}]`, spec);
+      });
+
+      // 🟢 Добавляем файлы в `FormData`
+      productData.image.forEach((file) => {
+        formData.append('image', file);
+      });
+
       const response = await fetch('http://localhost:3000/api/products', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...productData,
-          price: parseFloat(productData.price),
-          image: productData.image,
-        }),
+        body: formData, // Браузер сам установит `multipart/form-data`
       });
+
       if (!response.ok) throw new Error('Failed to add product');
       return response.json();
     },
@@ -61,6 +73,7 @@ export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDial
     }
   });
 
+  // 🟢 Добавление характеристики
   const handleAddSpec = () => {
     setNewProduct(prev => ({
       ...prev,
@@ -68,6 +81,7 @@ export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDial
     }));
   };
 
+  // 🟢 Обновление характеристики
   const handleSpecChange = (index: number, value: string) => {
     const newSpecs = [...newProduct.specs];
     newSpecs[index] = value;
@@ -77,9 +91,27 @@ export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDial
     }));
   };
 
+  // 🟢 Обработчик отправки формы
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     addProductMutation.mutate(newProduct);
+  };
+
+  // 🟢 Обработчик загрузки файлов (сохраняем `File[]`)
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const files = Array.from(event.target.files);
+      
+      if (files.length > 3) {
+        alert("Вы можете загрузить не более 3 изображений.");
+        return;
+      }
+
+      setNewProduct(prev => ({
+        ...prev,
+        image: [...prev.image, ...files], // Сохраняем файлы в `File[]`
+      }));
+    }
   };
 
   return (
@@ -155,37 +187,20 @@ export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDial
             type="file"
             accept="image/*"
             multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files || []);
-              
-              if (files.length > 3) {
-                alert("Вы можете загрузить не более 3 изображений.");
-                return;
-              }
-
-              const readers = files.map(file => {
-                return new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => resolve(reader.result as string);
-                  reader.readAsDataURL(file);
-                });
-              });
-
-              Promise.all(readers).then((images) => {
-                setNewProduct(prev => ({ 
-                  ...prev, 
-                  image: [...prev.image, ...images] 
-                }));
-              });
-            }}
+            onChange={handleFileChange}
           />
 
+          {/* 🟢 Отображение загруженных изображений */}
           <div className="mt-4">
             {newProduct.image.length > 0 && (
               <div className="flex gap-2">
-                {newProduct.image.map((image, index) => (
+                {newProduct.image.map((file, index) => (
                   <div key={index} className="w-20 h-20 overflow-hidden rounded-md">
-                    <img src={image} alt={`Uploaded image ${index + 1}`} className="w-full h-full object-cover" />
+                    <img 
+                      src={URL.createObjectURL(file)} 
+                      alt={`Uploaded image ${index + 1}`} 
+                      className="w-full h-full object-cover" 
+                    />
                   </div>
                 ))}
               </div>

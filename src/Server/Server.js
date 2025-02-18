@@ -1,54 +1,53 @@
-import express from 'express'
-import mysql from 'mysql2'
-import bcrypt from 'bcrypt'
+import express from 'express';
+import mysql from 'mysql2';
 import cors from 'cors';
-import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import multer from "multer";
+
 dotenv.config();
 
 const app = express();
-const upload = multer({ dest: 'uploads/' }); // Сохраняем в папке 'uploads'
 
-// Увеличиваем лимит для JSON
-app.use(express.json({limit: '50mb'}));
-app.use(express.urlencoded({limit: '50mb', extended: true}));
-
+// Конфигурация загрузки файлов
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const uploadsDir = path.join(__dirname, 'uploads');
+
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-app.use(cors({
-    origin: 'http://localhost:8080',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-}));
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`)
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB
 
+// Настройки сервера
+app.use(cors({ origin: 'http://localhost:8080', methods: ['GET', 'POST', 'PUT', 'DELETE'] }));
+app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
 
+// Подключение к БД
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '1234',
-    database: 'klimatholoddatabase',
+  host: 'localhost',
+  user: 'root',
+  password: '1234',
+  database: 'klimatholoddatabase',
 });
 
-db.connect((err) => {
-    if (err) {
-        console.error('Ошибка подключения к базе данных:', err);
-        process.exit(1);
-    }
-    console.log('Подключение к базе данных успешно!');
+db.connect(err => {
+  if (err) {
+    console.error('Ошибка подключения к базе данных:', err);
+    return;
+  }
+  console.log('✅ Подключено к базе данных');
 });
 
-// Add this SQL query after database connection
+// Создание таблицы, если её нет
 db.query(`
   CREATE TABLE IF NOT EXISTS products (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -58,128 +57,84 @@ db.query(`
     price DECIMAL(10, 2) NOT NULL,
     category VARCHAR(255) NOT NULL,
     specs JSON,
-    image VARCHAR(255),
+    image JSON,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
-`);
-
-// Add this SQL query for blog posts
-db.query(`
-  CREATE TABLE IF NOT EXISTS blog_posts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    author VARCHAR(255) NOT NULL,
-    image VARCHAR(255),
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-app.put('/api/products/:id/image', async (req, res) => {
-  try {
-    const productId = req.params.id;
-    const { image, index } = req.body;
-
-    // Проверка валидности индекса
-    if (typeof index !== 'number' || index < 0 || index > 2) {
-      return res.status(400).json({ error: 'Неверный индекс изображения (допустимо 0-2)' });
-    }
-
-    // Поиск продукта
-    const [products] = await db.promise().query('SELECT * FROM products WHERE id = ?', [productId]);
-    if (products.length === 0) {
-      return res.status(404).json({ error: 'Продукт не найден' });
-    }
-
-    const currentImages = JSON.parse(products[0].image);
-    
-    // Проверка существующего индекса
-    if (index >= currentImages.length) {
-      return res.status(400).json({ error: 'Указанный индекс не существует' });
-    }
-
-    // Сохранение нового изображения
-    const saveImage = async () => {
-      if (image && image.startsWith('data:image')) {
-        const imageBuffer = Buffer.from(image.split(',')[1], 'base64');
-        if (imageBuffer.length > 5 * 1024 * 1024) {
-          throw new Error('Изображение слишком большое (максимум 5MB)');
-        }
-        const imagePath = path.join(uploadsDir, `${Date.now()}_${index}.jpg`);
-        await fs.promises.writeFile(imagePath, imageBuffer);
-        return `/uploads/${path.basename(imagePath)}`;
-      }
-      throw new Error('Неверный формат изображения');
-    };
-
-    const newImagePath = await Promise.race([
-      saveImage(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Таймаут обработки изображения')), 5000))
-    ]);
-
-    // Обновление массива изображений
-    const updatedImages = [...currentImages];
-    updatedImages[index] = newImagePath;
-
-    // Обновление записи в базе данных
-    await db.promise().query(
-      'UPDATE products SET image = ? WHERE id = ?',
-      [JSON.stringify(updatedImages), productId]
-    );
-
-    res.json({ message: 'Изображение успешно обновлено', newImage: newImagePath });
-  } catch (error) {
-    console.error('Ошибка при обновлении изображения:', error);
-    res.status(500).json({ error: error.message || 'Внутренняя ошибка сервера' });
+`, (err) => {
+  if (err) {
+    console.error('Ошибка при создании таблицы:', err);
   }
 });
 
-app.post('/api/products', async (req, res) => {
-  try {
-      const { name, description, fullDescription, price, category, specs, image } = req.body;
-      console.log(":Name", name, ":Description", description, ":FullDescription", fullDescription, ":Price", price, ":Category", category, ":Specs", specs, ":Images", image);
+// ✅ **Добавление продукта с изображениями**
+app.post('/api/products', upload.array("image", 3), (req, res) => {
+  const { name, description, fullDescription, price, category, specs } = req.body;
+  const files = req.files;
 
-      if (!Array.isArray(image) || image.length === 0 || image.length > 3) {
-          return res.status(400).json({ error: 'Invalid image format or too many image (max 3)' });
-      }
-
-      const saveImage = async (img, index) => {
-          if (img && img.startsWith('data:image')) {
-              const imageBuffer = Buffer.from(img.split(',')[1], 'base64');
-              if (imageBuffer.length > 5 * 1024 * 1024) {
-                  throw new Error('Image too large (max 5MB)');
-              }
-              const imagePath = path.join(uploadsDir, `${Date.now()}_${index}.jpg`);
-              await fs.promises.writeFile(imagePath, imageBuffer);
-              return `/uploads/${path.basename(imagePath)}`;
-          }
-          throw new Error('Invalid image format');
-      };
-
-      const saveImagePromises = image.map((img, index) => 
-          Promise.race([
-              saveImage(img, index),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Image processing timeout')), 5000))
-          ])
-      );
-
-      const imagePaths = await Promise.allSettled(saveImagePromises);
-      const validImagePaths = imagePaths.filter(res => res.status === 'fulfilled').map(res => res.value);
-
-      if (validImagePaths.length === 0) {
-          return res.status(400).json({ error: 'All images failed to process' });
-      }
-
-      const [result] = await db.promise().query(
-          'INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [name, description, fullDescription, price, category, JSON.stringify(specs), JSON.stringify(validImagePaths)]
-      );
-
-      res.status(201).json({ id: result.insertId, message: 'Product added successfully' });
-  } catch (error) {
-      console.error('Error processing request:', error);
-      res.status(500).json({ error: error.message || 'Internal Server Error' });
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: "Не загружены изображения" });
   }
+
+  const imagePaths = files.map(file => `/uploads/${file.filename}`);
+
+  db.query(
+    "INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [name, description, fullDescription, price, category, specs ? JSON.stringify(specs) : null, JSON.stringify(imagePaths)],
+    (err, result) => {
+      if (err) {
+        console.error("Ошибка при добавлении продукта:", err);
+        return res.status(500).json({ error: "Внутренняя ошибка сервера" });
+      }
+      res.status(201).json({ id: result.insertId, message: "Продукт успешно добавлен" });
+    }
+  );
+});
+
+// ✅ **Обновление изображения продукта**
+app.put('/api/products/:id/image', upload.single("image"), (req, res) => {
+  const productId = req.params.id;
+  const index = parseInt(req.body.index);
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ error: "Файл изображения отсутствует" });
+  }
+
+  if (isNaN(index) || index < 0 || index > 2) {
+    return res.status(400).json({ error: "Неверный индекс изображения (допустимо 0-2)" });
+  }
+
+  // Проверяем, существует ли продукт
+  db.query("SELECT * FROM products WHERE id = ?", [productId], (err, products) => {
+    if (err) {
+      console.error("Ошибка при проверке продукта:", err);
+      return res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+
+    if (products.length === 0) {
+      return res.status(404).json({ error: "Продукт не найден" });
+    }
+
+    let currentImages = JSON.parse(products[0].image) || [];
+    if (index >= currentImages.length) {
+      return res.status(400).json({ error: "Указанный индекс не существует" });
+    }
+
+    // Обновляем изображение по индексу
+    currentImages[index] = `/uploads/${file.filename}`;
+
+    db.query("UPDATE products SET image = ? WHERE id = ?", [
+      JSON.stringify(currentImages),
+      productId,
+    ], (err) => {
+      if (err) {
+        console.error("Ошибка при обновлении изображения:", err);
+        return res.status(500).json({ error: "Внутренняя ошибка сервера" });
+      }
+
+      res.json({ message: "Изображение обновлено", newImage: currentImages[index] });
+    });
+  });
 });
 
 app.get('/api/products', (req, res) => {

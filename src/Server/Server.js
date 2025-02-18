@@ -1,6 +1,9 @@
-import express from 'express';
-import mysql from 'mysql2';
+import express from 'express'
+import mysql from 'mysql2'
+import bcrypt from 'bcrypt'
 import cors from 'cors';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import { fileURLToPath } from 'url';

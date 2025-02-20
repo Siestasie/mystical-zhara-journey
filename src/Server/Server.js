@@ -1,5 +1,4 @@
 import express from 'express'
-import mysql from 'mysql2'
 import bcrypt from 'bcrypt'
 import cors from 'cors';
 import crypto from 'crypto';
@@ -9,6 +8,8 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import multer from "multer";
+
+import db from './db.js'
 
 dotenv.config();
 
@@ -33,22 +34,6 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5M
 app.use(cors({ origin: 'http://localhost:8080', methods: ['GET', 'POST', 'PUT', 'DELETE'] }));
 app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
-
-// Подключение к БД
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '1234',
-  database: 'klimatholoddatabase',
-});
-
-db.connect(err => {
-  if (err) {
-    console.error('Ошибка подключения к базе данных:', err);
-    return;
-  }
-  console.log('✅ Подключено к базе данных');
-});
 
 // Создание таблицы, если её нет
 db.query(`

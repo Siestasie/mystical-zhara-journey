@@ -138,14 +138,29 @@ app.get('/api/products', (req, res) => {
 app.get('/api/products/:id', (req, res) => {
   const productId = req.params.id;
   db.query('SELECT * FROM products WHERE id = ?', [productId], (err, results) => {
-      if (err) {
-          console.error('Error fetching product:', err);
-          return res.status(500).json({ error: 'Error fetching product' });
-      }
-      if (results.length === 0) {
-          return res.status(404).json({ error: 'Product not found' });
-      }
-      res.json(results[0]); // Возвращаем первый найденный продукт
+    if (err) {
+      console.error('Error fetching product:', err);
+      return res.status(500).json({ error: 'Error fetching product' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Получаем первый найденный продукт
+    const product = results[0];
+
+    // Парсим JSON-строки в массивы
+    try {
+      product.specs = product.specs ? JSON.parse(product.specs) : [];
+      product.image = product.image ? JSON.parse(product.image) : [];
+    } catch (parseError) {
+      console.error('Error parsing JSON fields:', parseError);
+      product.specs = [];
+      product.image = [];
+    }
+
+    console.log(product); // Проверим, что данные корректны
+    res.json(product);
   });
 });
 
@@ -241,17 +256,17 @@ app.delete('/api/blog-posts/:id', (req, res) => {
   });
 });
 
-app.post('/api/blog-posts', (req, res) => {
-  const { title, content, image } = req.body;
-  
-  if (image && image.startsWith('data:image')) {
-    const imageBuffer = Buffer.from(image.split(',')[1], 'base64');
-    const imagePath = path.join(uploadsDir, `${Date.now()}.jpg`);
-    fs.writeFileSync(imagePath, imageBuffer);
+app.post('/api/blog-posts', upload.single('image'), (req, res) => {
+  const { title, content } = req.body;
+  const image = req.file; // Получаем изображение, загруженное через FormData
 
+  if (image) {
+    const imagePath = `/uploads/${image.filename}`; // Путь к изображению
+
+    // Добавляем пост в базу данных с изображением
     db.query(
       'INSERT INTO blog_posts (title, content, author, image) VALUES (?, ?, ?, ?)',
-      [title, content, 'Admin', `/uploads/${path.basename(imagePath)}`],
+      [title, content, 'Admin', imagePath],
       (err, result) => {
         if (err) {
           console.error('Error adding blog post:', err);
@@ -261,6 +276,7 @@ app.post('/api/blog-posts', (req, res) => {
       }
     );
   } else {
+    // Если изображения нет, добавляем пост без изображения
     db.query(
       'INSERT INTO blog_posts (title, content, author) VALUES (?, ?, ?)',
       [title, content, 'Admin'],
@@ -533,19 +549,23 @@ app.delete('/api/notifications/:id/delete', (req, res) => {
 });
 
 app.get('/api/price', (req, res) => {
-  fs.readFile('src/Server/Price.json', 'utf8', (err, data) => {
-      if (err) {
-          console.log(err)
-          return res.status(500).send('Error reading file');
-      }
-      const jsonData = JSON.parse(data);
-      res.json(jsonData);
+  // Создание абсолютного пути к файлу с помощью __dirname
+  const filePath = path.join(__dirname, 'Price.json');
+  
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send('Error reading file');
+    }
+    const jsonData = JSON.parse(data);
+    res.json(jsonData);
   });
 });
 
+
 app.put('/api/update-discount-Pricelist', (req, res) => {
   const { Discount } = req.body;
-
+  console.log(process.cwd());
   if (typeof Discount !== 'number') {
     return res.status(400).json({ error: 'Discount должен быть числом' });
   }

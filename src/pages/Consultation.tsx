@@ -8,18 +8,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as z from "zod";
+import { ArrowLeft, Mail, Phone } from "lucide-react";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Имя должно содержать минимум 2 символа"),
+  name: z.string().optional(),
   phone: z.string().min(10, "Введите корректный номер телефона"),
-  email: z.string().email("Введите корректный email"),
-  description: z.string().min(10, "Опишите ваш проект подробнее (минимум 10 символов)"),
+  email: z.string().email("Введите корректный email").optional().or(z.literal("")),
+  description: z.string().optional(),
 });
 
 const ConsultationPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,7 +49,7 @@ const ConsultationPage = () => {
         title: "Заявка отправлена!",
         description: "Мы свяжемся с вами в ближайшее время.",
       });
-      
+
       setTimeout(() => navigate("/"), 2000);
     } catch (error) {
       toast({
@@ -60,10 +61,17 @@ const ConsultationPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
-      <Card className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-background transition-colors duration-300 py-12 px-4">
+      <Button
+        variant="outline"
+        className="absolute top-6 left-4 custom-button1 hidden lg:flex"
+        onClick={() => navigate("/")}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" /> Назад
+      </Button>
+      <Card className="max-w-2xl mx-auto animate-scale-in">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Заказать консультацию</CardTitle>
+          <CardTitle className="text-2xl text-center text-foreground">Заказать консультацию</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -72,10 +80,10 @@ const ConsultationPage = () => {
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ваше имя</FormLabel>
+                  <FormItem className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                    <FormLabel className="text-foreground">Ваше имя</FormLabel>
                     <FormControl>
-                      <Input placeholder="Иван Иванов" {...field} />
+                      <Input placeholder="Иван Иванов" {...field} className="bg-background text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -86,10 +94,10 @@ const ConsultationPage = () => {
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Номер телефона</FormLabel>
+                  <FormItem className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                    <FormLabel className="text-foreground">Номер телефона *</FormLabel>
                     <FormControl>
-                      <Input placeholder="+7 (999) 999-99-99" {...field} />
+                      <Input placeholder="+7 (999) 999-99-99" {...field} className="bg-background text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -100,10 +108,10 @@ const ConsultationPage = () => {
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
+                  <FormItem className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                    <FormLabel className="text-foreground">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="example@mail.ru" {...field} />
+                      <Input placeholder="example@mail.ru" {...field} className="bg-background text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,12 +122,12 @@ const ConsultationPage = () => {
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Описание проекта</FormLabel>
+                  <FormItem className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                    <FormLabel className="text-foreground">Описание</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <Textarea
                         placeholder="Опишите ваш проект или вопрос..."
-                        className="min-h-[120px]"
+                        className="min-h-[120px] bg-background text-foreground"
                         {...field}
                       />
                     </FormControl>
@@ -128,7 +136,7 @@ const ConsultationPage = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full animate-fade-in" style={{ animationDelay: '0.5s' }}>
                 Отправить заявку
               </Button>
             </form>

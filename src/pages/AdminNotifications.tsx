@@ -1,62 +1,58 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-
-interface Notification {
-  id: number;
-  name: string;
-  phone: string;
-  email: string;
-  description: string;
-  createdAt: string;
-  isRead: boolean;
-}
-
-// Mock data for notifications
-const mockNotifications: Notification[] = [
-  {
-    id: 1,
-    name: "Иван Петров",
-    phone: "+7 999 123-45-67",
-    email: "ivan@example.com",
-    description: "Нужна консультация по установке кондиционера в квартире",
-    createdAt: "2024-02-20T10:30:00",
-    isRead: false
-  },
-  {
-    id: 2,
-    name: "Мария Сидорова",
-    phone: "+7 999 765-43-21",
-    email: "maria@example.com",
-    description: "Интересует обслуживание системы кондиционирования",
-    createdAt: "2024-02-19T15:45:00",
-    isRead: true
-  }
-];
+import { Bell } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const AdminNotifications = () => {
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Commented out real API call, using mock data instead
+  const [expandedNotifications, setExpandedNotifications] = useState<{ [key: number]: boolean }>({});
+  const queryClient = useQueryClient();
+
+  // Запрос уведомлений
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      // Commented out actual API call
       const response = await fetch('http://localhost:3000/api/notifications');
       if (!response.ok) {
-         throw new Error('Network response was not ok');
-       }
-       return response.json();
-      
-      // Using mock data
-      return mockNotifications;
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
     },
   });
+
+  // Мутация для удаления уведомления
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`http://localhost:3000/api/notifications/${id}/delete`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+    onError: (error) => {
+      console.error('Ошибка при удалении уведомления:', error);
+    },
+  });
+
+  const handleDeleteNotification = (id: number) => {
+    deleteNotificationMutation.mutate(id);
+  };
+
+  const toggleExpand = (id: number) => {
+    setExpandedNotifications((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Загрузка...</div>;
@@ -64,11 +60,7 @@ const AdminNotifications = () => {
 
   return (
     <>
-      <Button
-        variant="outline"
-        className="flex items-center gap-2"
-        onClick={() => setIsOpen(true)}
-      >
+      <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsOpen(true)}>
         <Bell className="h-4 w-4" />
         <span className="hidden sm:inline">Уведомления</span>
       </Button>
@@ -78,34 +70,72 @@ const AdminNotifications = () => {
           <DialogHeader>
             <DialogTitle>Уведомления о консультациях</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="h-[500px] rounded-md border p-4">
+          <ScrollArea className="min-h-[200px] max-h-[80vh] rounded-md border p-4">
             <div className="space-y-4">
-              {notifications?.map((notification) => (
-                <Card key={notification.id} className={notification.isRead ? 'bg-gray-50' : 'bg-white'}>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-lg">
-                        Заявка от {notification.name}
-                        {!notification.isRead && (
-                          <Badge variant="secondary" className="ml-2">
-                            Новая
-                          </Badge>
+              {notifications?.map((notification) => {
+                const isExpanded = expandedNotifications[notification.id] || false;
+
+                return (
+                  <Card key={notification.id} className={notification.isRead ? 'bg-gray-50' : 'primary'}>
+                    <CardHeader>
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg">
+                          Заявка от {notification.name}
+                          {!notification.isRead && (
+                            <Badge variant="secondary" className="ml-2">
+                              Новая
+                            </Badge>
+                          )}
+                        </CardTitle>
+                        <span className="text-sm text-gray-500">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="whitespace-pre-wrap break-words overflow-hidden">
+                      <div className="space-y-2">
+                        <p>
+                          <strong>Телефон:</strong>{" "}
+                          <a href={`tel:${notification.phone}`} className="text-blue-500 hover:underline">
+                            {notification.phone}
+                          </a>
+                        </p>
+                        <p>
+                          <strong>Email:</strong>{" "}
+                          <a href={`mailto:${notification.email}`} className="text-blue-500 hover:underline">
+                            {notification.email}
+                          </a>
+                        </p>
+
+                        {isExpanded ? (
+                          <>
+                            <p><strong>Описание:</strong> {notification.description}</p>
+                            {notification.productUrl && (
+                              <p>
+                                <strong>Ссылка на товар:</strong>{" "}
+                                <a href={notification.productUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
+                                  {notification.productUrl}
+                                </a>
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-gray-600">Нажмите "Подробнее" для просмотра...</p>
                         )}
-                      </CardTitle>
-                      <span className="text-sm text-gray-500">
-                        {new Date(notification.createdAt).toLocaleString()}
-                      </span>
+                      </div>
+                    </CardContent>
+
+                    <div className="flex justify-between p-4">
+                      <Button variant="outline" onClick={() => toggleExpand(notification.id)}>
+                        {isExpanded ? "Свернуть" : "Подробнее"}
+                      </Button>
+                      <Button variant="destructive" onClick={() => handleDeleteNotification(notification.id)}>
+                        Удалить
+                      </Button>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p><strong>Телефон:</strong> {notification.phone}</p>
-                      <p><strong>Email:</strong> {notification.email}</p>
-                      <p><strong>Описание:</strong> {notification.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </ScrollArea>
         </DialogContent>

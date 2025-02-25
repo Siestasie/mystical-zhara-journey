@@ -27,8 +27,8 @@ const ProductDetails = () => {
     fullDescription: '',
     price: '',
     category: '',
-    specs: [''],
-    images: [] as string[]  
+    specs: [],   // Инициализация как пустой массив
+    images: [] as string[]  // Инициализация как пустой массив
   });
 
   const { data: product } = useQuery({
@@ -37,18 +37,39 @@ const ProductDetails = () => {
       const response = await fetch(`http://localhost:3000/api/products/${id}`);
       if (!response.ok) throw new Error('Failed to fetch product');
       const data = await response.json();
+
+      //console.log("Fetched data:", data); // Логируем данные, полученные с сервера
+
+      // Преобразуем строку в массив, если это необходимо
+      const specs = Array.isArray(data.specs) ? data.specs : [];
+      const images = Array.isArray(data.images) ? data.images : [];
+
       setEditProduct({
         name: data.name,
         description: data.description,
         fullDescription: data.fullDescription,
         price: data.price.toString(),
         category: data.category,
-        specs: data.specs || [''],
-        images: data.images || []
+        specs: specs,   // Гарантируем, что это массив
+        images: images, // Гарантируем, что это массив
       });
+
+
+      console.log('Parsed specs:', specs); 
+      console.log('Parsed images:', images);
+
       return data;
     }
   });
+
+  // Логируем перед рендером компонента
+  console.log("Product details:", product);
+
+  // Проверяем и корректируем данные перед использованием .map()
+  const specsToRender = Array.isArray(product?.specs) ? product.specs : [];
+  const imagesToRender = Array.isArray(product?.images) ? product.images : [];
+
+  
 
   const handleContactClick = () => {
     toast({

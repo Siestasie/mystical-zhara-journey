@@ -15,11 +15,17 @@ const loginSchema = z.object({
   password: z.string().min(6, "Минимум 6 символов"),
 });
 
-const registerSchema = z.object({
-  name: z.string().min(2, "Минимум 2 символа"),
-  email: z.string().email("Неверный формат email"),
-  password: z.string().min(6, "Минимум 6 символов"),
-});
+const registerSchema = z
+  .object({
+    name: z.string().min(2, "Минимум 2 символа"),
+    email: z.string().email("Неверный формат email"),
+    password: z.string().min(6, "Минимум 6 символов"),
+    confirmPassword: z.string().min(6, "Минимум 6 символов"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Пароли не совпадают",
+    path: ["confirmPassword"],
+  });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -299,6 +305,22 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+                <FormField 
+                  control={registerForm.control} 
+                  name="confirmPassword" 
+                  render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Повторите пароль</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input className="pl-9" type="password" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                  )} 
                 />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   Зарегистрироваться

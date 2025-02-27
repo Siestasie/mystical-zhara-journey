@@ -27,7 +27,7 @@ const Blog = () => {
   const [newPost, setNewPost] = useState({ 
     title: "", 
     content: "",
-    image: "" 
+    image: null as File | null,
   });
   const queryClient = useQueryClient();
 
@@ -66,13 +66,24 @@ const Blog = () => {
 
   const addPostMutation = useMutation({
     mutationFn: async (postData: typeof newPost) => {
+      // Создаем новый объект FormData
+      const formData = new FormData();
+  
+      // Добавляем текстовые данные (название и контент)
+      formData.append('title', postData.title);
+      formData.append('content', postData.content);
+  
+      // Добавляем изображение, если оно есть
+      if (postData.image) {
+        formData.append('image', postData.image, postData.image.name);
+      }
+  
+      // Отправляем данные на сервер
       const response = await fetch('http://localhost:3000/api/blog-posts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
+        body: formData, // Отправляем данные в формате FormData
       });
+  
       if (!response.ok) throw new Error('Failed to add post');
       return response.json();
     },
@@ -83,7 +94,7 @@ const Blog = () => {
         description: "Пост успешно добавлен",
       });
       setIsOpen(false);
-      setNewPost({ title: "", content: "", image: "" });
+      setNewPost({ title: "", content: "", image: null });
     },
     onError: () => {
       toast({
@@ -97,14 +108,10 @@ const Blog = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewPost(prev => ({
-          ...prev,
-          image: reader.result as string
-        }));
-      };
-      reader.readAsDataURL(file);
+      setNewPost(prev => ({
+        ...prev,
+        image: file
+      }));
     }
   };
 

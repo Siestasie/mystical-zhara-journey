@@ -62,41 +62,36 @@ export const ProductEditForm = ({
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const response = await fetch(`http://localhost:3000/api/products/${id}/image`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              image: reader.result,
-              index: index
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to update image');
-          }
-
-          const data = await response.json();
-          queryClient.invalidateQueries({ queryKey: ['product', id] });
-          toast({
-            title: "Успешно",
-            description: "Изображение обновлено",
-          });
-        } catch (error) {
-          toast({
-            title: "Ошибка",
-            description: "Не удалось обновить изображение",
-            variant: "destructive",
-          });
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('index', String(index));
+  
+      try {
+        const response = await fetch(`http://localhost:3000/api/products/${id}/image`, {
+          method: 'PUT',
+          body: formData, // Используем FormData
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to update image');
         }
-      };
-      reader.readAsDataURL(file);
+  
+        const data = await response.json();
+        queryClient.invalidateQueries({ queryKey: ['product', id] });
+        toast({
+          title: "Успешно",
+          description: "Изображение обновлено",
+        });
+      } catch (error) {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось обновить изображение",
+          variant: "destructive",
+        });
+      }
     }
   };
+  
 
   const updateProductMutation = useMutation({
     mutationFn: async (productData: typeof editProduct) => {

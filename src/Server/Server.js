@@ -8,7 +8,8 @@ import productRoutes from './ProductRoutes.js';
 import userRoutes from './UserRoutes.js';
 import notificationsRoutes from './NotificationsRoutes.js';
 import blogpostsRoutes from './blogpostsRoutes.js';
-import pricelistRoutes from './pricelistRoutes.js'
+import pricelistRoutes from './pricelistRoutes.js';
+import orderRoutes from './OrderRoutes.js';
 
 import db from './db.js'
 
@@ -34,10 +35,11 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(express.json());
 app.use('/api', userRoutes);
-app.use('/api', productRoutes);
 app.use('/api', notificationsRoutes);
 app.use('/api', blogpostsRoutes);
 app.use('/api', pricelistRoutes);
+app.use('/api', productRoutes);
+app.use('/api', orderRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {

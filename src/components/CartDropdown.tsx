@@ -55,7 +55,6 @@ export const CartDropdown = () => {
     return description.replace(/<\/?pre>/g, "\n\n"); 
   };  
   
-
   const handleOrder = async () => {
     if (!orderData.name || !orderData.phone || !orderData.address) {
       toast({
@@ -67,7 +66,8 @@ export const CartDropdown = () => {
     }
   
     try {      
-      const response = await fetch('http://localhost:3000/api/notifications', {
+      // Send notification to admin
+      const notificationResponse = await fetch('http://localhost:3000/api/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,8 +103,38 @@ export const CartDropdown = () => {
         }),
       });
   
-      if (!response.ok) {
+      if (!notificationResponse.ok) {
         throw new Error('Ошибка при отправке заказа');
+      }
+      
+      // Save order to orders table for order history
+      if (user && user.id) {
+        const orderItems = items.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          price: item.price,
+          name: item.name
+        }));
+        
+        const orderResponse = await fetch('http://localhost:3000/api/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: user.id,
+            total_price: total,
+            status: 'processing',
+            items: orderItems,
+            shipping_address: orderData.address,
+            contact_phone: orderData.phone,
+            comments: orderData.comments
+          }),
+        });
+        
+        if (!orderResponse.ok) {
+          console.error('Failed to save order history');
+        }
       }
   
       toast({

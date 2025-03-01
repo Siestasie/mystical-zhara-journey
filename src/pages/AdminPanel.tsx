@@ -30,7 +30,6 @@ const AdminPanel = () => {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputDiscount(event.target.value);
-    setPricelistDiscount(event.target.value);
   };
 
   const handleChangePricelist = (event: React.ChangeEvent<HTMLInputElement>) => {

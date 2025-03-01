@@ -6,9 +6,13 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
 import pytz
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
-TOKEN = "7698755380:AAGEfcJ_PtraElzNvp5PJvfx0I-ZFfwpi00"
+TOKEN = os.getenv("TELEGRAM_TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 

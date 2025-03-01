@@ -34,6 +34,7 @@ const PriceList = () => {
           },
         });
         const data = await response.json();
+        console.log(data)
         setDiscount(data[0].Discount);
 
         data.splice(0, 1);
@@ -117,7 +118,12 @@ const PriceList = () => {
                 {/* Добавляем сноску */}
                 {category.note && (
                   <p className="text-sm text-muted-foreground mt-4">
-                    {category.note}
+                    {category.note.split('\n').map((line, index) => (
+                      <span key={index}>
+                        {line}
+                        <br />
+                      </span>
+                    ))}
                   </p>
                 )}
               </AccordionContent>

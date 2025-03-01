@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React from "react";
 
 const AdminNotifications = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +21,7 @@ const AdminNotifications = () => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
+      console.log('URL значение:', response);
       return response.json();
     },
   });
@@ -109,15 +111,47 @@ const AdminNotifications = () => {
 
                         {isExpanded ? (
                           <>
-                            <p><strong>Описание:</strong> {notification.description}</p>
-                            {notification.productUrl && (
-                              <p>
-                                <strong>Ссылка на товар:</strong>{" "}
-                                <a href={notification.productUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
-                                  {notification.productUrl}
-                                </a>
-                              </p>
-                            )}
+                            <p><strong>Описание:</strong> {
+                              notification.description.split('\n').map((line, index) => {
+                                if (line.includes('▶ Сумма:')) {
+                                  const urlMatch = notification.description.match(/▶ Ссылка на товар: (http[^\n]+)/);
+                                  const productUrl = urlMatch ? urlMatch[1].trim() : null;
+                                  
+                                  return (
+                                    <React.Fragment key={index}>
+                                      {line}<br/>
+                                      {productUrl && (
+                                        <>
+                                          <br/>
+                                          {"  ▶ Ссылка на товар: "}
+                                          <a 
+                                            href={productUrl}
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-blue-500 hover:underline break-all cursor-pointer z-50"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              window.open(productUrl, '_blank');
+                                            }}
+                                          >
+                                            {productUrl}
+                                          </a>
+                                          <br/><br/>
+                                        </>
+                                      )}
+                                    </React.Fragment>
+                                  );
+                                }
+                                
+                                // Пропускаем строку со старой ссылкой
+                                if (line.includes('▶ Ссылка на товар:')) {
+                                  return null;
+                                }
+                                
+                                return <React.Fragment key={index}>{line}<br/></React.Fragment>;
+                              })}
+                            </p>
                           </>
                         ) : (
                           <p className="text-gray-600">Нажмите "Подробнее" для просмотра...</p>

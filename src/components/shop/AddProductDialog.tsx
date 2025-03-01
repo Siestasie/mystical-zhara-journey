@@ -116,7 +116,7 @@ export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDial
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Добавить новый товар</DialogTitle>
         </DialogHeader>

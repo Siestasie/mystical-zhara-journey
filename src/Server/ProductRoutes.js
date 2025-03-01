@@ -19,7 +19,30 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB
 
-// ✅ **Добавление продукта с изображениями**
+router.post('/products', upload.array("image", 3), (req, res) => {
+  const { name, description, fullDescription, price, category, specs } = req.body;
+  const files = req.files;
+
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: "Не загружены изображения" });
+  }
+
+  const imagePaths = files.map(file => `/uploads/${file.filename}`);
+
+  db.query(
+    "INSERT INTO products (name, description, fullDescription, price, category, specs, image) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [name, description, fullDescription, price, category, specs ? JSON.stringify(specs) : null, JSON.stringify(imagePaths)],
+    (err, result) => {
+      if (err) {
+        console.error("Ошибка при добавлении продукта:", err);
+        return res.status(500).json({ error: "Внутренняя ошибка сервера" });
+      }
+      res.status(201).json({ id: result.insertId, message: "Продукт успешно добавлен" });
+    }
+  );
+});
+
+//  **Добавление продукта с изображениями**
 router.put('/products/:id', (req, res) => {
   const { id } = req.params;
   const { name, description, fullDescription, price, discount = 0, category, specs } = req.body;

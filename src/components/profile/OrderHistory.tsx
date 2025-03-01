@@ -72,7 +72,7 @@ export const OrderHistory = () => {
   }
 
   const getStatusBadge = (status: string) => {
-    const statusMap: { [key: string]: { label: string; variant: "default" | "secondary" | "destructive" | "outline" } } = {
+    const statusMap: { [key: string]: { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" } } = {
       processing: { label: "В обработке", variant: "secondary" },
       shipped: { label: "Отправлен", variant: "default" },
       delivered: { label: "Доставлен", variant: "outline" },
@@ -82,7 +82,7 @@ export const OrderHistory = () => {
     const statusInfo = statusMap[status] || { label: status, variant: "default" };
     
     return (
-      <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+      <Badge variant={statusInfo.variant as any}>{statusInfo.label}</Badge>
     );
   };
 

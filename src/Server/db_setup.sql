@@ -29,3 +29,6 @@ CREATE TABLE IF NOT EXISTS order_items (
 -- Indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders (user_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items (order_id);
+
+-- Add comment to help remember available status values
+-- Available statuses: 'processing', 'shipped', 'delivered', 'cancelled'

@@ -30,3 +30,10 @@ These commands will create:
 - necessary indexes for better performance
 
 This setup is required for the order history functionality to work properly.
+
+Available status values for orders:
+- processing: Order is being processed
+- shipped: Order has been shipped to customer
+- delivered: Order has been delivered to customer
+- cancelled: Order has been cancelled
+

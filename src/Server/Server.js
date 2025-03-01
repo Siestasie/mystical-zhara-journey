@@ -1,47 +1,45 @@
-import express from 'express'
+import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
 import path from 'path';
-
-import productRoutes from './ProductRoutes.js';
-import userRoutes from './UserRoutes.js';
-import notificationsRoutes from './NotificationsRoutes.js';
-import blogpostsRoutes from './blogpostsRoutes.js';
-import pricelistRoutes from './pricelistRoutes.js';
-import orderRoutes from './OrderRoutes.js';
-
-import db from './db.js'
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Конфигурация загрузки файлов
+// Enable CORS
+app.use(cors());
+
+// Parse JSON request bodies
+app.use(express.json());
+
+// Serve static files from the 'public' directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const uploadsDir = path.join(__dirname, 'uploads');
+app.use(express.static(path.join(__dirname, '../public')));
 
-// Настройки сервера
-app.use(cors({ origin: 'http://localhost:8080', methods: ['GET', 'POST', 'PUT', 'DELETE'] }));
-app.use(express.json());
-app.use('/uploads', express.static(uploadsDir));
+import UserRoutes from './UserRoutes.js';
+import ProductRoutes from './ProductRoutes.js';
+import NotificationsRoutes from './NotificationsRoutes.js';
+import PricelistRoutes from './pricelistRoutes.js';
+import BlogpostsRoutes from './blogpostsRoutes.js';
+import OrderRoutes from './OrderRoutes.js';
 
-if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '../../dist');
-  app.use(express.static(buildPath));
-  app.get('*', (req, res) => res.sendFile(path.join(buildPath, 'index.html')));
-}
+// Routes
+app.use('/api', UserRoutes);
+app.use('/api', ProductRoutes);
+app.use('/api', NotificationsRoutes);
+app.use('/api', PricelistRoutes);
+app.use('/api', BlogpostsRoutes);
+app.use('/api', OrderRoutes);
 
-app.use(express.json());
-app.use('/api', userRoutes);
-app.use('/api', notificationsRoutes);
-app.use('/api', blogpostsRoutes);
-app.use('/api', pricelistRoutes);
-app.use('/api', productRoutes);
-app.use('/api', orderRoutes);
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Сервер запущен на http://localhost:${PORT}`);
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

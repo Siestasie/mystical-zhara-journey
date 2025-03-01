@@ -67,4 +67,53 @@ router.get('/orders/user/:userId', async (req, res) => {
   }
 });
 
+// Get all orders (for admin)
+router.get('/orders/all', async (req, res) => {
+  try {
+    // Get all orders sorted by most recent first
+    const [orders] = await db.promise().query(
+      'SELECT o.*, u.name as userName FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC'
+    );
+
+    // For each order, get its items
+    for (let i = 0; i < orders.length; i++) {
+      const [items] = await db.promise().query(
+        'SELECT * FROM order_items WHERE order_id = ?',
+        [orders[i].id]
+      );
+      orders[i].items = items;
+    }
+
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    res.status(500).json({ message: 'Failed to fetch all orders', error: error.message });
+  }
+});
+
+// Update order status (for admin)
+router.put('/orders/:orderId/status', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    
+    // Validate status
+    const validStatuses = ['processing', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Must be one of: processing, shipped, delivered, cancelled' });
+    }
+
+    // Update the order status
+    await db.promise().query(
+      'UPDATE orders SET status = ? WHERE id = ?',
+      [status, orderId]
+    );
+
+    res.json({ message: 'Order status updated successfully' });
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({ message: 'Failed to update order status', error: error.message });
+  }
+});
+
 export default router;

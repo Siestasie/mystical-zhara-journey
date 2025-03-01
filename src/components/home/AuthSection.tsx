@@ -1,13 +1,13 @@
 
 import { Button } from "@/components/ui/button";
-import { LogIn, Settings, UserPlus } from "lucide-react";
+import { LogIn, User, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { User } from "@/contexts/AuthContext";
+import { User as AuthUser } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
 interface AuthSectionProps {
-  user: User | null;
+  user: AuthUser | null;
   logout: () => void;
   setIsLoginOpen: (value: boolean) => void;
   setIsRegisterOpen: (value: boolean) => void;
@@ -24,10 +24,10 @@ export const AuthSection = ({ user, logout, setIsLoginOpen, setIsRegisterOpen }:
           <Button 
             variant="outline" 
             className="flex items-center gap-2 custom-button1 animate-fade-in"
-            onClick={() => navigate('/account-settings')}
+            onClick={() => navigate('/user-profile')}
           >
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Настройки аккаунта</span>
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">Пользователь</span>
           </Button>
           <Button 
             variant="outline" 

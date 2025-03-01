@@ -36,10 +36,6 @@ const PriceList = () => {
         const data = await response.json();
         setDiscount(data[0].Discount);
 
-        // Фильтруем данные
-        //const filteredData = data.filter(item => item.Discount === 0);
-        //console.log(filteredData)
-
         data.splice(0, 1);
 
         console.log(data)
@@ -52,7 +48,6 @@ const PriceList = () => {
     GetPrice();
   }, []);
 
-  // Функция обновления цен
   function updatePrices(data, percentage) {
     if (isNaN(percentage) || percentage < 0) {
       console.error("Введите корректное число!");
@@ -88,58 +83,56 @@ const PriceList = () => {
 
           <Accordion type="single" collapsible className="w-full">
             {priceconditioners.length > 0 && (discount !== 0 ? updatePrices(priceconditioners, discount) : priceconditioners).map((category, index) => (
-              <AccordionItem 
-                key={index} 
-                value={`item-${index}`}
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <AccordionTrigger className="text-lg font-semibold text-foreground">
-                  {category.category}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[70%] text-foreground">Услуга</TableHead>
-                        <TableHead className="text-right text-foreground">Стоимость (₽)</TableHead>
+            <AccordionItem key={index} value={`item-${index}`} className="animate-fade-in">
+              <AccordionTrigger className="text-lg font-semibold text-foreground text-left">
+                {category.category}
+              </AccordionTrigger>
+              <AccordionContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[70%] text-foreground text-left">Услуга</TableHead>
+                      <TableHead className="text-right text-foreground">Стоимость (₽)</TableHead>
+                      {discount !== 0 && (
+                        <TableHead className="text-right text-foreground">Старая цена (₽)</TableHead>
+                      )}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {category.items.map((item, itemIndex) => (
+                      <TableRow key={itemIndex} className="animate-fade-in">
+                        <TableCell className="font-medium text-foreground text-left">{item.service}</TableCell>
+                        <TableCell className="text-right text-foreground">
+                          {item.price.toLocaleString()} ₽
+                        </TableCell>
                         {discount !== 0 && (
-                          <TableHead className="text-right text-foreground">Старая цена (₽)</TableHead>
+                          <TableCell className="text-right text-foreground">
+                            {item.oldPrice} ₽
+                          </TableCell>
                         )}
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {category.items.map((item, itemIndex) => (
-                        <TableRow 
-                          key={itemIndex} 
-                          className="animate-fade-in"
-                          style={{ animationDelay: `${(index + itemIndex + 1) * 0.1}s` }}
-                        >
-                          <TableCell className="font-medium text-foreground">{item.service}</TableCell>
-                          <TableCell className="text-right text-foreground">
-                            {item.price.toLocaleString()} ₽
-                          </TableCell>
-                          {discount !== 0 && (
-                            <TableCell className="text-right text-foreground">
-                              {item.oldPrice} ₽
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </AccordionContent>
-              </AccordionItem>
+                    ))}
+                  </TableBody>
+                </Table>
+                {/* Добавляем сноску */}
+                {category.note && (
+                  <p className="text-sm text-muted-foreground mt-4">
+                    {category.note}
+                  </p>
+                )}
+              </AccordionContent>
+            </AccordionItem>
             ))}
           </Accordion>
 
-          <p className="text-sm text-muted-foreground mt-6 text-center animate-fade-in" style={{ animationDelay: '0.8s' }}>
+          <p className="text-sm text-muted-foreground mt-6 text-left animate-fade-in enforce-left" style={{ animationDelay: '0.8s' }}>
             * Цены указаны приблизительно и могут варьироваться в зависимости от сложности работ
           </p>
         </div>
       </div>
     </div>
   );
+
 };
 
 export default PriceList;

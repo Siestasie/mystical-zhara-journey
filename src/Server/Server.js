@@ -24,14 +24,13 @@ app.use(express.json());
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(uploadsDir));
 
-// Serve static files from the public directory
-// Go up two levels: from /src/Server to the project root, then into /public
-const publicPath = path.join(__dirname, '../../public');
+// Serve static files from the public directory - project root level
+const publicPath = path.resolve(__dirname, '../../public');
 app.use(express.static(publicPath));
 
 // If in production, serve the built files
 if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '../../dist');
+  const buildPath = path.resolve(__dirname, '../../dist');
   app.use(express.static(buildPath));
 }
 
@@ -52,15 +51,23 @@ app.use('/api', OrderRoutes);
 
 // For any other route, serve index.html (SPA approach)
 app.get('*', (req, res) => {
-  // In production, serve from dist, otherwise from public
-  const indexPath = process.env.NODE_ENV === 'production' 
-    ? path.join(__dirname, '../../dist/index.html')
-    : path.join(__dirname, '../../public/index.html');
+  try {
+    // In production, serve from dist, otherwise from public
+    const indexPath = process.env.NODE_ENV === 'production' 
+      ? path.resolve(__dirname, '../../dist/index.html')
+      : path.resolve(__dirname, '../../public/index.html');
     
-  res.sendFile(indexPath);
+    console.log('Attempting to serve:', indexPath);
+    res.sendFile(indexPath);
+  } catch (error) {
+    console.error('Error serving index.html:', error);
+    res.status(500).send('Error serving the application');
+  }
 });
 
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  console.log(`Server directory: ${__dirname}`);
+  console.log(`Public path: ${publicPath}`);
 });

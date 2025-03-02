@@ -1,10 +1,9 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BarChart, Check, Package, Archive, Clock } from "lucide-react";
+import { BarChart, Check, Package, Archive, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { 
   Tabs, 
@@ -83,6 +82,8 @@ const AdminPanel = () => {
     totalOrders: 0,
     totalRevenue: 0
   });
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:3000/api/products")
@@ -287,6 +288,11 @@ const AdminPanel = () => {
     );
   };
 
+  const viewOrderDetails = (order: Order) => {
+    setSelectedOrderDetails(order);
+    setShowOrderDetails(true);
+  };
+
   return (
     <>
       <Button
@@ -312,9 +318,7 @@ const AdminPanel = () => {
             </TabsList>
             
             <TabsContent value="discounts" className="mt-0">
-              {/* Контейнер для размещения панелей скидок */}
               <div className="flex flex-col sm:flex-row gap-4 overflow-hidden">
-                {/* Панель 1 для управления скидками */}
                 <Card className="w-full sm:max-w-[350px]">
                   <CardContent className="p-3 space-y-2">
                     <h3 className="text-lg font-semibold">Управление скидками</h3>
@@ -353,7 +357,6 @@ const AdminPanel = () => {
                   </CardContent>
                 </Card>
 
-                {/* Панель 2 для дополнительных настроек */}
                 <Card className="w-full sm:max-w-[350px]">
                   <CardContent className="p-3 space-y-2">
                     <h3 className="text-lg font-semibold">Дополнительные настройки скидок</h3>
@@ -377,7 +380,6 @@ const AdminPanel = () => {
                 </Card>
               </div>
 
-              {/* Список товаров */}
               <h3 className="text-lg font-semibold mt-4">Товары</h3>
               <div className="space-y-4">
                 {products.map((p) => {
@@ -386,7 +388,6 @@ const AdminPanel = () => {
                     <Card key={p.id} className="p-2">
                       <CardContent className="flex items-center justify-between p-2">
                         <div className="flex items-center gap-3 w-full">
-                          {/* Квадратный чекбокс */}
                           <div
                             className={`w-6 h-6 flex items-center justify-center border-2 rounded-md cursor-pointer transition-all 
                             ${p.selected ? "bg-blue-500 border-blue-500" : "border-gray-400 hover:border-blue-400"}`}
@@ -604,7 +605,12 @@ const AdminPanel = () => {
                           <TableCell>{getStatusBadge(order.status)}</TableCell>
                           <TableCell>{order.total_price.toLocaleString()} ₽</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" className="h-8">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8"
+                              onClick={() => viewOrderDetails(order)}
+                            >
                               Подробнее
                             </Button>
                           </TableCell>
@@ -616,6 +622,84 @@ const AdminPanel = () => {
               )}
             </TabsContent>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              Заказ #{selectedOrderDetails?.id} - {selectedOrderDetails && getStatusBadge(selectedOrderDetails.status)}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedOrderDetails && (
+            <div className="space-y-4">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Дата заказа:</span>
+                <span>{selectedOrderDetails.created_at && format(new Date(selectedOrderDetails.created_at), "dd.MM.yyyy, HH:mm")}</span>
+              </div>
+              
+              {selectedOrderDetails.userName && (
+                <div className="flex justify-between">
+                  <span className="font-medium">Пользователь:</span>
+                  <span>{selectedOrderDetails.userName}</span>
+                </div>
+              )}
+              
+              <div className="space-y-2 border-t pt-4">
+                <h3 className="font-semibold">Товары</h3>
+                <div className="divide-y">
+                  {selectedOrderDetails.items.map((item) => (
+                    <div key={item.id} className="py-2 flex justify-between">
+                      <div>
+                        <div>{item.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {item.quantity} × {item.price.toLocaleString()} ₽
+                        </div>
+                      </div>
+                      <div className="font-medium">
+                        {(item.price * item.quantity).toLocaleString()} ₽
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex justify-between py-4 border-t border-b font-bold">
+                <span>Итого:</span>
+                <span>{selectedOrderDetails.total_price.toLocaleString()} ₽</span>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-semibold">Информация о доставке</h3>
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Адрес:</span>
+                    <span className="text-sm">{selectedOrderDetails.shipping_address}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Телефон:</span>
+                    <span className="text-sm">{selectedOrderDetails.contact_phone}</span>
+                  </div>
+                  {selectedOrderDetails.comments && (
+                    <div>
+                      <div className="text-sm font-medium">Комментарий:</div>
+                      <div className="text-sm mt-1 bg-muted p-2 rounded">{selectedOrderDetails.comments}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Button 
+                className="w-full" 
+                variant="outline" 
+                onClick={() => setShowOrderDetails(false)}
+              >
+                Закрыть
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

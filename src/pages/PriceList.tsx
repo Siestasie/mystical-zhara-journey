@@ -107,7 +107,7 @@ const PriceList = () => {
 
           <div className="flex justify-center mb-6">
             <Tabs defaultValue="basic" className="w-full" onValueChange={setViewMode} value={viewMode}>
-              <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-6">
+            <TabsList className="flex justify-center mx-auto mb-6" style={{ width: '19.5rem' }}>
                 <TabsTrigger value="basic" className={cn(
                   "py-2 text-sm font-medium transition-all",
                   viewMode === "basic" ? "bg-primary text-primary-foreground" : ""

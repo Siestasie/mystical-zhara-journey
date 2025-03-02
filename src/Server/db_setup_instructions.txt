@@ -35,5 +35,5 @@ Available status values for orders:
 - processing: Order is being processed
 - shipped: Order has been shipped to customer
 - delivered: Order has been delivered to customer
-- cancelled: Order has been cancelled
-
+- cancelled: Order has been cancelled by user or admin
+- completed: Order has been completed and fulfilled

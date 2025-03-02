@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BarChart, Check, Package } from "lucide-react";
+import { BarChart, Check, Package, Archive, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { 
   Tabs, 
@@ -21,6 +21,14 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Product {
   id: number;
@@ -52,15 +60,29 @@ interface Order {
   userName?: string;
 }
 
+interface OrderStats {
+  completed: number;
+  cancelled: number;
+  totalOrders: number;
+  totalRevenue: number;
+}
+
 const AdminPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputDiscount, setInputDiscount] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [completedOrders, setCompletedOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [discountTarget, setDiscountTarget] = useState<'all' | 'selected'>('all');
   const [pricelistDiscount, setPricelistDiscount] = useState('');
   const [activeTab, setActiveTab] = useState("discounts");
+  const [orderStats, setOrderStats] = useState<OrderStats>({
+    completed: 0,
+    cancelled: 0,
+    totalOrders: 0,
+    totalRevenue: 0
+  });
 
   useEffect(() => {
     fetch("http://localhost:3000/api/products")
@@ -68,8 +90,11 @@ const AdminPanel = () => {
       .then((data) => setProducts(data));
     
     // Fetch orders for the orders tab
-    if (activeTab === "orders") {
+    if (activeTab === "orders" || activeTab === "history") {
       fetchOrders();
+      if (activeTab === "history") {
+        fetchCompletedOrders();
+      }
     }
   }, [activeTab]);
 
@@ -79,13 +104,55 @@ const AdminPanel = () => {
       const response = await fetch("http://localhost:3000/api/orders/all");
       if (response.ok) {
         const data = await response.json();
-        setOrders(data);
+        
+        // Filter active orders (not completed or cancelled)
+        const activeOrders = data.filter((order: Order) => 
+          !['completed', 'cancelled'].includes(order.status)
+        );
+        
+        setOrders(activeOrders);
+        
+        // Calculate statistics
+        const stats: OrderStats = {
+          completed: data.filter((order: Order) => order.status === 'completed').length,
+          cancelled: data.filter((order: Order) => order.status === 'cancelled').length,
+          totalOrders: data.length,
+          totalRevenue: data
+            .filter((order: Order) => order.status === 'completed')
+            .reduce((sum: number, order: Order) => sum + order.total_price, 0)
+        };
+        
+        setOrderStats(stats);
       } else {
         toast.error("Ошибка при загрузке заказов");
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast.error("Ошибка при загрузке заказов");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const fetchCompletedOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:3000/api/orders/all");
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Filter completed or cancelled orders
+        const finishedOrders = data.filter((order: Order) => 
+          ['completed', 'cancelled'].includes(order.status)
+        );
+        
+        setCompletedOrders(finishedOrders);
+      } else {
+        toast.error("Ошибка при загрузке завершенных заказов");
+      }
+    } catch (error) {
+      console.error("Error fetching completed orders:", error);
+      toast.error("Ошибка при загрузке завершенных заказов");
     } finally {
       setLoading(false);
     }
@@ -103,11 +170,27 @@ const AdminPanel = () => {
       if (response.ok) {
         toast.success("Статус заказа успешно обновлен");
         // Update the local state
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId ? { ...order, status: newStatus } : order
-          )
-        );
+        if (newStatus === 'completed' || newStatus === 'cancelled') {
+          // Remove from active orders
+          setOrders(prevOrders => 
+            prevOrders.filter(order => order.id !== orderId)
+          );
+          
+          // If we're in the history tab, refresh completed orders
+          if (activeTab === "history") {
+            fetchCompletedOrders();
+          }
+        } else {
+          // Just update status
+          setOrders(prevOrders => 
+            prevOrders.map(order => 
+              order.id === orderId ? { ...order, status: newStatus } : order
+            )
+          );
+        }
+        
+        // Refresh stats
+        fetchOrders();
       } else {
         toast.error("Ошибка при обновлении статуса заказа");
       }
@@ -194,6 +277,7 @@ const AdminPanel = () => {
       shipped: { label: "Отправлен", variant: "default" },
       delivered: { label: "Доставлен", variant: "success" },
       cancelled: { label: "Отменен", variant: "destructive" },
+      completed: { label: "Завершен", variant: "outline" },
     };
 
     const statusInfo = statusMap[status] || { label: status, variant: "default" };
@@ -221,9 +305,10 @@ const AdminPanel = () => {
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2 mb-4">
+            <TabsList className="grid grid-cols-3 mb-4">
               <TabsTrigger value="discounts">Управление скидками</TabsTrigger>
-              <TabsTrigger value="orders">Управление заказами</TabsTrigger>
+              <TabsTrigger value="orders">Активные заказы</TabsTrigger>
+              <TabsTrigger value="history">История заказов</TabsTrigger>
             </TabsList>
             
             <TabsContent value="discounts" className="mt-0">
@@ -367,7 +452,7 @@ const AdminPanel = () => {
                           )}
                         </div>
                         
-                        <div className="mt-2 md:mt-0">
+                        <div className="mt-2 md:mt-0 flex items-center gap-2">
                           <Select 
                             defaultValue={order.status}
                             onValueChange={(value) => updateOrderStatus(order.id, value)}
@@ -382,6 +467,14 @@ const AdminPanel = () => {
                               <SelectItem value="cancelled">Отменен</SelectItem>
                             </SelectContent>
                           </Select>
+                          <Button 
+                            onClick={() => updateOrderStatus(order.id, 'completed')}
+                            variant="outline"
+                            className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                          >
+                            <Check className="h-4 w-4 mr-2" />
+                            Завершить
+                          </Button>
                         </div>
                       </div>
                       
@@ -423,6 +516,104 @@ const AdminPanel = () => {
                   </Card>
                 ))}
               </div>
+            </TabsContent>
+            
+            <TabsContent value="history" className="mt-0">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">История заказов</h3>
+                <Button onClick={fetchCompletedOrders} variant="outline" size="sm" className="flex items-center gap-2">
+                  <Archive className="h-4 w-4" />
+                  Обновить
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <Card>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="bg-green-100 p-3 rounded-full mr-3">
+                        <Check className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Выполненные заказы</div>
+                        <div className="text-2xl font-bold">{orderStats.completed}</div>
+                      </div>
+                    </div>
+                    <div className="text-green-500 font-medium">
+                      {orderStats.totalOrders > 0 
+                        ? `${((orderStats.completed / orderStats.totalOrders) * 100).toFixed(1)}%` 
+                        : '0%'}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="bg-red-100 p-3 rounded-full mr-3">
+                        <Clock className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Отмененные заказы</div>
+                        <div className="text-2xl font-bold">{orderStats.cancelled}</div>
+                      </div>
+                    </div>
+                    <div className="text-red-500 font-medium">
+                      {orderStats.totalOrders > 0 
+                        ? `${((orderStats.cancelled / orderStats.totalOrders) * 100).toFixed(1)}%` 
+                        : '0%'}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="mb-4">
+                    <h4 className="text-lg font-medium">Общая выручка с выполненных заказов</h4>
+                    <div className="text-3xl font-bold mt-2">{orderStats.totalRevenue.toLocaleString()} ₽</div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {loading && <p className="text-center py-4">Загрузка истории заказов...</p>}
+              
+              {!loading && completedOrders.length === 0 && (
+                <p className="text-center py-4 mt-4 text-muted-foreground">История заказов пуста</p>
+              )}
+              
+              {!loading && completedOrders.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-lg font-medium mb-4">Завершенные заказы</h4>
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>№ Заказа</TableHead>
+                        <TableHead>Дата</TableHead>
+                        <TableHead>Статус</TableHead>
+                        <TableHead>Сумма</TableHead>
+                        <TableHead className="text-right">Действия</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {completedOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">#{order.id}</TableCell>
+                          <TableCell>{order.created_at && format(new Date(order.created_at), "dd.MM.yyyy")}</TableCell>
+                          <TableCell>{getStatusBadge(order.status)}</TableCell>
+                          <TableCell>{order.total_price.toLocaleString()} ₽</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" className="h-8">
+                              Подробнее
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </DialogContent>

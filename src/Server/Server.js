@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -10,30 +9,21 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Get directory paths
+// Определяем пути
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const uploadsDir = path.join(__dirname, 'uploads');
 
-// Enable CORS
+// Включаем CORS
 app.use(cors());
 
-// Parse JSON request bodies
+// Разбираем JSON в запросах
 app.use(express.json());
 
-// Serve static files from the uploads directory
+// Отдаем статические файлы из папки "uploads"
 app.use('/uploads', express.static(uploadsDir));
 
-// Serve static files from the public directory - project root level
-const publicPath = path.resolve(__dirname, '../../public');
-app.use(express.static(publicPath));
-
-// If in production, serve the built files
-if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.resolve(__dirname, '../../dist');
-  app.use(express.static(buildPath));
-}
-
+// API-маршруты
 import UserRoutes from './UserRoutes.js';
 import ProductRoutes from './ProductRoutes.js';
 import NotificationsRoutes from './NotificationsRoutes.js';
@@ -41,7 +31,6 @@ import PricelistRoutes from './pricelistRoutes.js';
 import BlogpostsRoutes from './blogpostsRoutes.js';
 import OrderRoutes from './OrderRoutes.js';
 
-// Routes
 app.use('/api', UserRoutes);
 app.use('/api', ProductRoutes);
 app.use('/api', NotificationsRoutes);
@@ -49,25 +38,24 @@ app.use('/api', PricelistRoutes);
 app.use('/api', BlogpostsRoutes);
 app.use('/api', OrderRoutes);
 
-// For any other route, serve index.html (SPA approach)
-app.get('*', (req, res) => {
-  try {
-    // In production, serve from dist, otherwise from public
-    const indexPath = process.env.NODE_ENV === 'production' 
-      ? path.resolve(__dirname, '../../dist/index.html')
-      : path.resolve(__dirname, '../../public/index.html');
-    
-    console.log('Attempting to serve:', indexPath);
-    res.sendFile(indexPath);
-  } catch (error) {
-    console.error('Error serving index.html:', error);
-    res.status(500).send('Error serving the application');
-  }
-});
+// === Разделяем режимы работы: Разработка vs Продакшен ===
+if (process.env.NODE_ENV === 'production') {
+  const buildPath = path.resolve(__dirname, '../../dist');
+  app.use(express.static(buildPath));
 
-// Start the server
+  // Отдаём index.html для любых маршрутов (SPA)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+} else {
+  // В режиме разработки просто показываем сообщение
+  app.get('*', (req, res) => {
+    res.send('⚡ Сервер API работает! Запусти React отдельно: "npm start" или "npm run dev"');
+  });
+}
+
+// Запуск сервера
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  console.log(`Server directory: ${__dirname}`);
-  console.log(`Public path: ${publicPath}`);
+  console.log(`🚀 Сервер API запущен на порту ${port}`);
+  console.log(`🗂  Директория сервера: ${__dirname}`);
 });

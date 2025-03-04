@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -90,7 +90,6 @@ const AdminPanel = () => {
       .then((res) => res.json())
       .then((data) => setProducts(data));
     
-    // Fetch orders for the orders tab
     if (activeTab === "orders" || activeTab === "history") {
       fetchOrders();
       if (activeTab === "history") {
@@ -106,14 +105,12 @@ const AdminPanel = () => {
       if (response.ok) {
         const data = await response.json();
         
-        // Filter active orders (not completed or cancelled)
         const activeOrders = data.filter((order: Order) => 
           !['completed', 'cancelled'].includes(order.status)
         );
         
         setOrders(activeOrders);
         
-        // Calculate statistics
         const stats: OrderStats = {
           completed: data.filter((order: Order) => order.status === 'completed').length,
           cancelled: data.filter((order: Order) => order.status === 'cancelled').length,
@@ -142,7 +139,6 @@ const AdminPanel = () => {
       if (response.ok) {
         const data = await response.json();
         
-        // Filter completed or cancelled orders
         const finishedOrders = data.filter((order: Order) => 
           ['completed', 'cancelled'].includes(order.status)
         );
@@ -170,19 +166,15 @@ const AdminPanel = () => {
 
       if (response.ok) {
         toast.success("Статус заказа успешно обновлен");
-        // Update the local state
         if (newStatus === 'completed' || newStatus === 'cancelled') {
-          // Remove from active orders
           setOrders(prevOrders => 
             prevOrders.filter(order => order.id !== orderId)
           );
           
-          // If we're in the history tab, refresh completed orders
           if (activeTab === "history") {
             fetchCompletedOrders();
           }
         } else {
-          // Just update status
           setOrders(prevOrders => 
             prevOrders.map(order => 
               order.id === orderId ? { ...order, status: newStatus } : order
@@ -190,7 +182,6 @@ const AdminPanel = () => {
           );
         }
         
-        // Refresh stats
         fetchOrders();
       } else {
         toast.error("Ошибка при обновлении статуса заказа");
@@ -308,6 +299,9 @@ const AdminPanel = () => {
         <DialogContent className="sm:max-w-[800px] p-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Панель администратора</DialogTitle>
+            <DialogDescription>
+              Управление заказами, скидками и аналитика
+            </DialogDescription>
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -472,6 +466,7 @@ const AdminPanel = () => {
                             onClick={() => updateOrderStatus(order.id, 'completed')}
                             variant="outline"
                             className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
+                            type="button"
                           >
                             <Check className="h-4 w-4 mr-2" />
                             Завершить
@@ -631,6 +626,9 @@ const AdminPanel = () => {
             <DialogTitle>
               Заказ #{selectedOrderDetails?.id} - {selectedOrderDetails && getStatusBadge(selectedOrderDetails.status)}
             </DialogTitle>
+            <DialogDescription>
+              Подробная информация о заказе
+            </DialogDescription>
           </DialogHeader>
           
           {selectedOrderDetails && (

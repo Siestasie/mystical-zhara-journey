@@ -1,17 +1,20 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bell } from "lucide-react";
+import { Bell, Package, Phone, Mail, Link, Calendar } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminNotifications = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedNotifications, setExpandedNotifications] = useState<{ [key: number]: boolean }>({});
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Запрос уведомлений
   const { data: notifications, isLoading } = useQuery({
@@ -21,7 +24,6 @@ const AdminNotifications = () => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      console.log('URL значение:', response);
       return response.json();
     },
   });
@@ -39,9 +41,18 @@ const AdminNotifications = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast({
+        title: "Удалено",
+        description: "Уведомление успешно удалено",
+      });
     },
     onError: (error) => {
       console.error('Ошибка при удалении уведомления:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить уведомление",
+        variant: "destructive",
+      });
     },
   });
 
@@ -56,6 +67,11 @@ const AdminNotifications = () => {
     }));
   };
 
+  // Проверка, является ли уведомление заказом
+  const isOrderNotification = (description: string) => {
+    return description.includes('###### НОВЫЙ ЗАКАЗ ######');
+  };
+
   if (isLoading) {
     return <div className="flex justify-center items-center min-h-screen">Загрузка...</div>;
   }
@@ -65,96 +81,91 @@ const AdminNotifications = () => {
       <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsOpen(true)}>
         <Bell className="h-4 w-4" />
         <span className="hidden sm:inline">Уведомления</span>
+        {notifications?.some(n => !n.isRead) && (
+          <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center">
+            {notifications.filter(n => !n.isRead).length}
+          </Badge>
+        )}
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Уведомления о консультациях</DialogTitle>
+            <DialogTitle>Уведомления о консультациях и заказах</DialogTitle>
           </DialogHeader>
           <ScrollArea className="min-h-[200px] max-h-[80vh] rounded-md border p-4">
             <div className="space-y-4">
               {notifications?.map((notification) => {
                 const isExpanded = expandedNotifications[notification.id] || false;
+                const isOrder = isOrderNotification(notification.description || '');
 
                 return (
-                  <Card key={notification.id} className={notification.isRead ? 'bg-gray-50' : 'primary'}>
-                    <CardHeader>
+                  <Card 
+                    key={notification.id} 
+                    className={`${notification.isRead ? 'bg-gray-50' : 'bg-white border-l-4 border-l-blue-500'} transition-all`}
+                  >
+                    <CardHeader className="pb-2">
                       <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg">
-                          Заявка от {notification.name}
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {isOrder ? (
+                            <Package className="h-5 w-5 text-blue-500" />
+                          ) : (
+                            <Bell className="h-5 w-5 text-blue-500" />
+                          )}
+                          {isOrder ? "Новый заказ" : `Заявка от ${notification.name}`}
                           {!notification.isRead && (
-                            <Badge variant="secondary" className="ml-2">
-                              Новая
+                            <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
+                              Новое
                             </Badge>
                           )}
                         </CardTitle>
-                        <span className="text-sm text-gray-500">
-                          {new Date(notification.createdAt).toLocaleString()}
-                        </span>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Calendar className="h-4 w-4" />
+                          <span>
+                            {new Date(notification.createdAt).toLocaleString('ru-RU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="whitespace-pre-wrap break-words overflow-hidden">
-                      <div className="space-y-2">
-                        <p>
-                          <strong>Телефон:</strong>{" "}
-                          <a href={`tel:${notification.phone}`} className="text-blue-500 hover:underline">
-                            {notification.phone}
-                          </a>
-                        </p>
-                        <p>
-                          <strong>Email:</strong>{" "}
-                          <a href={`mailto:${notification.email}`} className="text-blue-500 hover:underline">
-                            {notification.email}
-                          </a>
-                        </p>
+                    <CardContent className="pt-0">
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-700 font-medium">
+                              <Phone className="h-4 w-4 inline mr-1 text-gray-500" />
+                              Телефон:
+                            </span>{" "}
+                            <a href={`tel:${notification.phone}`} className="text-blue-500 hover:underline">
+                              {notification.phone}
+                            </a>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-700 font-medium">
+                              <Mail className="h-4 w-4 inline mr-1 text-gray-500" />
+                              Email:
+                            </span>{" "}
+                            <a href={`mailto:${notification.email}`} className="text-blue-500 hover:underline">
+                              {notification.email}
+                            </a>
+                          </div>
+                        </div>
 
                         {isExpanded ? (
-                          <>
-                            <p><strong>Описание:</strong> {
-                              notification.description.split('\n').map((line, index) => {
-                                if (line.includes('▶ Сумма:')) {
-                                  const urlMatch = notification.description.match(/▶ Ссылка на товар: (http[^\n]+)/);
-                                  const productUrl = urlMatch ? urlMatch[1].trim() : null;
-                                  
-                                  return (
-                                    <React.Fragment key={index}>
-                                      {line}<br/>
-                                      {productUrl && (
-                                        <>
-                                          <br/>
-                                          {"  ▶ Ссылка на товар: "}
-                                          <a 
-                                            href={productUrl}
-                                            target="_blank" 
-                                            rel="noopener noreferrer" 
-                                            className="text-blue-500 hover:underline break-all cursor-pointer z-50"
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              e.stopPropagation();
-                                              window.open(productUrl, '_blank');
-                                            }}
-                                          >
-                                            {productUrl}
-                                          </a>
-                                          <br/><br/>
-                                        </>
-                                      )}
-                                    </React.Fragment>
-                                  );
-                                }
-                                
-                                // Пропускаем строку со старой ссылкой
-                                if (line.includes('▶ Ссылка на товар:')) {
-                                  return null;
-                                }
-                                
-                                return <React.Fragment key={index}>{line}<br/></React.Fragment>;
-                              })}
-                            </p>
-                          </>
+                          <div className="bg-gray-50 p-3 rounded-md border">
+                            {isOrder ? (
+                              <OrderNotificationContent description={notification.description} />
+                            ) : (
+                              <p className="whitespace-pre-wrap break-words">{notification.description}</p>
+                            )}
+                          </div>
                         ) : (
-                          <p className="text-gray-600">Нажмите "Подробнее" для просмотра...</p>
+                          <p className="text-gray-600 italic">Нажмите "Подробнее" для просмотра полной информации...</p>
                         )}
                       </div>
                     </CardContent>
@@ -175,6 +186,147 @@ const AdminNotifications = () => {
         </DialogContent>
       </Dialog>
     </>
+  );
+};
+
+// Компонент для форматирования содержимого заказа
+const OrderNotificationContent = ({ description }: { description: string }) => {
+  // Разбиваем описание на секции
+  const sections = description.split("======");
+  
+  // Функция для извлечения и форматирования товаров
+  const renderOrderItems = () => {
+    // Находим секцию с заказанными товарами
+    const orderItemsSection = sections.find(s => s.includes("ЗАКАЗАННЫЕ ТОВАРЫ"));
+    if (!orderItemsSection) return null;
+
+    // Разбиваем на отдельные товары (по паттерну [Товар X])
+    const itemsPattern = /\[Товар \d+\]([^[]+)/g;
+    const itemsMatches = [...orderItemsSection.matchAll(itemsPattern)];
+    
+    return (
+      <div className="space-y-4 mt-2">
+        {itemsMatches.map((match, index) => {
+          const itemText = match[1].trim();
+          
+          // Извлекаем данные товара
+          const nameMatch = itemText.match(/▶ Наименование: ([^\n]+)/);
+          const quantityMatch = itemText.match(/▶ Количество: ([^\n]+)/);
+          const priceMatch = itemText.match(/▶ Цена за шт\.: ([^\n]+)/);
+          const sumMatch = itemText.match(/▶ Сумма: ([^\n]+)/);
+          const urlMatch = itemText.match(/▶ Ссылка на товар: ([^\n]+)/);
+          
+          const name = nameMatch ? nameMatch[1] : "Неизвестный товар";
+          const quantity = quantityMatch ? quantityMatch[1] : "";
+          const price = priceMatch ? priceMatch[1] : "";
+          const sum = sumMatch ? sumMatch[1] : "";
+          const url = urlMatch ? urlMatch[1].trim() : null;
+          
+          // Извлекаем ID товара из URL для корректной ссылки
+          let productId = null;
+          if (url) {
+            const productIdMatch = url.match(/\/products\/(\d+)/);
+            if (productIdMatch) {
+              productId = productIdMatch[1];
+            }
+          }
+          
+          return (
+            <div key={index} className="bg-white p-3 rounded border">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="font-medium">{name}</p>
+                  <p className="text-sm text-gray-600">Количество: {quantity}</p>
+                  <p className="text-sm text-gray-600">Цена: {price}</p>
+                </div>
+                <p className="font-bold">{sum}</p>
+              </div>
+              {productId && (
+                <div className="mt-2 flex items-center gap-1">
+                  <Link className="h-4 w-4 text-blue-500" />
+                  <a 
+                    href={`/shop/${productId}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-500 hover:underline text-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`/shop/${productId}`, '_blank');
+                    }}
+                  >
+                    Перейти к товару
+                  </a>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Извлекаем важные данные для отображения
+  const contactInfoSection = sections.find(s => s.includes("КОНТАКТНАЯ ИНФОРМАЦИЯ"));
+  const totalInfoSection = sections.find(s => s.includes("ИТОГОВАЯ ИНФОРМАЦИЯ"));
+  const commentsSection = sections.find(s => s.includes("КОММЕНТАРИИ К ЗАКАЗУ"));
+  
+  // Форматированное отображение адреса
+  const getAddressFromSection = (section: string | undefined) => {
+    if (!section) return null;
+    const addressMatch = section.match(/• Адрес доставки: ([^\n]+)/);
+    return addressMatch ? addressMatch[1] : null;
+  };
+  
+  // Получаем общую сумму заказа
+  const getTotalFromSection = (section: string | undefined) => {
+    if (!section) return null;
+    const totalMatch = section.match(/• Общая сумма заказа: ([^\n]+)/);
+    return totalMatch ? totalMatch[1] : null;
+  };
+  
+  // Получаем комментарии
+  const getCommentsFromSection = (section: string | undefined) => {
+    if (!section) return null;
+    // Берем весь текст после заголовка раздела
+    const comments = section.replace("КОММЕНТАРИИ К ЗАКАЗУ", "").trim();
+    return comments !== "Комментариев нет" ? comments : null;
+  };
+  
+  const address = getAddressFromSection(contactInfoSection);
+  const totalAmount = getTotalFromSection(totalInfoSection);
+  const comments = getCommentsFromSection(commentsSection);
+  
+  return (
+    <div className="space-y-4">
+      {address && (
+        <div className="flex items-start gap-2">
+          <span className="font-medium text-gray-700 min-w-[120px]">Адрес доставки:</span>
+          <span className="text-gray-800">{address}</span>
+        </div>
+      )}
+      
+      <div className="space-y-2">
+        <h4 className="font-medium text-gray-700">Товары:</h4>
+        {renderOrderItems()}
+      </div>
+      
+      {totalAmount && (
+        <div className="flex justify-between items-center border-t pt-2 mt-2">
+          <span className="font-medium text-gray-700">Итого:</span>
+          <span className="font-bold text-lg">{totalAmount}</span>
+        </div>
+      )}
+      
+      {comments && (
+        <div className="border-t pt-2 mt-2">
+          <h4 className="font-medium text-gray-700">Комментарии к заказу:</h4>
+          <p className="text-gray-800 whitespace-pre-wrap mt-1">{comments}</p>
+        </div>
+      )}
+      
+      {/* Сохраняем оригинальное описание в скрытом блоке для доступа телеграм-ботом */}
+      <div className="hidden">{description}</div>
+    </div>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   DropdownMenu,
@@ -91,7 +90,7 @@ export const CartDropdown = () => {
   ▶ Количество: ${item.quantity} шт.\n
   ▶ Цена за шт.: ${item.price.toLocaleString()} ₽\n
   ▶ Сумма: ${(item.price * item.quantity).toLocaleString()} ₽\n
-  ▶ Ссылка на товар: http://localhost:8080/products/${item.id}\n
+  ▶ Ссылка на товар: /shop/${item.id}\n
   -------------------\n`).join('')}
   \n
   ====== ИТОГОВАЯ ИНФОРМАЦИЯ ======\n

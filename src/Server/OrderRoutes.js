@@ -97,17 +97,25 @@ router.put('/orders/:orderId/status', async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
     
+    console.log(`Server received request to update order ${orderId} to status: ${status}`);
+    
     // Validate status
-    const validStatuses = ['processing', 'shipped', 'delivered', 'cancelled'];
+    const validStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'completed'];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: 'Invalid status. Must be one of: processing, shipped, delivered, cancelled' });
+      return res.status(400).json({ message: 'Invalid status. Must be one of: processing, shipped, delivered, cancelled, completed' });
     }
 
     // Update the order status
-    await db.promise().query(
+    const result = await db.promise().query(
       'UPDATE orders SET status = ? WHERE id = ?',
       [status, orderId]
     );
+    
+    console.log("Update result:", result);
+    
+    if (result[0].affectedRows === 0) {
+      return res.status(404).json({ message: `Order with ID ${orderId} not found` });
+    }
 
     res.json({ message: 'Order status updated successfully' });
   } catch (error) {

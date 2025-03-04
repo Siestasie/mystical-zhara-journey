@@ -122,11 +122,19 @@ const AdminPanel = () => {
         
         setOrderStats(stats);
       } else {
-        toast.error("Ошибка при загрузке заказов");
+        toast({
+          title: "Ошибка",
+          description: "Ошибка при загрузке заказов",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
-      toast.error("Ошибка при загрузке заказов");
+      toast({
+        title: "Ошибка",
+        description: "Ошибка при загрузке заказов",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -145,11 +153,19 @@ const AdminPanel = () => {
         
         setCompletedOrders(finishedOrders);
       } else {
-        toast.error("Ошибка при загрузке завершенных заказов");
+        toast({
+          title: "Ошибка",
+          description: "Ошибка при загрузке завершенных заказов",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error fetching completed orders:", error);
-      toast.error("Ошибка при загрузке завершенных заказов");
+      toast({
+        title: "Ошибка",
+        description: "Ошибка при загрузке завершенных заказов",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -158,14 +174,33 @@ const AdminPanel = () => {
   const updateOrderStatus = async (orderId: number, newStatus: string) => {
     try {
       setLoading(true);
+      console.log(`Attempting to update order ${orderId} to status: ${newStatus}`);
+      
+      if (newStatus === 'completed') {
+        console.log("This is a completion request from the Завершить button");
+      }
+      
       const response = await fetch(`http://localhost:3000/api/orders/${orderId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
 
+      const responseText = await response.text();
+      console.log("Server response:", responseText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(responseText);
+      } catch {
+        errorData = { message: responseText };
+      }
+
       if (response.ok) {
-        toast.success("Статус заказа успешно обновлен");
+        toast({
+          title: "Успех",
+          description: "Статус заказа успешно обновлен",
+        });
         
         if (newStatus === 'completed' || newStatus === 'cancelled') {
           setOrders(prevOrders => 
@@ -194,12 +229,19 @@ const AdminPanel = () => {
         
         fetchOrders();
       } else {
-        const errorData = await response.json();
-        toast.error(`Ошибка при обновлении статуса заказа: ${errorData.message || 'Неизвестная ошибка'}`);
+        toast({
+          title: "Ошибка",
+          description: `Ошибка при обновлении статуса заказа: ${errorData.message || 'Неизвестная ошибка'}`,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error updating order status:", error);
-      toast.error("Ошибка при обновлении статуса заказа");
+      toast({
+        title: "Ошибка",
+        description: "Ошибка при обновлении статуса заказа",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -228,7 +270,11 @@ const AdminPanel = () => {
   const applyDiscount = async () => {
     const numericDiscount = parseFloat(inputDiscount);
     if (isNaN(numericDiscount)) {
-      toast.error("Введите корректное число");
+      toast({
+        title: "Ошибка",
+        description: "Введите корректное число",
+        variant: "destructive",
+      });
       return;
     }
   
@@ -247,12 +293,23 @@ const AdminPanel = () => {
       });
   
       if (response.ok) {
-        toast.success(`Скидка ${numericDiscount}% успешно применена`);
+        toast({
+          title: "Успех",
+          description: `Скидка ${numericDiscount}% успешно применена`,
+        });
       } else {
-        toast.error("Ошибка при обновлении скидок");
+        toast({
+          title: "Ошибка",
+          description: "Ошибка при обновлении скидок",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      toast.error("Ошибка при отправке данных");
+      toast({
+        title: "Ошибка",
+        description: "Ошибка при отправке данных",
+        variant: "destructive",
+      });
       console.error("Ошибка:", error);
     } finally {
       setLoading(false);
@@ -268,9 +325,16 @@ const AdminPanel = () => {
     });
 
     if (response.ok) {
-      toast.success(`Скидка ${numericDiscount}% успешно применена`);
+      toast({
+        title: "Успех",
+        description: `Скидка ${numericDiscount}% успешно применена`,
+      });
     } else {
-      toast.error("Ошибка при обновлении скидок");
+      toast({
+        title: "Ошибка",
+        description: "Ошибка при обновлении скидок",
+        variant: "destructive",
+      });
     }
   }
 
@@ -474,7 +538,10 @@ const AdminPanel = () => {
                             </SelectContent>
                           </Select>
                           <Button 
-                            onClick={() => updateOrderStatus(order.id, 'completed')}
+                            onClick={() => {
+                              console.log("Завершить button clicked for order:", order.id);
+                              updateOrderStatus(order.id, 'completed');
+                            }}
                             variant="outline"
                             className="bg-green-50 hover:bg-green-100 text-green-600 border-green-200"
                             type="button"

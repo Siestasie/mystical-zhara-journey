@@ -29,14 +29,14 @@ import ProductRoutes from './ProductRoutes.js';
 import NotificationsRoutes from './NotificationsRoutes.js';
 import PricelistRoutes from './pricelistRoutes.js';
 import BlogpostsRoutes from './blogpostsRoutes.js';
-import OrderRoutes from './OrderRoutes.js';
+import orderRoutes from './OrderRoutes.js';
 
 app.use('/api', UserRoutes);
 app.use('/api', ProductRoutes);
 app.use('/api', NotificationsRoutes);
 app.use('/api', PricelistRoutes);
 app.use('/api', BlogpostsRoutes);
-app.use('/api', OrderRoutes);
+app.use('/api', orderRoutes);
 
 // === Разделяем режимы работы: Разработка vs Продакшен ===
 if (process.env.NODE_ENV === 'production') {

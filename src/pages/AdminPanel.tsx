@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BarChart, Check, Package, Archive, Clock, ChevronDown, ChevronUp } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { 
   Tabs, 
   TabsContent, 
@@ -166,6 +166,7 @@ const AdminPanel = () => {
 
       if (response.ok) {
         toast.success("Статус заказа успешно обновлен");
+        
         if (newStatus === 'completed' || newStatus === 'cancelled') {
           setOrders(prevOrders => 
             prevOrders.filter(order => order.id !== orderId)
@@ -173,6 +174,15 @@ const AdminPanel = () => {
           
           if (activeTab === "history") {
             fetchCompletedOrders();
+          } else {
+            const completedResponse = await fetch("http://localhost:3000/api/orders/all");
+            if (completedResponse.ok) {
+              const allOrders = await completedResponse.json();
+              const finishedOrders = allOrders.filter((order: Order) => 
+                ['completed', 'cancelled'].includes(order.status)
+              );
+              setCompletedOrders(finishedOrders);
+            }
           }
         } else {
           setOrders(prevOrders => 
@@ -184,7 +194,8 @@ const AdminPanel = () => {
         
         fetchOrders();
       } else {
-        toast.error("Ошибка при обновлении статуса заказа");
+        const errorData = await response.json();
+        toast.error(`Ошибка при обновлении статуса заказа: ${errorData.message || 'Неизвестная ошибка'}`);
       }
     } catch (error) {
       console.error("Error updating order status:", error);

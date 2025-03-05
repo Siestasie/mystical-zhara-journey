@@ -151,6 +151,7 @@ export const CartDropdown = () => {
       });
     }
   };
+  
 
   return (
     <>

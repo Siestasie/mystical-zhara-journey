@@ -1,3 +1,4 @@
+
 import asyncio
 import logging
 import httpx
@@ -8,6 +9,7 @@ import pytz
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -74,16 +76,43 @@ def format_notification(notification):
     except Exception:
         formatted_date = "Неизвестно"
 
-    return (
-        f"📌 Новое уведомление\n\n"
-        f"ID: {id_}\n"
-        f"Имя: {name}\n"
-        f"Телефон: {phone}\n"
-        f"Email: {email}\n"
-        f"Описание: {description}\n"
-        f"Прочитано: {is_read}\n"
-        f"Дата создания: {formatted_date}"
-    )
+    # Проверяем, если это уведомление о заказе
+    if description and "НОВЫЙ ЗАКАЗ" in description:
+        total_match = re.search(r'• Общая сумма заказа: ([\d\s]+) ₽', description)
+        total_amount = total_match.group(1) if total_match else "Не указана"
+        
+        address_match = re.search(r'• Адрес доставки: ([^\n]+)', description)
+        address = address_match.group(1) if address_match else "Не указан"
+        
+        customer_name_match = re.search(r'• Имя заказчика: ([^\n]+)', description)
+        customer_name = customer_name_match.group(1) if customer_name_match else name
+        
+        # Извлекаем информацию о товарах
+        items_section = description.split("====== ЗАКАЗАННЫЕ ТОВАРЫ ======")[1].split("======")[0] if "====== ЗАКАЗАННЫЕ ТОВАРЫ ======" in description else ""
+        
+        # Форматируем сообщение о заказе
+        return (
+            f"🛒 НОВЫЙ ЗАКАЗ\n\n"
+            f"Заказчик: {customer_name}\n"
+            f"Телефон: {phone}\n"
+            f"Email: {email}\n"
+            f"Адрес: {address}\n\n"
+            f"Сумма заказа: {total_amount} ₽\n\n"
+            f"Дата: {formatted_date}\n\n"
+            f"Для просмотра полной информации о заказе откройте панель администратора.\n"
+            f"ID уведомления: {id_}"
+        )
+    else:
+        # Обычное уведомление о консультации
+        return (
+            f"📌 Новое уведомление о консультации\n\n"
+            f"Имя: {name}\n"
+            f"Телефон: {phone}\n"
+            f"Email: {email}\n"
+            f"Описание: {description}\n"
+            f"Прочитано: {is_read}\n"
+            f"Дата создания: {formatted_date}"
+        )
 
 
 async def poll_notifications():

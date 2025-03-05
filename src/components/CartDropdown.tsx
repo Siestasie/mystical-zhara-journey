@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   DropdownMenu,
@@ -65,7 +66,7 @@ export const CartDropdown = () => {
     }
   
     try {      
-      // Send notification to admin
+      // Send notification to admin with detailed product information
       const notificationResponse = await fetch('http://localhost:3000/api/notifications', {
         method: 'POST',
         headers: {

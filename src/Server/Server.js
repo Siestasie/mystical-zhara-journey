@@ -1,61 +1,90 @@
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
+// Import required modules
+const express = require('express');
+const cors = require('cors');
+const multer = require('multer');
 const app = express();
-const port = process.env.PORT || 3000;
+const path = require('path');
+const connection = require('./db');
+const logger = require('./logger');
 
-// Определяем пути
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsDir = path.join(__dirname, 'uploads');
+// Import route modules
+const userRoutes = require('./UserRoutes');
+const productRoutes = require('./ProductRoutes');
+const pricelistRoutes = require('./pricelistRoutes');
+const blogpostsRoutes = require('./blogpostsRoutes');
+const notificationsRoutes = require('./NotificationsRoutes');
+const orderRoutes = require('./OrderRoutes');
 
-// Включаем CORS
+// Check database connection
+connection.query('SELECT 1+1 AS result', (err, results) => {
+  if (err) {
+    logger.error('Database connection error:', err);
+  } else {
+    logger.info('Database connected:', results[0].result);
+  }
+});
+
+// Configure multer for file storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, 'uploads'));
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '_' + file.originalname);
+  }
+});
+
+const upload = multer({ 
+  storage, 
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'));
+    }
+  }
+});
+
+// Middleware
 app.use(cors());
-
-// Разбираем JSON в запросах
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Отдаем статические файлы из папки "uploads"
-app.use('/uploads', express.static(uploadsDir));
+// Register routes
+app.use(userRoutes);
+app.use(productRoutes);
+app.use(pricelistRoutes);
+app.use(blogpostsRoutes);
+app.use(notificationsRoutes);
+app.use(orderRoutes);
 
-// API-маршруты
-import UserRoutes from './UserRoutes.js';
-import ProductRoutes from './ProductRoutes.js';
-import NotificationsRoutes from './NotificationsRoutes.js';
-import PricelistRoutes from './pricelistRoutes.js';
-import BlogpostsRoutes from './blogpostsRoutes.js';
-import orderRoutes from './OrderRoutes.js';
+// Configure multer endpoints
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    const filePath = req.file.path.replace(/\\/g, '/').replace('src/', '/');
+    res.json({ 
+      fileName: req.file.filename,
+      filePath: filePath
+    });
+  } catch (error) {
+    logger.error('File upload error:', error);
+    res.status(500).json({ error: 'Error uploading file' });
+  }
+});
 
-app.use('/api', UserRoutes);
-app.use('/api', ProductRoutes);
-app.use('/api', NotificationsRoutes);
-app.use('/api', PricelistRoutes);
-app.use('/api', BlogpostsRoutes);
-app.use('/api', orderRoutes);
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date() });
+});
 
-// === Разделяем режимы работы: Разработка vs Продакшен ===
-if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.resolve(__dirname, '../../dist');
-  app.use(express.static(buildPath));
-
-  // Отдаём index.html для любых маршрутов (SPA)
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(buildPath, 'index.html'));
-  });
-} else {
-  // В режиме разработки просто показываем сообщение
-  app.get('*', (req, res) => {
-    res.send('⚡ Сервер API работает! Запусти React отдельно: "npm start" или "npm run dev"');
-  });
-}
-
-// Запуск сервера
-app.listen(port, () => {
-  console.log(`🚀 Сервер API запущен на порту ${port}`);
-  console.log(`🗂  Директория сервера: ${__dirname}`);
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
 });

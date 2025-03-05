@@ -58,6 +58,22 @@ const AdminNotifications = () => {
     },
   });
 
+  // Mark notification as read
+  const markAsReadMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`http://localhost:3000/api/notifications/${id}/read`, {
+        method: 'PUT',
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
   const handleDeleteNotification = (id: number) => {
     deleteNotificationMutation.mutate(id);
   };
@@ -67,6 +83,11 @@ const AdminNotifications = () => {
       ...prev,
       [id]: !prev[id],
     }));
+    
+    // Mark as read when expanded
+    if (!expandedNotifications[id]) {
+      markAsReadMutation.mutate(id);
+    }
   };
 
   // Check if notification is an order
@@ -105,7 +126,7 @@ const AdminNotifications = () => {
                   return (
                     <Card 
                       key={notification.id} 
-                      className={`${notification.isRead ? 'bg-card dark:bg-card' : 'bg-background dark:bg-background border-l-4 border-l-blue-500'} transition-all`}
+                      className={`${notification.isRead ? 'bg-card dark:bg-card' : theme === 'dark' ? 'bg-background dark:bg-background border-l-4 border-l-blue-500' : 'bg-background border-l-4 border-l-blue-500'} transition-all`}
                     >
                       <CardHeader className="pb-2">
                         <div className="flex justify-between items-center">
@@ -269,6 +290,8 @@ const OrderNotificationContent = ({ description }: { description: string }) => {
                   <a 
                     href={`/shop/${productId}`} 
                     className="text-blue-500 hover:underline text-sm"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Перейти к товару
                   </a>
@@ -365,7 +388,7 @@ const OrderNotificationContent = ({ description }: { description: string }) => {
       )}
       
       {/* Hidden original description for telegram bot */}
-      <div className="hidden">{description}</div>
+      <textarea className="hidden" id="original-notification-text">{description}</textarea>
     </div>
   );
 };

@@ -1,23 +1,27 @@
 
 // Import required modules
-const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
-const app = express();
-const path = require('path');
-const connection = require('./db');
-const logger = require('./logger');
+import express from 'express';
+import cors from 'cors';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import db from './db.js';
+import logger from './logger.js';
 
 // Import route modules
-const userRoutes = require('./UserRoutes');
-const productRoutes = require('./ProductRoutes');
-const pricelistRoutes = require('./pricelistRoutes');
-const blogpostsRoutes = require('./blogpostsRoutes');
-const notificationsRoutes = require('./NotificationsRoutes');
-const orderRoutes = require('./OrderRoutes');
+import userRoutes from './UserRoutes.js';
+import productRoutes from './ProductRoutes.js';
+import pricelistRoutes from './pricelistRoutes.js';
+import blogpostsRoutes from './blogpostsRoutes.js';
+import notificationsRoutes from './NotificationsRoutes.js';
+import orderRoutes from './OrderRoutes.js';
+
+// Get the directory name using ES modules approach
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Check database connection
-connection.query('SELECT 1+1 AS result', (err, results) => {
+db.query('SELECT 1+1 AS result', (err, results) => {
   if (err) {
     logger.error('Database connection error:', err);
   } else {
@@ -88,3 +92,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
 });
+
+// Add type declaration for ES modules
+export default app;

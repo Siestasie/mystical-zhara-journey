@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingCart, Trash2 } from "lucide-react";
@@ -12,30 +13,38 @@ interface Product {
   description: string;
   price: number;
   image: string | string[];
-  discount: number;
+  discount?: number;
+  category?: string;
 }
 
 interface ProductCardProps {
   product: Product;
 }
 
-const fetchProduct = async (id: number) => {
-  const response = await fetch(`http://localhost:3000/api/products/${id}`);
-  if (!response.ok) {
-    throw new Error("Ошибка при получении данных о продукте");
-  }
-  return response.json();
-};
-
 export const ProductCard = ({ product }: ProductCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Ensure we have valid product data
+  const initialProduct = {
+    ...product,
+    discount: product.discount || 0
+  };
+
   const { data: productData, isLoading, isError } = useQuery({
     queryKey: ["product", product.id],
-    queryFn: () => fetchProduct(product.id),
-    initialData: product,
+    queryFn: async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/products/${product.id}`);
+        if (!response.ok) throw new Error("Ошибка при получении данных о продукте");
+        return response.json();
+      } catch (error) {
+        console.error(`Error fetching product ${product.id}:`, error);
+        return initialProduct;
+      }
+    },
+    initialData: initialProduct,
   });
 
   const deleteProductMutation = useMutation({
@@ -61,12 +70,23 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     return <p>Ошибка загрузки</p>;
   }
 
-  // Декодируем изображение
-  const images =
-    typeof productData.image === "string"
-      ? JSON.parse(productData.image)
+  // Handle image parsing safely
+  let imageUrl = '/placeholder.jpg';
+  try {
+    // Parse image if it's a string, otherwise use as is
+    const images = typeof productData.image === "string" 
+      ? JSON.parse(productData.image) 
       : productData.image;
-  const imageUrl = Array.isArray(images) ? images[0] : "/placeholder.jpg";
+    
+    // Get first image or default to placeholder
+    imageUrl = Array.isArray(images) && images.length > 0 
+      ? `http://localhost:3000${images[0]}` 
+      : '/placeholder.jpg';
+  } catch (error) {
+    console.error("Error parsing product image:", error);
+  }
+
+  const discount = productData.discount || 0;
 
   function calculateDiscountPrice(price: number, percentage: number) {
     if (isNaN(percentage) || percentage < 0) {
@@ -80,9 +100,12 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <CardHeader className="space-y-2">
         <div className="aspect-video relative overflow-hidden rounded-t-lg">
           <img
-            src={`http://localhost:3000${imageUrl}`}
+            src={imageUrl}
             alt={productData.name}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/placeholder.jpg';
+            }}
           />
         </div>
         <CardTitle className="text-xl sm:text-2xl line-clamp-2">
@@ -122,18 +145,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             )}
           </div>
           <div className="flex flex-col items-start">
-            {productData.discount > 0 && (
+            {discount > 0 && (
               <div className="flex items-center gap-1">
                 <span className="text-sm text-gray-500 line-through">
                   {productData.price} ₽
                 </span>
                 <span className="text-sm text-red-500 font-bold">
-                  -{productData.discount}%
+                  -{discount}%
                 </span>
               </div>
             )}
             <span className="text-lg sm:text-xl font-bold">
-              {calculateDiscountPrice(productData.price, productData.discount)} ₽
+              {calculateDiscountPrice(productData.price, discount)} ₽
             </span>
           </div>
         </div>

@@ -31,14 +31,23 @@ const Shop = () => {
     "Системы для прокладки трасс"
   ];
 
-  const { data: products = [] } = useQuery({
+  // Fix the products fetch
+  const { data: products = [], isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3000/api/products');
-      if (!response.ok) throw new Error('Failed to fetch products');
-      return response.json();
+      try {
+        const response = await fetch('http://localhost:3000/api/products');
+        if (!response.ok) throw new Error('Failed to fetch products');
+        return response.json();
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        return [];
+      }
     }
   });
+
+  // Log products for debugging
+  console.log("Products fetched:", products);
 
   const filteredProducts = products.filter(product => {
     const categoryMatch = selectedCategory === "all" || product.category === selectedCategory;
@@ -89,11 +98,19 @@ const Shop = () => {
           categories={categories}
         />
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-10">Загрузка товаров...</div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-500">Ошибка при загрузке товаров</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-10">Товары не найдены</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </div>
 
       <AddProductDialog

@@ -47,7 +47,7 @@ async def manual_check(message: Message):
 
 async def fetch_notifications():
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get("http://localhost:3000/api/notifications")
             if response.status_code == 200:
                 data = response.json()
@@ -118,23 +118,27 @@ def format_notification(notification):
 async def poll_notifications():
     global CHAT_ID, last_sent_notifications
     while True:
-        await asyncio.sleep(5)
-        if CHAT_ID is None:
-            logging.warning("CHAT_ID не установлен.")
-            continue
+        try:
+            await asyncio.sleep(5)
+            if CHAT_ID is None:
+                logging.warning("CHAT_ID не установлен.")
+                continue
 
-        notifications = await fetch_notifications()
+            notifications = await fetch_notifications()
 
-        new_notifications = []
-        for notification in notifications:
-            notif_id = notification.get("id", str(notification))
-            if notif_id not in last_sent_notifications:
-                new_notifications.append(notification)
-                last_sent_notifications.add(notif_id)
+            new_notifications = []
+            for notification in notifications:
+                notif_id = notification.get("id", str(notification))
+                if notif_id not in last_sent_notifications:
+                    new_notifications.append(notification)
+                    last_sent_notifications.add(notif_id)
 
-        if new_notifications:
-            for notification in new_notifications:
-                await bot.send_message(CHAT_ID, format_notification(notification))
+            if new_notifications:
+                for notification in new_notifications:
+                    await bot.send_message(CHAT_ID, format_notification(notification))
+        except Exception as e:
+            logging.error(f"Error in poll_notifications: {e}")
+            await asyncio.sleep(10)  # Wait longer if there's an error
 
 
 async def main():

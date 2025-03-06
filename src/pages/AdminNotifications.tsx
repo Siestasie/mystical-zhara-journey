@@ -326,32 +326,49 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
 
   // Fallback to parsing the description if items aren't directly available
   const description = notification.description || '';
+  console.log("Parsing description:", description);
   
   // Split description into sections
   const sections = description.split("======");
+  console.log("Sections found:", sections.length);
+  
+  // Extract important data for display
+  const contactInfoSection = sections.find(s => s && s.includes("КОНТАКТНАЯ ИНФОРМАЦИЯ"));
+  const totalInfoSection = sections.find(s => s && s.includes("ИТОГОВАЯ ИНФОРМАЦИЯ"));
+  const commentsSection = sections.find(s => s && s.includes("КОММЕНТАРИИ К ЗАКАЗУ"));
+  
+  // Find the section with ordered products
+  const orderItemsSection = sections.find(s => s && s.includes("ЗАКАЗАННЫЕ ТОВАРЫ"));
+  console.log("Order items section:", orderItemsSection);
   
   // Function to extract and format order items
   const renderOrderItems = () => {
-    // Find the section with ordered products
-    const orderItemsSection = sections.find(s => s && s.includes("ЗАКАЗАННЫЕ ТОВАРЫ"));
     if (!orderItemsSection) {
       console.log("No order items section found in description");
       return <p className="text-gray-500 dark:text-gray-400">Информация о товарах недоступна</p>;
     }
-
-    console.log("Order items section found:", orderItemsSection);
     
-    // Split into individual items (by pattern [Товар X])
-    const itemsText = orderItemsSection.replace("ЗАКАЗАННЫЕ ТОВАРЫ", "").trim();
-    console.log("Items text:", itemsText);
+    // Check if section contains actual items data - handle trimming
+    let itemsText = "";
+    if (orderItemsSection.includes("ЗАКАЗАННЫЕ ТОВАРЫ")) {
+      // Extract text after header
+      itemsText = orderItemsSection.split("ЗАКАЗАННЫЕ ТОВАРЫ")[1].trim();
+      console.log("Items text after extraction:", itemsText);
+    }
     
-    // Try different patterns for matching items
+    if (!itemsText) {
+      console.log("Items text is empty");
+      return <p className="text-gray-500 dark:text-gray-400">Информация о товарах недоступна</p>;
+    }
+    
+    // Try to match product items using regex
     const itemsPattern = /\[Товар \d+\]([^[]+)/g;
     const itemsMatches = [...itemsText.matchAll(itemsPattern)];
-    console.log("Items matches:", itemsMatches);
+    console.log("Items matches count:", itemsMatches.length);
     
+    // If no matches using regex pattern, display raw text
     if (itemsMatches.length === 0) {
-      // Fallback to displaying raw text if no items can be parsed
+      console.log("No item matches found with regex, displaying raw");
       return (
         <div className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
           <p className="whitespace-pre-wrap text-foreground dark:text-white">{itemsText}</p>
@@ -359,6 +376,7 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
       );
     }
     
+    // If we found matches, display them in a structured way
     return (
       <div className="space-y-4 mt-2">
         {itemsMatches.map((match, index) => {
@@ -415,11 +433,6 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
       </div>
     );
   };
-
-  // Extract important data for display
-  const contactInfoSection = sections.find(s => s && s.includes("КОНТАКТНАЯ ИНФОРМАЦИЯ"));
-  const totalInfoSection = sections.find(s => s && s.includes("ИТОГОВАЯ ИНФОРМАЦИЯ"));
-  const commentsSection = sections.find(s => s && s.includes("КОММЕНТАРИИ К ЗАКАЗУ"));
   
   // Formatted address display
   const getAddressFromSection = (section: string | undefined) => {

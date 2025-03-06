@@ -31,7 +31,7 @@ const AdminNotifications = () => {
         return [];
       }
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 15000, // Refresh every 15 seconds
     refetchOnWindowFocus: true,
   });
 
@@ -107,7 +107,7 @@ const AdminNotifications = () => {
 
   // Check if notification is an order
   const isOrderNotification = (description: string) => {
-    return description.includes('###### НОВЫЙ ЗАКАЗ ######');
+    return description && description.includes('###### НОВЫЙ ЗАКАЗ ######');
   };
 
   if (isLoading) {
@@ -134,7 +134,7 @@ const AdminNotifications = () => {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl dark:bg-gray-800 dark:text-white">
+        <DialogContent className="max-w-4xl bg-background dark:bg-gray-800 text-foreground dark:text-white">
           <DialogHeader>
             <DialogTitle>Уведомления о консультациях и заказах</DialogTitle>
           </DialogHeader>
@@ -152,7 +152,7 @@ const AdminNotifications = () => {
                   return (
                     <Card 
                       key={notification.id} 
-                      className={`${notification.isRead ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800 border-l-4 border-l-blue-500'} transition-all dark:text-white`}
+                      className={`${notification.isRead ? 'bg-muted dark:bg-gray-700' : 'bg-background dark:bg-gray-800 border-l-4 border-l-blue-500'} transition-all text-foreground dark:text-white`}
                     >
                       <CardHeader className="pb-2">
                         <div className="flex justify-between items-center">
@@ -162,7 +162,7 @@ const AdminNotifications = () => {
                             ) : (
                               <Bell className="h-5 w-5 text-blue-500" />
                             )}
-                            {isOrder ? "Новый заказ" : `Заявка от ${notification.name}`}
+                            {isOrder ? "Новый заказ" : `Заявка от ${notification.name || "нового клиента"}`}
                             {!notification.isRead && (
                               <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                 Новое
@@ -192,7 +192,7 @@ const AdminNotifications = () => {
                                 Телефон:
                               </span>{" "}
                               <a href={`tel:${notification.phone}`} className="text-blue-500 hover:underline">
-                                {notification.phone}
+                                {notification.phone || "Не указан"}
                               </a>
                             </div>
                             <div className="flex items-center gap-2">
@@ -201,17 +201,17 @@ const AdminNotifications = () => {
                                 Email:
                               </span>{" "}
                               <a href={`mailto:${notification.email}`} className="text-blue-500 hover:underline">
-                                {notification.email}
+                                {notification.email || "Не указан"}
                               </a>
                             </div>
                           </div>
 
                           {isExpanded ? (
-                            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md border dark:border-gray-600">
+                            <div className="bg-muted dark:bg-gray-700 p-3 rounded-md border dark:border-gray-600">
                               {isOrder ? (
                                 <OrderNotificationContent notification={notification} />
                               ) : (
-                                <p className="whitespace-pre-wrap break-words">{notification.description}</p>
+                                <p className="whitespace-pre-wrap break-words">{notification.description || "Без описания"}</p>
                               )}
                             </div>
                           ) : (
@@ -259,33 +259,35 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
           <h4 className="font-medium text-gray-700 dark:text-gray-300">Товары:</h4>
           <div className="space-y-4 mt-2">
             {notification.items.map((item: any, index: number) => (
-              <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
+              <div key={index} className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <p className="font-medium">{item.name}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Количество: {item.quantity} шт.</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Цена: {item.price.toLocaleString()} ₽</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Цена: {item.price ? item.price.toLocaleString() : 0} ₽</p>
                   </div>
-                  <p className="font-bold">{(item.price * item.quantity).toLocaleString()} ₽</p>
+                  <p className="font-bold">{item.price && item.quantity ? (item.price * item.quantity).toLocaleString() : 0} ₽</p>
                 </div>
-                <div className="mt-2 flex items-center gap-1">
-                  <Link className="h-4 w-4 text-blue-500" />
-                  <a 
-                    href={`/shop/${item.id}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-blue-500 hover:underline text-sm"
-                  >
-                    Перейти к товару
-                  </a>
-                </div>
+                {item.id && (
+                  <div className="mt-2 flex items-center gap-1">
+                    <Link className="h-4 w-4 text-blue-500" />
+                    <a 
+                      href={`/shop/${item.id}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-500 hover:underline text-sm"
+                    >
+                      Перейти к товару
+                    </a>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
         
         {/* Total */}
-        {notification.total && (
+        {notification.total !== undefined && (
           <div className="flex justify-between items-center border-t pt-2 mt-2 dark:border-gray-700">
             <span className="font-medium text-gray-700 dark:text-gray-300">Итого:</span>
             <span className="font-bold text-lg">{notification.total.toLocaleString()} ₽</span>
@@ -312,12 +314,16 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
   // Function to extract and format order items
   const renderOrderItems = () => {
     // Find the section with ordered products
-    const orderItemsSection = sections.find(s => s.includes("ЗАКАЗАННЫЕ ТОВАРЫ"));
+    const orderItemsSection = sections.find(s => s && s.includes("ЗАКАЗАННЫЕ ТОВАРЫ"));
     if (!orderItemsSection) return null;
 
     // Split into individual items (by pattern [Товар X])
     const itemsPattern = /\[Товар \d+\]([^[]+)/g;
     const itemsMatches = [...orderItemsSection.matchAll(itemsPattern)];
+    
+    if (itemsMatches.length === 0) {
+      return <p className="text-gray-500 dark:text-gray-400">Информация о товарах недоступна</p>;
+    }
     
     return (
       <div className="space-y-4 mt-2">
@@ -347,7 +353,7 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
           }
           
           return (
-            <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
+            <div key={index} className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <p className="font-medium">{name}</p>
@@ -377,9 +383,9 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
   };
 
   // Extract important data for display
-  const contactInfoSection = sections.find(s => s.includes("КОНТАКТНАЯ ИНФОРМАЦИЯ"));
-  const totalInfoSection = sections.find(s => s.includes("ИТОГОВАЯ ИНФОРМАЦИЯ"));
-  const commentsSection = sections.find(s => s.includes("КОММЕНТАРИИ К ЗАКАЗУ"));
+  const contactInfoSection = sections.find(s => s && s.includes("КОНТАКТНАЯ ИНФОРМАЦИЯ"));
+  const totalInfoSection = sections.find(s => s && s.includes("ИТОГОВАЯ ИНФОРМАЦИЯ"));
+  const commentsSection = sections.find(s => s && s.includes("КОММЕНТАРИИ К ЗАКАЗУ"));
   
   // Formatted address display
   const getAddressFromSection = (section: string | undefined) => {

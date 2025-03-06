@@ -78,22 +78,17 @@ export const CartDropdown = () => {
 ▶ Ссылка на товар: /shop/${item.id}
 -------------------`).join('\n');
 
-      // Send notification to admin
-      const notificationResponse = await fetch('http://localhost:3000/api/notifications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: orderData.name,
-          phone: orderData.phone,
-          email: user?.email || "-",
-          description: cleanDescription(
+      // Create notification data with all required fields
+      const notificationData = {
+        name: orderData.name,
+        phone: orderData.phone,
+        email: user?.email || "-",
+        description: cleanDescription(
   `###### НОВЫЙ ЗАКАЗ ######
 
 ====== КОНТАКТНАЯ ИНФОРМАЦИЯ ======
 • Имя заказчика: ${orderData.name}
-• Телеф��н: ${orderData.phone}
+• Телефон: ${orderData.phone}
 • Email: ${user?.email || "-"}
 • Адрес доставки: ${orderData.address}
 
@@ -105,21 +100,32 @@ ${itemsDetail}
 
 ====== КОММЕНТАРИИ К ЗАКАЗУ ======
 ${orderData.comments || "Комментариев нет"}`
-          ),
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image
-          })),
-          total: total,
-          address: orderData.address,
-          comments: orderData.comments || "Комментариев нет"
-        }),
+        ),
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image
+        })),
+        total: total,
+        address: orderData.address,
+        comments: orderData.comments || "Комментариев нет"
+      };
+
+      console.log("Sending notification:", notificationData);
+
+      // Send notification to admin
+      const notificationResponse = await fetch('http://localhost:3000/api/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(notificationData),
       });
   
       if (!notificationResponse.ok) {
+        console.error('Error response from server:', await notificationResponse.text());
         throw new Error('Ошибка при отправке заказа');
       }
       
@@ -149,7 +155,7 @@ ${orderData.comments || "Комментариев нет"}`
         });
         
         if (!orderResponse.ok) {
-          console.error('Failed to save order history');
+          console.error('Failed to save order history:', await orderResponse.text());
         }
       }
   

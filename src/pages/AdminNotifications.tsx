@@ -334,14 +334,29 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
   const renderOrderItems = () => {
     // Find the section with ordered products
     const orderItemsSection = sections.find(s => s && s.includes("ЗАКАЗАННЫЕ ТОВАРЫ"));
-    if (!orderItemsSection) return null;
+    if (!orderItemsSection) {
+      console.log("No order items section found in description");
+      return <p className="text-gray-500 dark:text-gray-400">Информация о товарах недоступна</p>;
+    }
 
+    console.log("Order items section found:", orderItemsSection);
+    
     // Split into individual items (by pattern [Товар X])
+    const itemsText = orderItemsSection.replace("ЗАКАЗАННЫЕ ТОВАРЫ", "").trim();
+    console.log("Items text:", itemsText);
+    
+    // Try different patterns for matching items
     const itemsPattern = /\[Товар \d+\]([^[]+)/g;
-    const itemsMatches = [...orderItemsSection.matchAll(itemsPattern)];
+    const itemsMatches = [...itemsText.matchAll(itemsPattern)];
+    console.log("Items matches:", itemsMatches);
     
     if (itemsMatches.length === 0) {
-      return <p className="text-gray-500 dark:text-gray-400">Информация о товарах недоступна</p>;
+      // Fallback to displaying raw text if no items can be parsed
+      return (
+        <div className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
+          <p className="whitespace-pre-wrap text-foreground dark:text-white">{itemsText}</p>
+        </div>
+      );
     }
     
     return (

@@ -79,6 +79,15 @@ export const CartDropdown = () => {
 ▶ Ссылка на товар: /shop/${item.id}
 -------------------`).join('\n');
 
+      // Make sure we're sending the items array in a structured way for the UI
+      const formattedItems = items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image
+      }));
+
       // Create notification data with all required fields
       const notificationData = {
         name: orderData.name,
@@ -103,19 +112,13 @@ ${itemsDetail}
 ${orderData.comments || "Комментариев нет"}`
         ),
         // Important: Include this structured data for the UI to display
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image
-        })),
+        items: formattedItems,
         total: total,
         address: orderData.address,
         comments: orderData.comments || "Комментариев нет"
       };
 
-      console.log("Sending notification:", notificationData);
+      console.log("Sending notification with structured items:", notificationData);
 
       // Send notification to admin
       const notificationResponse = await fetch('http://localhost:3000/api/notifications', {
@@ -137,7 +140,7 @@ ${orderData.comments || "Комментариев нет"}`
       
       // Save order to orders table for order history
       if (user && user.id) {
-        const orderItems = items.map(item => ({
+        const orderItems = formattedItems.map(item => ({
           product_id: item.id,
           quantity: item.quantity,
           price: item.price,

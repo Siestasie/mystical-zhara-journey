@@ -1,3 +1,4 @@
+
 import asyncio
 import logging
 import httpx
@@ -8,6 +9,7 @@ import pytz
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -17,7 +19,7 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 CHAT_ID = None
-last_sent_notifications = set()  # Хранит ID уже отправленных уведомлений
+last_sent_notifications = set()  # Stores IDs of already sent notifications
 
 keyboard = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="/start"), KeyboardButton(text="Уведомления")]
@@ -45,7 +47,7 @@ async def manual_check(message: Message):
 
 async def fetch_notifications():
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get("http://localhost:3000/api/notifications")
             if response.status_code == 200:
                 data = response.json()
@@ -64,26 +66,68 @@ def format_notification(notification):
     email = notification.get("email", "—")
     description = notification.get("description", "—")
     is_read = "Да" if notification.get("isRead") else "Нет"
-
-    # Форматируем дату
+    
+    # Check if this is an order notification
+    is_order = "###### НОВЫЙ ЗАКАЗ ######" in description
+    
+    # Format date
     created_at_raw = notification.get("createdAt", "—")
     try:
         created_at = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
         created_at = created_at.astimezone(pytz.timezone("Europe/Moscow"))  
-        formatted_date = created_at.strftime("%d.%m.%Y %H:%M")  # Пример: 18.02.2025 17:16
+        formatted_date = created_at.strftime("%d.%m.%Y %H:%M")
     except Exception:
         formatted_date = "Неизвестно"
-
-    return (
-        f"📌 Новое уведомление\n\n"
-        f"ID: {id_}\n"
-        f"Имя: {name}\n"
-        f"Телефон: {phone}\n"
-        f"Email: {email}\n"
-        f"Описание: {description}\n"
-        f"Прочитано: {is_read}\n"
-        f"Дата создания: {formatted_date}"
-    )
+    
+    if is_order:
+        items = notification.get("items", [])
+        address = notification.get("address", "Не указан")
+        comments = notification.get("comments", "Комментариев нет")
+        total = notification.get("total", 0)
+        
+        # Format order items
+        items_text = ""
+        if items and len(items) > 0:
+            for i, item in enumerate(items):
+                items_text += f"📦 Товар {i+1}: {item.get('name')}\n"
+                items_text += f"   Количество: {item.get('quantity')} шт.\n"
+                items_text += f"   Цена: {item.get('price')} ₽\n"
+                items_text += f"   Сумма: {item.get('price') * item.get('quantity')} ₽\n\n"
+        else:
+            # Try to extract items from description if not directly available
+            sections = description.split("======")
+            order_items_section = next((s for s in sections if "ЗАКАЗАННЫЕ ТОВАРЫ" in s), "")
+            if order_items_section:
+                items_text = order_items_section.replace("ЗАКАЗАННЫЕ ТОВАРЫ", "").strip()
+            else:
+                items_text = "Информация о товарах недоступна"
+        
+        # Format total amount
+        total_text = f"{total:,}".replace(",", " ") + " ₽" if total else "Не указана"
+        
+        return (
+            f"🛒 НОВЫЙ ЗАКАЗ\n\n"
+            f"👤 Данные клиента:\n"
+            f"• Имя: {name}\n"
+            f"• Телефон: {phone}\n"
+            f"• Email: {email}\n"
+            f"• Адрес доставки: {address}\n\n"
+            f"📋 Заказанные товары:\n\n{items_text}\n"
+            f"💰 Общая сумма: {total_text}\n\n"
+            f"📝 Комментарии: {comments}\n\n"
+            f"⏰ Время заказа: {formatted_date}"
+        )
+    else:
+        return (
+            f"📌 Новое уведомление\n\n"
+            f"ID: {id_}\n"
+            f"Имя: {name}\n"
+            f"Телефон: {phone}\n"
+            f"Email: {email}\n"
+            f"Описание: {description}\n"
+            f"Прочитано: {is_read}\n"
+            f"Дата создания: {formatted_date}"
+        )
 
 
 async def poll_notifications():
@@ -94,18 +138,25 @@ async def poll_notifications():
             logging.warning("CHAT_ID не установлен.")
             continue
 
-        notifications = await fetch_notifications()
+        try:
+            notifications = await fetch_notifications()
 
-        new_notifications = []
-        for notification in notifications:
-            notif_id = notification.get("id", str(notification))
-            if notif_id not in last_sent_notifications:
-                new_notifications.append(notification)
-                last_sent_notifications.add(notif_id)
+            new_notifications = []
+            for notification in notifications:
+                notif_id = notification.get("id", str(notification))
+                if notif_id not in last_sent_notifications:
+                    new_notifications.append(notification)
+                    last_sent_notifications.add(notif_id)
+                    
+                    # Keep set size manageable
+                    if len(last_sent_notifications) > 1000:
+                        last_sent_notifications = set(list(last_sent_notifications)[-500:])
 
-        if new_notifications:
-            for notification in new_notifications:
-                await bot.send_message(CHAT_ID, format_notification(notification))
+            if new_notifications:
+                for notification in new_notifications:
+                    await bot.send_message(CHAT_ID, format_notification(notification))
+        except Exception as e:
+            logging.error(f"Error in poll_notifications: {e}")
 
 
 async def main():

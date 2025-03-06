@@ -41,6 +41,7 @@ export const CartDropdown = () => {
     address: user?.address || "",
     comments: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -64,7 +65,19 @@ export const CartDropdown = () => {
       return;
     }
   
+    setIsSubmitting(true);
+    
     try {      
+      // Format order items for better readability
+      const itemsDetail = items.map((item, index) => `
+[Товар ${index + 1}]
+▶ Наименование: ${item.name}
+▶ Количество: ${item.quantity} шт.
+▶ Цена за шт.: ${item.price.toLocaleString()} ₽
+▶ Сумма: ${(item.price * item.quantity).toLocaleString()} ₽
+▶ Ссылка на товар: /shop/${item.id}
+-------------------`).join('\n');
+
       // Send notification to admin
       const notificationResponse = await fetch('http://localhost:3000/api/notifications', {
         method: 'POST',
@@ -76,29 +89,33 @@ export const CartDropdown = () => {
           phone: orderData.phone,
           email: user?.email || "-",
           description: cleanDescription(
-  `###### НОВЫЙ ЗАКАЗ ######\n
-  ====== КОНТАКТНАЯ ИНФОРМАЦИЯ ======\n
-  • Имя заказчика: ${orderData.name}\n
-  • Телефон: ${orderData.phone}\n
-  • Email: ${user?.email || "-"}\n
-  • Адрес доставки: ${orderData.address}\n
-  \n
-  ====== ЗАКАЗАННЫЕ ТОВАРЫ ======\n
-  ${items.map((item, index) => `
-  [Товар ${index + 1}]\n
-  ▶ Наименование: ${item.name}\n
-  ▶ Количество: ${item.quantity} шт.\n
-  ▶ Цена за шт.: ${item.price.toLocaleString()} ₽\n
-  ▶ Сумма: ${(item.price * item.quantity).toLocaleString()} ₽\n
-  ▶ Ссылка на товар: /shop/${item.id}\n
-  -------------------\n`).join('')}
-  \n
-  ====== ИТОГОВАЯ ИНФОРМАЦИЯ ======\n
-  • Общая сумма заказа: ${total.toLocaleString()} ₽\n
-  \n
-  ====== КОММЕНТАРИИ К ЗАКАЗУ ======\n
-  ${orderData.comments || "Комментариев нет"}\n`
-          )
+  `###### НОВЫЙ ЗАКАЗ ######
+
+====== КОНТАКТНАЯ ИНФОРМАЦИЯ ======
+• Имя заказчика: ${orderData.name}
+• Телеф��н: ${orderData.phone}
+• Email: ${user?.email || "-"}
+• Адрес доставки: ${orderData.address}
+
+====== ЗАКАЗАННЫЕ ТОВАРЫ ======
+${itemsDetail}
+
+====== ИТОГОВАЯ ИНФОРМАЦИЯ ======
+• Общая сумма заказа: ${total.toLocaleString()} ₽
+
+====== КОММЕНТАРИИ К ЗАКАЗУ ======
+${orderData.comments || "Комментариев нет"}`
+          ),
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image
+          })),
+          total: total,
+          address: orderData.address,
+          comments: orderData.comments || "Комментариев нет"
         }),
       });
   
@@ -144,14 +161,16 @@ export const CartDropdown = () => {
       clearCart();
       setShowOrderDialog(false);
     } catch (error) {
+      console.error('Error submitting order:', error);
       toast({
         title: "Ошибка!",
         description: "Не удалось отправить заказ. Попробуйте позже.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  
 
   return (
     <>

@@ -25,7 +25,9 @@ const AdminNotifications = () => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        return response.json();
+        const data = await response.json();
+        console.log("Fetched notifications:", data);
+        return data;
       } catch (error) {
         console.error("Error fetching notifications:", error);
         return [];
@@ -138,7 +140,7 @@ const AdminNotifications = () => {
           <DialogHeader>
             <DialogTitle>Уведомления о консультациях и заказах</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="min-h-[200px] max-h-[80vh] rounded-md border p-4">
+          <ScrollArea className="min-h-[200px] max-h-[80vh] rounded-md border p-4 dark:border-gray-700">
             <div className="space-y-4">
               {!notifications || notifications.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -148,6 +150,9 @@ const AdminNotifications = () => {
                 notifications.map((notification) => {
                   const isExpanded = expandedNotifications[notification.id] || false;
                   const isOrder = isOrderNotification(notification.description || '');
+                  
+                  // Debug log to check notification data structure
+                  console.log(`Notification ${notification.id}:`, notification);
 
                   return (
                     <Card 
@@ -211,20 +216,31 @@ const AdminNotifications = () => {
                               {isOrder ? (
                                 <OrderNotificationContent notification={notification} />
                               ) : (
-                                <p className="whitespace-pre-wrap break-words">{notification.description || "Без описания"}</p>
+                                <p className="whitespace-pre-wrap break-words text-foreground dark:text-white">
+                                  {notification.description || "Без описания"}
+                                </p>
                               )}
                             </div>
                           ) : (
-                            <p className="text-gray-600 dark:text-gray-400 italic">Нажмите "Подробнее" для просмотра полной информации...</p>
+                            <p className="text-gray-600 dark:text-gray-400 italic">
+                              Нажмите "Подробнее" для просмотра полной информации...
+                            </p>
                           )}
                         </div>
                       </CardContent>
 
                       <div className="flex justify-between p-4">
-                        <Button variant="outline" onClick={() => toggleExpand(notification.id)}>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => toggleExpand(notification.id)}
+                          className="dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+                        >
                           {isExpanded ? "Свернуть" : "Подробнее"}
                         </Button>
-                        <Button variant="destructive" onClick={() => handleDeleteNotification(notification.id)}>
+                        <Button 
+                          variant="destructive" 
+                          onClick={() => handleDeleteNotification(notification.id)}
+                        >
                           Удалить
                         </Button>
                       </div>
@@ -242,8 +258,11 @@ const AdminNotifications = () => {
 
 // Component for formatting order notification content
 const OrderNotificationContent = ({ notification }: { notification: any }) => {
+  console.log("OrderNotificationContent received:", notification);
+  
   // If we have items directly in the notification, use those
   if (notification.items && Array.isArray(notification.items) && notification.items.length > 0) {
+    console.log("Using direct items from notification:", notification.items);
     return (
       <div className="space-y-4">
         {/* Address */}
@@ -262,11 +281,11 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
               <div key={index} className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <p className="font-medium">{item.name}</p>
+                    <p className="font-medium text-foreground dark:text-white">{item.name}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Количество: {item.quantity} шт.</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Цена: {item.price ? item.price.toLocaleString() : 0} ₽</p>
                   </div>
-                  <p className="font-bold">{item.price && item.quantity ? (item.price * item.quantity).toLocaleString() : 0} ₽</p>
+                  <p className="font-bold text-foreground dark:text-white">{item.price && item.quantity ? (item.price * item.quantity).toLocaleString() : 0} ₽</p>
                 </div>
                 {item.id && (
                   <div className="mt-2 flex items-center gap-1">
@@ -290,7 +309,7 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
         {notification.total !== undefined && (
           <div className="flex justify-between items-center border-t pt-2 mt-2 dark:border-gray-700">
             <span className="font-medium text-gray-700 dark:text-gray-300">Итого:</span>
-            <span className="font-bold text-lg">{notification.total.toLocaleString()} ₽</span>
+            <span className="font-bold text-lg text-foreground dark:text-white">{notification.total.toLocaleString()} ₽</span>
           </div>
         )}
         

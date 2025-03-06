@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   DropdownMenu,
@@ -101,6 +102,7 @@ ${itemsDetail}
 ====== КОММЕНТАРИИ К ЗАКАЗУ ======
 ${orderData.comments || "Комментариев нет"}`
         ),
+        // Important: Include this structured data for the UI to display
         items: items.map(item => ({
           id: item.id,
           name: item.name,
@@ -125,9 +127,13 @@ ${orderData.comments || "Комментариев нет"}`
       });
   
       if (!notificationResponse.ok) {
-        console.error('Error response from server:', await notificationResponse.text());
+        const errorText = await notificationResponse.text();
+        console.error('Error response from server:', errorText);
         throw new Error('Ошибка при отправке заказа');
       }
+      
+      const responseData = await notificationResponse.json();
+      console.log("Order notification sent successfully:", responseData);
       
       // Save order to orders table for order history
       if (user && user.id) {
@@ -156,6 +162,8 @@ ${orderData.comments || "Комментариев нет"}`
         
         if (!orderResponse.ok) {
           console.error('Failed to save order history:', await orderResponse.text());
+        } else {
+          console.log("Order saved successfully to history");
         }
       }
   

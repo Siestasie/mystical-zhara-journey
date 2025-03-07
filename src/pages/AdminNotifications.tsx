@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bell, Package, Phone, Mail, Link, Calendar, MapPin } from "lucide-react";
+import { Bell, Package, Phone, Mail, Calendar, MapPin } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,14 +26,14 @@ const AdminNotifications = () => {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        console.log("Fetched notifications:", data);
+        console.log("Получены уведомления:", data);
         return data;
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        console.error("Ошибка при получении уведомлений:", error);
         return [];
       }
     },
-    refetchInterval: 15000, // Refresh every 15 seconds
+    refetchInterval: 15000, // Обновление каждые 15 секунд
     refetchOnWindowFocus: true,
   });
 
@@ -107,7 +107,7 @@ const AdminNotifications = () => {
     });
   };
 
-  // Check if notification is an order
+  // Проверка является ли уведомление заказом
   const isOrderNotification = (description: string) => {
     return description && description.includes('###### НОВЫЙ ЗАКАЗ ######');
   };
@@ -151,8 +151,8 @@ const AdminNotifications = () => {
                   const isExpanded = expandedNotifications[notification.id] || false;
                   const isOrder = isOrderNotification(notification.description || '');
                   
-                  // Debug log to check notification data structure
-                  console.log(`Notification ${notification.id}:`, notification);
+                  // Вывод в консоль для отладки
+                  console.log(`Уведомление ${notification.id}:`, notification);
 
                   return (
                     <Card 
@@ -211,17 +211,13 @@ const AdminNotifications = () => {
                             </div>
                           </div>
 
-                          {isExpanded ? (
+                          {isExpanded && (
                             <div className="bg-muted dark:bg-gray-700 p-3 rounded-md border dark:border-gray-600">
-                              {isOrder ? (
-                                <SimpleOrderDisplay notification={notification} />
-                              ) : (
-                                <p className="whitespace-pre-wrap break-words text-foreground dark:text-white">
-                                  {notification.description || "Без описания"}
-                                </p>
-                              )}
+                              <РасширенноеОтображениеДанных notification={notification} />
                             </div>
-                          ) : (
+                          )}
+
+                          {!isExpanded && (
                             <p className="text-gray-600 dark:text-gray-400 italic">
                               Нажмите "Подробнее" для просмотра полной информации...
                             </p>
@@ -256,54 +252,79 @@ const AdminNotifications = () => {
   );
 };
 
-// Simple component to display raw order notification data
-const SimpleOrderDisplay = ({ notification }: { notification: any }) => {
-  console.log("SimpleOrderDisplay received notification:", notification);
+// Компонент для отображения всех данных уведомления
+const РасширенноеОтображениеДанных = ({ notification }: { notification: any }) => {
+  console.log("Отображение данных для:", notification);
   
-  // Display all relevant fields without processing
   return (
     <div className="space-y-4 text-foreground dark:text-white">
-      {/* Address */}
+      {/* Отображаем адрес */}
       {notification.adress && (
-        <div className="flex items-start gap-2">
-          <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-700 dark:text-gray-300">
             <MapPin className="h-4 w-4 inline mr-1" /> 
             Адрес доставки:
           </span>
-          <span>{notification.adress}</span>
+          <span className="ml-6">{notification.adress}</span>
         </div>
       )}
       
-      {/* Raw Items Data - First try JSON */}
-      {notification.items && (
-        <div className="space-y-2">
-          <h4 className="font-medium">Данные товаров (JSON):</h4>
-          <pre className="bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-x-auto text-xs">
+      {/* Отображаем данные о товарах */}
+      {notification.itemsproduct && (
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-700 dark:text-gray-300">Заказанные товары:</span>
+          <div className="ml-6 mt-2 bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-x-auto whitespace-pre-wrap text-sm">
+            {notification.itemsproduct}
+          </div>
+        </div>
+      )}
+      
+      {/* Если есть JSON-данные в поле items */}
+      {notification.items && typeof notification.items === 'string' && notification.items.trim() !== '' && (
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-700 dark:text-gray-300">Данные товаров (JSON):</span>
+          <pre className="ml-6 mt-2 bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-x-auto text-xs">
             {notification.items}
           </pre>
         </div>
       )}
       
-      {/* Display itemsproduct field if it exists */}
-      {notification.itemsproduct && (
-        <div className="space-y-2">
-          <h4 className="font-medium">Данные товаров (текст):</h4>
-          <pre className="bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-x-auto whitespace-pre-wrap text-xs">
-            {notification.itemsproduct}
-          </pre>
+      {/* Отображаем общую стоимость */}
+      {notification.totalprice && (
+        <div className="border-t pt-2 mt-4 dark:border-gray-700">
+          <div className="flex justify-between">
+            <span className="font-bold">Итого:</span>
+            <span className="font-bold text-lg">{notification.totalprice} ₽</span>
+          </div>
         </div>
       )}
       
-      {/* Display all other fields that might contain order information */}
-      <div className="space-y-2">
-        <h4 className="font-medium">Все поля данных:</h4>
-        <div className="grid grid-cols-1 gap-2">
+      {/* Отображаем комментарии */}
+      {notification.comments && (
+        <div className="border-t pt-2 mt-4 dark:border-gray-700">
+          <span className="font-medium text-gray-700 dark:text-gray-300">Комментарии:</span>
+          <p className="ml-6 mt-1 whitespace-pre-wrap">{notification.comments}</p>
+        </div>
+      )}
+      
+      {/* Отображаем описание */}
+      {notification.description && (
+        <div className="border-t pt-2 mt-4 dark:border-gray-700">
+          <span className="font-medium text-gray-700 dark:text-gray-300">Дополнительная информация:</span>
+          <p className="ml-6 mt-1 whitespace-pre-wrap">{notification.description}</p>
+        </div>
+      )}
+      
+      {/* Отображаем все остальные поля */}
+      <div className="border-t pt-2 mt-4 dark:border-gray-700">
+        <span className="font-medium text-gray-700 dark:text-gray-300">Все поля уведомления:</span>
+        <div className="mt-2 grid grid-cols-1 gap-2">
           {Object.entries(notification)
-            .filter(([key]) => !['id', 'isRead', 'createdAt', 'description', 'name', 'phone', 'email'].includes(key))
+            .filter(([key]) => !['id', 'isRead', 'createdAt', 'name', 'phone', 'email', 'adress', 'itemsproduct', 'items', 'totalprice', 'comments', 'description'].includes(key))
             .map(([key, value]) => (
               <div key={key} className="flex flex-col">
                 <span className="font-medium">{key}:</span>
-                <span className="text-sm bg-gray-100 dark:bg-gray-900 p-1 rounded-md overflow-x-auto">
+                <span className="ml-6 text-sm bg-gray-100 dark:bg-gray-900 p-1 rounded-md overflow-x-auto">
                   {typeof value === 'object' 
                     ? JSON.stringify(value) 
                     : String(value)}
@@ -312,24 +333,6 @@ const SimpleOrderDisplay = ({ notification }: { notification: any }) => {
             ))}
         </div>
       </div>
-      
-      {/* Total price */}
-      {notification.totalprice && (
-        <div className="border-t pt-2 dark:border-gray-700">
-          <div className="flex justify-between">
-            <span className="font-bold">Итого:</span>
-            <span className="font-bold text-lg">{notification.totalprice} ₽</span>
-          </div>
-        </div>
-      )}
-      
-      {/* Comments */}
-      {notification.comments && (
-        <div className="border-t pt-2 dark:border-gray-700">
-          <h4 className="font-medium">Комментарии:</h4>
-          <p className="whitespace-pre-wrap">{notification.comments}</p>
-        </div>
-      )}
     </div>
   );
 };

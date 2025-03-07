@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
     DropdownMenu,
@@ -67,9 +68,9 @@ export const CartDropdown = () => {
   
         setIsSubmitting(true);
     
-        console.log()
+        console.log("Starting order submission process");
         try {      
-            // Format order items for better readability
+            // Format order items for better readability in notification text
             const itemsDetail = items.map((item, index) => `
             [Товар ${index + 1}]
             ▶ Наименование: ${item.name}
@@ -79,7 +80,7 @@ export const CartDropdown = () => {
             ▶ Ссылка на товар: /shop/${item.id}
             -------------------`).join('\n');
 
-            // Make sure we're sending the items array in a structured way for the UI
+            // Format items array for structured data
             const formattedItems = items.map(item => ({
                 id: item.id,
                 name: item.name,
@@ -88,18 +89,22 @@ export const CartDropdown = () => {
                 image: item.image
             }));
 
+            console.log("Formatted items for structured data:", formattedItems);
+
             // Create notification data with all required fields
             const notificationData = {
                 name: orderData.name,
                 phone: orderData.phone,
                 email: user?.email || "-",
-                adress: orderData.address,
-                itemsproduct: itemsDetail,
+                adress: orderData.address, // Note the spelling matches database field
+                itemsproduct: itemsDetail, // Matches database field name
                 totalprice: total.toLocaleString(),
                 comments: orderData.comments || "Комментариев нет",
+                // Add the items as a JSON string in the itemsproduct field
+                items: JSON.stringify(formattedItems) // This will be extracted in AdminNotifications
             };
 
-            console.log("Sending notification with structured items:", notificationData);
+            console.log("Sending notification data:", notificationData);
 
             // Send notification to admin
             const notificationResponse = await fetch('http://localhost:3000/api/notifications', {

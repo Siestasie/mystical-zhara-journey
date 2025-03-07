@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bell, Package, Phone, Mail, Link, Calendar } from "lucide-react";
+import { Bell, Package, Phone, Mail, Link, Calendar, MapPin } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -260,16 +259,32 @@ const AdminNotifications = () => {
 const OrderNotificationContent = ({ notification }: { notification: any }) => {
   console.log("OrderNotificationContent received:", notification);
   
-  // If we have items directly in the notification, use those
-  if (notification.items && Array.isArray(notification.items) && notification.items.length > 0) {
-    console.log("Using direct items from notification:", notification.items);
+  // Try to parse structured items data first (added in items field as JSON)
+  let structuredItems = null;
+  
+  // Check if we have items data as JSON string
+  if (notification.items) {
+    try {
+      structuredItems = JSON.parse(notification.items);
+      console.log("Successfully parsed items JSON:", structuredItems);
+    } catch (error) {
+      console.error("Failed to parse items JSON:", error);
+    }
+  }
+  
+  // If we have structured items data, use it
+  if (structuredItems && Array.isArray(structuredItems) && structuredItems.length > 0) {
+    console.log("Using structured items data");
     return (
       <div className="space-y-4">
         {/* Address */}
-        {notification.address && (
+        {notification.adress && (
           <div className="flex items-start gap-2">
-            <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">Адрес доставки:</span>
-            <span className="text-gray-800 dark:text-gray-200">{notification.address}</span>
+            <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">
+              <MapPin className="h-4 w-4 inline mr-1 text-gray-500 dark:text-gray-400" /> 
+              Адрес доставки:
+            </span>
+            <span className="text-gray-800 dark:text-gray-200">{notification.adress}</span>
           </div>
         )}
         
@@ -277,7 +292,7 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
         <div className="space-y-2">
           <h4 className="font-medium text-gray-700 dark:text-gray-300">Товары:</h4>
           <div className="space-y-4 mt-2">
-            {notification.items.map((item: any, index: number) => (
+            {structuredItems.map((item: any, index: number) => (
               <div key={index} className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
@@ -306,10 +321,10 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
         </div>
         
         {/* Total */}
-        {notification.total !== undefined && (
+        {notification.totalprice && (
           <div className="flex justify-between items-center border-t pt-2 mt-2 dark:border-gray-700">
             <span className="font-medium text-gray-700 dark:text-gray-300">Итого:</span>
-            <span className="font-bold text-lg text-foreground dark:text-white">{notification.total.toLocaleString()} ₽</span>
+            <span className="font-bold text-lg text-foreground dark:text-white">{notification.totalprice} ₽</span>
           </div>
         )}
         
@@ -323,67 +338,35 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
       </div>
     );
   }
-
-  // Fallback to parsing the description if items aren't directly available
-  const description = notification.description || '';
-  console.log("Parsing description:", description);
   
-  // Split description into sections
-  const sections = description.split("======");
-  console.log("Sections found:", sections.length);
+  // Fallback to using the itemsproduct field directly 
+  console.log("Using itemsproduct field for items display");
   
-  // Extract important data for display
-  const contactInfoSection = sections.find(s => s && s.includes("КОНТАКТНАЯ ИНФОРМАЦИЯ"));
-  const totalInfoSection = sections.find(s => s && s.includes("ИТОГОВАЯ ИНФОРМАЦИЯ"));
-  const commentsSection = sections.find(s => s && s.includes("КОММЕНТАРИИ К ЗАКАЗУ"));
+  // Display the raw itemsproduct data with formatted sections
+  const itemsText = notification.itemsproduct || '';
+  console.log("itemsproduct text content:", itemsText);
   
-  // Find the section with ordered products
-  const orderItemsSection = sections.find(s => s && s.includes("ЗАКАЗАННЫЕ ТОВАРЫ"));
-  console.log("Order items section:", orderItemsSection);
-  
-  // Function to extract and format order items
-  const renderOrderItems = () => {
-    if (!orderItemsSection) {
-      console.log("N" + orderItemsSection);
-      console.log("No order items section found in description");
-      return <p className="text-gray-500 dark:text-gray-400">Информация о товарах недоступна</p>;
-    }
+  // Function to extract item sections from text
+  const extractItems = () => {
+    const itemPattern = /\[Товар \d+\]([\s\S]*?)(?=\[Товар \d+\]|$)/g;
+    const matches = [...itemsText.matchAll(itemPattern)];
     
-    // Check if section contains actual items data - handle trimming
-    let itemsText = "";
-    if (orderItemsSection.includes("ЗАКАЗАННЫЕ ТОВАРЫ")) {
-      // Extract text after header
-      itemsText = orderItemsSection.split("ЗАКАЗАННЫЕ ТОВАРЫ")[1].trim();
-      console.log("Items text after extraction:", itemsText);
-    }
+    console.log("Item pattern matches found:", matches.length);
     
-    if (!itemsText) {
-      console.log("Items text is empty");
-      return <p className="text-gray-500 dark:text-gray-400">Информация о товарах недоступна</p>;
-    }
-    
-    // Try to match product items using regex
-    const itemsPattern = /\[Товар \d+\]([^[]+)/g;
-    const itemsMatches = [...itemsText.matchAll(itemsPattern)];
-    console.log("Items matches count:", itemsMatches.length);
-    
-    // If no matches using regex pattern, display raw text
-    if (itemsMatches.length === 0) {
-      console.log("No item matches found with regex, displaying raw");
+    if (matches.length === 0) {
       return (
         <div className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
-          <p className="whitespace-pre-wrap text-foreground dark:text-white">{itemsText}</p>
+          <p className="whitespace-pre-wrap text-foreground dark:text-white">{itemsText || "Информация о товарах отсутствует"}</p>
         </div>
       );
     }
     
-    // If we found matches, display them in a structured way
     return (
       <div className="space-y-4 mt-2">
-        {itemsMatches.map((match, index) => {
-          const itemText = match[1].trim();
+        {matches.map((match, index) => {
+          const itemText = match[0]; // Get the entire matched section including [Товар X]
           
-          // Extract item data
+          // Extract product details using regex
           const nameMatch = itemText.match(/▶ Наименование: ([^\n]+)/);
           const quantityMatch = itemText.match(/▶ Количество: ([^\n]+)/);
           const priceMatch = itemText.match(/▶ Цена за шт\.: ([^\n]+)/);
@@ -409,11 +392,11 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
             <div key={index} className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <p className="font-medium">{name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Количество: {quantity}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Цена: {price}</p>
+                  <p className="font-medium text-foreground dark:text-white">{name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{quantity}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{price}</p>
                 </div>
-                <p className="font-bold">{sum}</p>
+                <p className="font-bold text-foreground dark:text-white">{sum}</p>
               </div>
               {productId && (
                 <div className="mt-2 flex items-center gap-1">
@@ -435,57 +418,38 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
     );
   };
   
-  // Formatted address display
-  const getAddressFromSection = (section: string | undefined) => {
-    if (!section) return null;
-    const addressMatch = section.match(/• Адрес доставки: ([^\n]+)/);
-    return addressMatch ? addressMatch[1] : null;
-  };
-  
-  // Get total order sum
-  const getTotalFromSection = (section: string | undefined) => {
-    if (!section) return null;
-    const totalMatch = section.match(/• Общая сумма заказа: ([^\n]+)/);
-    return totalMatch ? totalMatch[1] : null;
-  };
-  
-  // Get comments
-  const getCommentsFromSection = (section: string | undefined) => {
-    if (!section) return null;
-    // Take all text after section heading
-    const comments = section.replace("КОММЕНТАРИИ К ЗАКАЗУ", "").trim();
-    return comments !== "Комментариев нет" ? comments : null;
-  };
-  
-  const address = getAddressFromSection(contactInfoSection);
-  const totalAmount = getTotalFromSection(totalInfoSection);
-  const comments = getCommentsFromSection(commentsSection);
-  
   return (
     <div className="space-y-4">
-      {address && (
+      {/* Address */}
+      {notification.adress && (
         <div className="flex items-start gap-2">
-          <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">Адрес доставки:</span>
-          <span className="text-gray-800 dark:text-gray-200">{address}</span>
+          <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">
+            <MapPin className="h-4 w-4 inline mr-1 text-gray-500 dark:text-gray-400" /> 
+            Адрес доставки:
+          </span>
+          <span className="text-gray-800 dark:text-gray-200">{notification.adress}</span>
         </div>
       )}
       
+      {/* Items */}
       <div className="space-y-2">
         <h4 className="font-medium text-gray-700 dark:text-gray-300">Товары:</h4>
-        {renderOrderItems()}
+        {extractItems()}
       </div>
       
-      {totalAmount && (
+      {/* Total */}
+      {notification.totalprice && (
         <div className="flex justify-between items-center border-t pt-2 mt-2 dark:border-gray-700">
           <span className="font-medium text-gray-700 dark:text-gray-300">Итого:</span>
-          <span className="font-bold text-lg">{totalAmount}</span>
+          <span className="font-bold text-lg text-foreground dark:text-white">{notification.totalprice} ₽</span>
         </div>
       )}
       
-      {comments && (
+      {/* Comments */}
+      {notification.comments && notification.comments !== "Комментариев нет" && (
         <div className="border-t pt-2 mt-2 dark:border-gray-700">
           <h4 className="font-medium text-gray-700 dark:text-gray-300">Комментарии к заказу:</h4>
-          <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">{comments}</p>
+          <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">{notification.comments}</p>
         </div>
       )}
     </div>
@@ -493,3 +457,4 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
 };
 
 export default AdminNotifications;
+

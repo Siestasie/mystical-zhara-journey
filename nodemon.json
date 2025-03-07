@@ -1,0 +1,17 @@
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "main": ".src/server/Server.js",
+  "scripts": {
+    "start": "killall node || true && nodemon ./src/Server/Server.js"
+  },
+  "nodemonConfig": {
+    "verbose": true,
+    "ignore": ["*.test.js", "node_modules/"],
+    "watch": ["src/"],
+    "ext": "js,json",
+    "env": {
+      "NODE_ENV": "development"
+    }
+  }
+}

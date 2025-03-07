@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Start Server
+Exec=sh -c "/home/siesta/Документы/GitHub/mystical-zhara-journey/Scripts/start_server.sh"
+Icon=yast-host
+Terminal=false
+StartupNotify=true
+
+

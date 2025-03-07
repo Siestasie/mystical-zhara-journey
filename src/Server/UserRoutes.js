@@ -3,6 +3,9 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt'
 import db from './db.js'
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 const router = express.Router();
 
@@ -156,6 +159,9 @@ async function sendVerificationEmail(email, token) {
       pass: process.env.EMAIL_PASS
     }
   });
+
+  console.log(process.env.EMAIL_USER)
+  console.log(process.env.EMAIL_PASS)
 
   transporter.verify((error, success) => {
     if (error) {

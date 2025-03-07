@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -239,15 +238,16 @@ const AdminNotifications = () => {
                           </div>
 
                           {isExpanded && (
-                            <div 
-                              className="bg-white dark:bg-gray-800 p-3 rounded-md border dark:border-gray-600 overflow-hidden transition-all duration-500 ease-in-out animate-accordion-down"
-                            >
-                              <ДетальноеОтображениеУведомления notification={notification} />
+                            <div className="bg-white dark:bg-gray-800 p-3 rounded-md border dark:border-gray-600 overflow-hidden transition-all duration-500 ease-in-out animate-accordion-down">
+                              <DetailedNotificationView notification={notification} />
                             </div>
                           )}
 
                           {!isExpanded && (
-                            <div className="text-gray-600 dark:text-gray-400 italic text-center py-2 transition-opacity duration-300 ease-in-out hover:text-blue-500 dark:hover:text-blue-400">
+                            <div onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(notification.id);
+                            }} className="text-gray-600 dark:text-gray-400 italic text-center py-2 transition-opacity duration-300 ease-in-out hover:text-blue-500 dark:hover:text-blue-400">
                               Нажмите для просмотра подробной информации...
                             </div>
                           )}
@@ -289,22 +289,19 @@ const AdminNotifications = () => {
 };
 
 // Компонент для отображения детальной информации уведомления
-const ДетальноеОтображениеУведомления = ({ notification }: { notification: any }) => {
+const DetailedNotificationView = ({ notification }: { notification: any }) => {
   const [showAllFields, setShowAllFields] = useState(false);
   
   // Обработка данных о товарах для отображения
   const renderProductData = () => {
     try {
-      // Сначала проверяем наличие itemsproduct
       if (notification.itemsproduct) {
-        return <ТоварыИзСтроки itemsString={notification.itemsproduct} />;
+        return <ProductDetails itemsString={notification.itemsproduct} />;
       } 
-      // Затем проверяем наличие items
       else if (notification.items) {
         try {
           let itemsData;
           
-          // Пробуем обработать как JSON
           if (typeof notification.items === 'string') {
             itemsData = JSON.parse(notification.items);
           } else {
@@ -312,38 +309,35 @@ const ДетальноеОтображениеУведомления = ({ notifi
           }
           
           if (Array.isArray(itemsData)) {
-            return <ТоварыИзJson items={itemsData} />;
+            return <ProductsFromJson items={itemsData} />;
           } else {
-            // Если это не массив, выводим как простой текст
             return (
-              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
+              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md animate-fade-in">
                 <pre className="text-sm whitespace-pre-wrap overflow-x-auto">{JSON.stringify(itemsData, null, 2)}</pre>
               </div>
             );
           }
         } catch (e) {
-          // Если не удается распарсить JSON, отображаем как строку
           return (
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
+            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md animate-fade-in">
               <p className="whitespace-pre-wrap">{notification.items}</p>
             </div>
           );
         }
       }
       
-      // Если нет данных о товарах
-      return <p className="text-gray-500 italic">Информация о товарах отсутствует</p>;
+      return <p className="text-gray-500 italic animate-fade-in">Информация о товарах отсутствует</p>;
     } catch (error) {
       console.error("Ошибка при обработке данных о товарах:", error);
-      return <p className="text-red-500">Ошибка обработки данных о товарах</p>;
+      return <p className="text-red-500 animate-fade-in">Ошибка обработки данных о товарах</p>;
     }
   };
   
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4 animate-accordion-down transition-all duration-300 ease-in-out">
       {/* Адрес доставки */}
       {notification.adress && (
-        <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50">
+        <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 animate-slide-in-from-left" style={{ animationDelay: '100ms' }}>
           <div className="flex items-start gap-2">
             <MapPin className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
             <div>
@@ -355,19 +349,32 @@ const ДетальноеОтображениеУведомления = ({ notifi
       )}
       
       {/* Заказанные товары */}
-      <div className="border-t dark:border-gray-700 pt-3">
+      <div className="border-t dark:border-gray-700 pt-3 animate-slide-in-from-left" style={{ animationDelay: '200ms' }}>
         <h4 className="font-medium text-gray-800 dark:text-gray-200 flex items-center mb-2">
           <ShoppingBag className="h-5 w-5 text-blue-500 mr-2" />
           Заказанные товары:
         </h4>
-        <div className="mt-2 transition-all duration-500 ease-in-out animate-fade-in">
+        <div className="mt-2 transition-all duration-500 ease-in-out">
           {renderProductData()}
         </div>
       </div>
+
+      {/* Комментарии */}
+      {notification.comments && (
+        <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 animate-slide-in-from-left" style={{ animationDelay: '300ms' }}>
+          <div className="flex items-start gap-2">
+            <MessageSquare className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="font-medium text-gray-800 dark:text-gray-200">Комментарии:</h4>
+              <p className="mt-1 text-gray-700 dark:text-gray-300">{notification.comments}</p>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Общая стоимость */}
       {notification.totalprice && (
-        <div className="border-t dark:border-gray-700 pt-3">
+        <div className="border-t dark:border-gray-700 pt-3 animate-slide-in-from-left" style={{ animationDelay: '400ms' }}>
           <div className="p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/50 flex justify-between items-center">
             <h4 className="font-bold text-gray-800 dark:text-gray-200 flex items-center">
               <DollarSign className="h-5 w-5 text-green-500 mr-2" />
@@ -377,25 +384,10 @@ const ДетальноеОтображениеУведомления = ({ notifi
           </div>
         </div>
       )}
-      
-      {/* Комментарии */}
-      {notification.comments && (
-        <div className="border-t dark:border-gray-700 pt-3">
-          <div className="p-3 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
-            <h4 className="font-medium text-gray-800 dark:text-gray-200 flex items-center mb-2">
-              <MessageSquare className="h-5 w-5 text-blue-500 mr-2" />
-              Комментарии:
-            </h4>
-            <p className="mt-1 whitespace-pre-wrap text-gray-700 dark:text-gray-300 pl-2 border-l-2 border-gray-300 dark:border-gray-600">
-              {notification.comments}
-            </p>
-          </div>
-        </div>
-      )}
-      
+
       {/* Дополнительная информация */}
       {notification.description && (
-        <div className="border-t dark:border-gray-700 pt-3">
+        <div className="border-t dark:border-gray-700 pt-3 animate-slide-in-from-left" style={{ animationDelay: '500ms' }}>
           <div className="p-3 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
             <h4 className="font-medium text-gray-800 dark:text-gray-200 flex items-center mb-2">
               <Info className="h-5 w-5 text-blue-500 mr-2" />
@@ -442,13 +434,13 @@ const ДетальноеОтображениеУведомления = ({ notifi
 };
 
 // Компонент для отображения товаров из строки
-const ТоварыИзСтроки = ({ itemsString }: { itemsString: string }) => {
+const ProductDetails = ({ itemsString }: { itemsString: string }) => {
   try {
     const regex = /\[Товар \d+\]([\s\S]*?)(?=\[Товар \d+\]|$)/g;
     const matches = [...itemsString.matchAll(regex)];
     
     if (matches.length === 0) {
-      // Если формат не соответствует ожидаемому, отображаем как есть
+      console.log('Исходная строка:', itemsString); // Отладочная информация
       return (
         <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
           <p className="whitespace-pre-wrap text-sm">{itemsString}</p>
@@ -460,69 +452,86 @@ const ТоварыИзСтроки = ({ itemsString }: { itemsString: string }) 
       <div className="space-y-3">
         {matches.map((match, index) => {
           const itemText = match[1].trim();
-          const nameMatch = itemText.match(/►\s*Наименование:\s*(.*)/);
-          const quantityMatch = itemText.match(/►\s*Количество:\s*(.*)/);
-          const priceMatch = itemText.match(/►\s*Цена за шт:\s*(.*)/);
-          const totalMatch = itemText.match(/►\s*Сумма:\s*(.*)/);
-          const linkMatch = itemText.match(/►\s*Ссылка на товар:\s*(.*)/);
+          console.log(`Текст товара ${index + 1}:`, itemText); // Отладочная информация
+          
+          // Обновленные регулярные выражения с более гибким форматом
+          const nameMatch = itemText.match(/(?:►|■|•)?\s*(?:Наименование|Название|Товар):\s*(.*?)(?:\n|$)/i);
+          const quantityMatch = itemText.match(/(?:►|■|•)?\s*Количество:\s*(.*?)(?:\n|$)/i);
+          const priceMatch = itemText.match(/(?:►|■|•)?\s*(?:Цена за шт|Цена):\s*(.*?)(?:\n|$)/i);
+          const totalMatch = itemText.match(/(?:►|■|•)?\s*(?:Сумма|Итого):\s*(.*?)(?:\n|$)/i);
+          const linkMatch = itemText.match(/(?:►|■|•)?\s*(?:Ссылка на товар|Ссылка):\s*(.*?)(?:\n|$)/i);
+          console.log(linkMatch);
           
           return (
-            <Card key={index} className="overflow-hidden transition-all duration-300 hover:shadow-md animate-fade-in">
-              <CardHeader className="bg-blue-50 dark:bg-blue-900/30 pb-2">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-base flex items-center">
-                    <Package className="mr-2 h-4 w-4 text-blue-500" />
-                    Товар {index + 1}
-                  </CardTitle>
-                  {linkMatch && (
-                    <a 
-                      href={linkMatch[1]} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline text-sm flex items-center"
+            <Card key={index} className="overflow-hidden transition-all duration-300 hover:shadow-md animate-fade-in bg-[#1e2837] border-[#2a3547]">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value={`item-${index}`} className="border-none">
+                  <div className="flex justify-between items-center px-3 py-2 border-b border-[#2a3547]">
+                    <AccordionTrigger className="hover:no-underline flex-1">
+                      <CardTitle className="text-base flex items-center text-white">
+                        <Package className="mr-1.5 h-4 w-4 text-blue-400" />
+                        Товар {index + 1}
+                      </CardTitle>
+                    </AccordionTrigger>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="ml-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 transition-colors duration-200 h-7 px-2"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.open(linkMatch[1]);
+                      }}
                     >
-                      <Link className="mr-1 h-3 w-3" />
-                      Открыть товар
-                    </a>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="bg-white dark:bg-gray-800">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {nameMatch && (
-                    <div className="col-span-2">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Наименование:</span>
-                      <p className="text-gray-800 dark:text-gray-200 font-semibold">{nameMatch[1]}</p>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-2 col-span-2">
-                    {quantityMatch && (
-                      <div>
-                        <span className="font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                          <Tag className="mr-1 h-3 w-3" />
-                          Количество:
-                        </span>
-                        <p className="text-gray-800 dark:text-gray-200">{quantityMatch[1]}</p>
-                      </div>
-                    )}
-                    {priceMatch && (
-                      <div>
-                        <span className="font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                          <DollarSign className="mr-1 h-3 w-3" />
-                          Цена:
-                        </span>
-                        <p className="text-gray-800 dark:text-gray-200">{priceMatch[1]}</p>
-                      </div>
-                    )}
+                      <Link className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                  {totalMatch && (
-                    <div className="col-span-2 pt-2 border-t">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Сумма:</span>
-                      <p className="text-gray-800 dark:text-gray-200 font-bold">{totalMatch[1]}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
+                  <AccordionContent className="transition-all duration-500 ease-in-out data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+                    <CardContent className="bg-[#1e2837] p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {nameMatch && (
+                          <div className="col-span-2 space-y-2">
+                            <span className="text-gray-400 flex items-center text-base">
+                              <Tag className="mr-2 h-4 w-4 text-blue-400" />
+                              Наименование:
+                            </span>
+                            <p className="text-white font-semibold text-lg ml-6">{nameMatch[1]}</p>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-4 col-span-2">
+                          {quantityMatch && (
+                            <div className="space-y-2">
+                              <span className="text-gray-400 flex items-center text-base">
+                                <Package className="mr-2 h-4 w-4 text-blue-400" />
+                                Количество:
+                              </span>
+                              <p className="text-white text-lg ml-6">{quantityMatch[1]}</p>
+                            </div>
+                          )}
+                          {priceMatch && (
+                            <div className="space-y-2">
+                              <span className="text-gray-400 flex items-center text-base">
+                                <DollarSign className="mr-2 h-4 w-4 text-blue-400" />
+                                Цена:
+                              </span>
+                              <p className="text-white text-lg ml-6">{priceMatch[1]}</p>
+                            </div>
+                          )}
+                        </div>
+                        {totalMatch && (
+                          <div className="col-span-2 pt-4 mt-2 border-t border-[#2a3547] space-y-2">
+                            <span className="text-gray-400 flex items-center text-base">
+                              <DollarSign className="mr-2 h-4 w-4 text-blue-400" />
+                              Сумма:
+                            </span>
+                            <p className="text-white font-bold text-xl ml-6">{totalMatch[1]}</p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </Card>
           );
         })}
@@ -542,7 +551,7 @@ const ТоварыИзСтроки = ({ itemsString }: { itemsString: string }) 
 };
 
 // Компонент для отображения товаров из JSON
-const ТоварыИзJson = ({ items }: { items: any[] }) => {
+const ProductsFromJson = ({ items }: { items: any[] }) => {
   if (!items || items.length === 0) {
     return <p className="text-gray-500 italic">Товары не указаны</p>;
   }
@@ -550,14 +559,14 @@ const ТоварыИзJson = ({ items }: { items: any[] }) => {
   return (
     <div className="space-y-3">
       {items.map((item, index) => (
-        <Card key={index} className="overflow-hidden transition-all duration-300 hover:shadow-md animate-fade-in">
-          <CardHeader className="bg-blue-50 dark:bg-blue-900/30 pb-2">
-            <CardTitle className="text-base flex items-center">
-              <Package className="mr-2 h-4 w-4 text-blue-500" />
-              {item.name || `Товар ${index + 1}`}
+        <Card key={index} className="overflow-hidden transition-all duration-300 hover:shadow-md animate-fade-in bg-[#1e2837] border-[#2a3547]">
+          <CardHeader className="pb-2 border-b border-[#2a3547]">
+            <CardTitle className="text-base flex items-center text-white">
+              <Package className="mr-2 h-4 w-4 text-blue-400" />
+              Товар {index + 1}
             </CardTitle>
           </CardHeader>
-          <CardContent className="bg-white dark:bg-gray-800">
+          <CardContent className="bg-[#1e2837]">
             <div className="grid grid-cols-2 gap-2">
               {item.id && (
                 <div>
@@ -568,7 +577,7 @@ const ТоварыИзJson = ({ items }: { items: any[] }) => {
               {item.quantity && (
                 <div>
                   <span className="font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                    <Tag className="mr-1 h-3 w-3" />
+                    <Tag className="mr-1 h-3 w-3 text-blue-400" />
                     Количество:
                   </span>
                   <p className="text-gray-800 dark:text-gray-200">{item.quantity}</p>
@@ -577,7 +586,7 @@ const ТоварыИзJson = ({ items }: { items: any[] }) => {
               {item.price && (
                 <div>
                   <span className="font-medium text-gray-700 dark:text-gray-300 flex items-center">
-                    <DollarSign className="mr-1 h-3 w-3" />
+                    <DollarSign className="mr-1 h-3 w-3 text-blue-400" />
                     Цена:
                   </span>
                   <p className="text-gray-800 dark:text-gray-200">{typeof item.price === 'number' ? `${item.price} ₽` : item.price}</p>

@@ -1,7 +1,8 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, Phone, Edit } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Edit } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,65 +28,101 @@ const ProductDetails = () => {
     fullDescription: '',
     price: '',
     category: '',
-    specs: [],   // Инициализация как пустой массив
-    images: [] as string[]  // Инициализация как пустой массив
+    specs: [],
+    images: [] as string[]
   });
 
-  const { data: product } = useQuery({
+  const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
       const response = await fetch(`http://localhost:3000/api/products/${id}`);
       if (!response.ok) throw new Error('Failed to fetch product');
       const data = await response.json();
 
-      //console.log("Fetched data:", data); // Логируем данные, полученные с сервера
+      console.log("Fetched product data:", data);
 
-      // Преобразуем строку в массив, если это необходимо
-      const specs = Array.isArray(data.specs) ? data.specs : [];
-      const images = Array.isArray(data.images) ? data.images : [];
+      // Правильная обработка спецификаций
+      let specs = [];
+      if (data.specs) {
+        if (typeof data.specs === 'string') {
+          try {
+            specs = JSON.parse(data.specs);
+          } catch (e) {
+            console.error("Error parsing specs:", e);
+            specs = data.specs.split(',').map((spec: string) => spec.trim());
+          }
+        } else if (Array.isArray(data.specs)) {
+          specs = data.specs;
+        }
+      }
 
-      setEditProduct({
-        name: data.name,
-        description: data.description,
-        fullDescription: data.fullDescription,
-        price: data.price.toString(),
-        category: data.category,
-        specs: specs,   // Гарантируем, что это массив
-        images: images, // Гарантируем, что это массив
-      });
+      // Правильная обработка изображений
+      let images = [];
+      if (data.images) {
+        if (typeof data.images === 'string') {
+          try {
+            images = JSON.parse(data.images);
+          } catch (e) {
+            console.error("Error parsing images:", e);
+            images = [data.images]; // Если не удалось распарсить, добавляем как одиночное изображение
+          }
+        } else if (Array.isArray(data.images)) {
+          images = data.images;
+        }
+      } else if (data.image) {
+        // Обработка поля image для обратной совместимости
+        if (typeof data.image === 'string') {
+          try {
+            images = JSON.parse(data.image);
+            if (!Array.isArray(images)) {
+              images = [data.image];
+            }
+          } catch (e) {
+            images = [data.image];
+          }
+        } else if (Array.isArray(data.image)) {
+          images = data.image;
+        }
+      }
 
-
-      console.log('Parsed specs:', specs); 
+      console.log('Parsed specs:', specs);
       console.log('Parsed images:', images);
 
-      return data;
+      // Обновляем данные для формы редактирования
+      setEditProduct({
+        name: data.name || '',
+        description: data.description || '',
+        fullDescription: data.fullDescription || '',
+        price: data.price ? data.price.toString() : '0',
+        category: data.category || '',
+        specs: specs,
+        images: images,
+      });
+
+      // Возвращаем обработанные данные
+      return {
+        ...data,
+        specs: specs,
+        images: images
+      };
     }
   });
 
-  // Логируем перед рендером компонента
-  console.log("Product details:", product);
-
-  // Проверяем и корректируем данные перед использованием .map()
-  const specsToRender = Array.isArray(product?.specs) ? product.specs : [];
-  const imagesToRender = Array.isArray(product?.images) ? product.images : [];
-
-  
-
-  const handleContactClick = () => {
-    toast({
-      title: "Заявка принята",
-      description: "Наш менеджер свяжется с вами в ближайшее время",
-    });
-  };
-
   const handleAddToCart = () => {
     if (product) {
+      const productImage = Array.isArray(product.images) && product.images.length > 0
+        ? product.images[0]
+        : Array.isArray(product.image) && product.image.length > 0
+          ? product.image[0]
+          : product.image || '/placeholder.jpg';
+          
       addItem({
         id: product.id,
         name: product.name,
         price: calculateDiscountPrice(product.price, product.discount),
-        image: product.image
+        image: productImage
       });
+      
       toast({
         title: "Товар добавлен в корзину",
         description: `${product.name} успешно добавлен в корзину`,
@@ -96,9 +133,26 @@ const ProductDetails = () => {
   function calculateDiscountPrice(price: number, percentage: number) {
     if (isNaN(percentage) || percentage < 0) {
       console.error("Введите корректное число!");
-      return price; // Возвращаем исходную цену, если процент некорректен
+      return price;
     }
     return Math.round(price * (1 - percentage / 100));
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-4 sm:p-6 flex items-center justify-center">
+        <Card className="w-full max-w-2xl animate-pulse">
+          <CardHeader>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!product) {
@@ -122,6 +176,16 @@ const ProductDetails = () => {
     );
   }
 
+  // Получаем изображения для карусели
+  const carouselImages = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : Array.isArray(product.image) && product.image.length > 0
+      ? product.image
+      : [product.image || '/placeholder.jpg'];
+
+  // Получаем спецификации для отображения
+  const specsToRender = Array.isArray(product.specs) ? product.specs : [];
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="container mx-auto max-w-6xl">
@@ -137,7 +201,7 @@ const ProductDetails = () => {
         <Card className="animate-fade-in">
           <CardHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ProductImageCarousel images={product.image} productName={product.name} />
+              <ProductImageCarousel images={carouselImages} productName={product.name} />
 
               <div className="space-y-4">
                 <CardTitle className="text-2xl sm:text-3xl">{product.name}</CardTitle>
@@ -182,11 +246,15 @@ const ProductDetails = () => {
           <CardContent>
             <div className="space-y-4">
               <h4 className="text-xl font-semibold">Характеристики</h4>
-              <ul className="list-disc pl-6 space-y-2">
-                {product.specs.map((spec: string, index: number) => (
-                  <li key={index} className="text-muted-foreground">{spec}</li>
-                ))}
-              </ul>
+              {specsToRender.length > 0 ? (
+                <ul className="list-disc pl-6 space-y-2">
+                  {specsToRender.map((spec: string, index: number) => (
+                    <li key={index} className="text-muted-foreground">{spec}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted-foreground italic">Характеристики не указаны</p>
+              )}
             </div>
           </CardContent>
         </Card>

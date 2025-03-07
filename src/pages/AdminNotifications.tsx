@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -213,7 +214,7 @@ const AdminNotifications = () => {
                           {isExpanded ? (
                             <div className="bg-muted dark:bg-gray-700 p-3 rounded-md border dark:border-gray-600">
                               {isOrder ? (
-                                <OrderNotificationContent notification={notification} />
+                                <SimpleOrderDisplay notification={notification} />
                               ) : (
                                 <p className="whitespace-pre-wrap break-words text-foreground dark:text-white">
                                   {notification.description || "Без описания"}
@@ -255,201 +256,78 @@ const AdminNotifications = () => {
   );
 };
 
-// Component for formatting order notification content
-const OrderNotificationContent = ({ notification }: { notification: any }) => {
-  console.log("OrderNotificationContent received:", notification);
+// Simple component to display raw order notification data
+const SimpleOrderDisplay = ({ notification }: { notification: any }) => {
+  console.log("SimpleOrderDisplay received notification:", notification);
   
-  // Try to parse structured items data first (added in items field as JSON)
-  let structuredItems = null;
-  
-  // Check if we have items data as JSON string
-  if (notification.items) {
-    try {
-      structuredItems = JSON.parse(notification.items);
-      console.log("Successfully parsed items JSON:", structuredItems);
-    } catch (error) {
-      console.error("Failed to parse items JSON:", error);
-    }
-  }
-  
-  // If we have structured items data, use it
-  if (structuredItems && Array.isArray(structuredItems) && structuredItems.length > 0) {
-    console.log("Using structured items data");
-    return (
-      <div className="space-y-4">
-        {/* Address */}
-        {notification.adress && (
-          <div className="flex items-start gap-2">
-            <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">
-              <MapPin className="h-4 w-4 inline mr-1 text-gray-500 dark:text-gray-400" /> 
-              Адрес доставки:
-            </span>
-            <span className="text-gray-800 dark:text-gray-200">{notification.adress}</span>
-          </div>
-        )}
-        
-        {/* Items */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-gray-700 dark:text-gray-300">Товары:</h4>
-          <div className="space-y-4 mt-2">
-            {structuredItems.map((item: any, index: number) => (
-              <div key={index} className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <p className="font-medium text-foreground dark:text-white">{item.name}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Количество: {item.quantity} шт.</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Цена: {item.price ? item.price.toLocaleString() : 0} ₽</p>
-                  </div>
-                  <p className="font-bold text-foreground dark:text-white">{item.price && item.quantity ? (item.price * item.quantity).toLocaleString() : 0} ₽</p>
-                </div>
-                {item.id && (
-                  <div className="mt-2 flex items-center gap-1">
-                    <Link className="h-4 w-4 text-blue-500" />
-                    <a 
-                      href={`/shop/${item.id}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-blue-500 hover:underline text-sm"
-                    >
-                      Перейти к товару
-                    </a>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Total */}
-        {notification.totalprice && (
-          <div className="flex justify-between items-center border-t pt-2 mt-2 dark:border-gray-700">
-            <span className="font-medium text-gray-700 dark:text-gray-300">Итого:</span>
-            <span className="font-bold text-lg text-foreground dark:text-white">{notification.totalprice} ₽</span>
-          </div>
-        )}
-        
-        {/* Comments */}
-        {notification.comments && notification.comments !== "Комментариев нет" && (
-          <div className="border-t pt-2 mt-2 dark:border-gray-700">
-            <h4 className="font-medium text-gray-700 dark:text-gray-300">Комментарии к заказу:</h4>
-            <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">{notification.comments}</p>
-          </div>
-        )}
-      </div>
-    );
-  }
-  
-  // Fallback to using the itemsproduct field directly 
-  console.log("Using itemsproduct field for items display");
-  
-  // Display the raw itemsproduct data with formatted sections
-  const itemsText = notification.itemsproduct || '';
-  console.log("itemsproduct text content:", itemsText);
-  
-  // Function to extract item sections from text
-  const extractItems = () => {
-    const itemPattern = /\[Товар \d+\]([\s\S]*?)(?=\[Товар \d+\]|$)/g;
-    const matches = [...itemsText.matchAll(itemPattern)];
-    
-    console.log("Item pattern matches found:", matches.length);
-    
-    if (matches.length === 0) {
-      return (
-        <div className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
-          <p className="whitespace-pre-wrap text-foreground dark:text-white">{itemsText || "Информация о товарах отсутствует"}</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="space-y-4 mt-2">
-        {matches.map((match, index) => {
-          const itemText = match[0]; // Get the entire matched section including [Товар X]
-          
-          // Extract product details using regex
-          const nameMatch = itemText.match(/▶ Наименование: ([^\n]+)/);
-          const quantityMatch = itemText.match(/▶ Количество: ([^\n]+)/);
-          const priceMatch = itemText.match(/▶ Цена за шт\.: ([^\n]+)/);
-          const sumMatch = itemText.match(/▶ Сумма: ([^\n]+)/);
-          const urlMatch = itemText.match(/▶ Ссылка на товар: ([^\n]+)/);
-          
-          const name = nameMatch ? nameMatch[1] : "Неизвестный товар";
-          const quantity = quantityMatch ? quantityMatch[1] : "";
-          const price = priceMatch ? priceMatch[1] : "";
-          const sum = sumMatch ? sumMatch[1] : "";
-          const url = urlMatch ? urlMatch[1].trim() : null;
-          
-          // Extract product ID from URL
-          let productId = null;
-          if (url) {
-            const productIdMatch = url.match(/\/shop\/(\d+)/);
-            if (productIdMatch) {
-              productId = productIdMatch[1];
-            }
-          }
-          
-          return (
-            <div key={index} className="bg-background dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="font-medium text-foreground dark:text-white">{name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{quantity}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{price}</p>
-                </div>
-                <p className="font-bold text-foreground dark:text-white">{sum}</p>
-              </div>
-              {productId && (
-                <div className="mt-2 flex items-center gap-1">
-                  <Link className="h-4 w-4 text-blue-500" />
-                  <a 
-                    href={`/shop/${productId}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-blue-500 hover:underline text-sm"
-                  >
-                    Перейти к товару
-                  </a>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-  
+  // Display all relevant fields without processing
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-foreground dark:text-white">
       {/* Address */}
       {notification.adress && (
         <div className="flex items-start gap-2">
           <span className="font-medium text-gray-700 dark:text-gray-300 min-w-[120px]">
-            <MapPin className="h-4 w-4 inline mr-1 text-gray-500 dark:text-gray-400" /> 
+            <MapPin className="h-4 w-4 inline mr-1" /> 
             Адрес доставки:
           </span>
-          <span className="text-gray-800 dark:text-gray-200">{notification.adress}</span>
+          <span>{notification.adress}</span>
         </div>
       )}
       
-      {/* Items */}
+      {/* Raw Items Data - First try JSON */}
+      {notification.items && (
+        <div className="space-y-2">
+          <h4 className="font-medium">Данные товаров (JSON):</h4>
+          <pre className="bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-x-auto text-xs">
+            {notification.items}
+          </pre>
+        </div>
+      )}
+      
+      {/* Display itemsproduct field if it exists */}
+      {notification.itemsproduct && (
+        <div className="space-y-2">
+          <h4 className="font-medium">Данные товаров (текст):</h4>
+          <pre className="bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-x-auto whitespace-pre-wrap text-xs">
+            {notification.itemsproduct}
+          </pre>
+        </div>
+      )}
+      
+      {/* Display all other fields that might contain order information */}
       <div className="space-y-2">
-        <h4 className="font-medium text-gray-700 dark:text-gray-300">Товары:</h4>
-        {extractItems()}
+        <h4 className="font-medium">Все поля данных:</h4>
+        <div className="grid grid-cols-1 gap-2">
+          {Object.entries(notification)
+            .filter(([key]) => !['id', 'isRead', 'createdAt', 'description', 'name', 'phone', 'email'].includes(key))
+            .map(([key, value]) => (
+              <div key={key} className="flex flex-col">
+                <span className="font-medium">{key}:</span>
+                <span className="text-sm bg-gray-100 dark:bg-gray-900 p-1 rounded-md overflow-x-auto">
+                  {typeof value === 'object' 
+                    ? JSON.stringify(value) 
+                    : String(value)}
+                </span>
+              </div>
+            ))}
+        </div>
       </div>
       
-      {/* Total */}
+      {/* Total price */}
       {notification.totalprice && (
-        <div className="flex justify-between items-center border-t pt-2 mt-2 dark:border-gray-700">
-          <span className="font-medium text-gray-700 dark:text-gray-300">Итого:</span>
-          <span className="font-bold text-lg text-foreground dark:text-white">{notification.totalprice} ₽</span>
+        <div className="border-t pt-2 dark:border-gray-700">
+          <div className="flex justify-between">
+            <span className="font-bold">Итого:</span>
+            <span className="font-bold text-lg">{notification.totalprice} ₽</span>
+          </div>
         </div>
       )}
       
       {/* Comments */}
-      {notification.comments && notification.comments !== "Комментариев нет" && (
-        <div className="border-t pt-2 mt-2 dark:border-gray-700">
-          <h4 className="font-medium text-gray-700 dark:text-gray-300">Комментарии к заказу:</h4>
-          <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">{notification.comments}</p>
+      {notification.comments && (
+        <div className="border-t pt-2 dark:border-gray-700">
+          <h4 className="font-medium">Комментарии:</h4>
+          <p className="whitespace-pre-wrap">{notification.comments}</p>
         </div>
       )}
     </div>
@@ -457,4 +335,3 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
 };
 
 export default AdminNotifications;
-

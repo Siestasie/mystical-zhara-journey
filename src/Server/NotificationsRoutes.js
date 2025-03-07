@@ -18,16 +18,18 @@ router.get('/notifications', (req, res) => {
 
 // ✅ **Создание нового уведомления**
 router.post('/notifications', (req, res) => {
-    let { name, phone, email, description } = req.body;
+    let { name, phone, email, adress, itemsproduct, totalprice, comments } = req.body;
 
     name = name || "Нет данных";
     phone = phone || "Нет данных";
     email = email || "Нет данных";
-    description = description || "Нет данных";
+    adress = adress || "Нет данных";
+    itemsproduct = itemsproduct || "Нет данных";
+    totalprice = totalprice || "Нет данных";
 
     db.query(
-        'INSERT INTO notifications (name, phone, email, description, isRead, createdAt) VALUES (?, ?, ?, ?, false, NOW())',
-        [name, phone, email, description],
+        'INSERT INTO notifications (name, phone, email, adress, itemsproduct, totalprice, comments, isRead, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, false, NOW())',
+        [name, phone, email, adress, itemsproduct, totalprice, comments],
         (err, result) => {
             if (err) {
                 return res.status(500).json({ error: 'Ошибка сервера при создании уведомления.' });

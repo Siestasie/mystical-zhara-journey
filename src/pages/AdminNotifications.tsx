@@ -344,6 +344,7 @@ const OrderNotificationContent = ({ notification }: { notification: any }) => {
   // Function to extract and format order items
   const renderOrderItems = () => {
     if (!orderItemsSection) {
+      console.log("N" + orderItemsSection);
       console.log("No order items section found in description");
       return <p className="text-gray-500 dark:text-gray-400">Информация о товарах недоступна</p>;
     }

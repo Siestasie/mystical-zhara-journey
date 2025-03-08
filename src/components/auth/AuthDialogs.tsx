@@ -45,6 +45,15 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
   const [canResend, setCanResend] = useState(true);
 
   useEffect(() => {
+    const shouldOpenLogin = sessionStorage.getItem('openLoginDialog');
+    if (shouldOpenLogin === 'true') {
+      const openLoginEvent = new CustomEvent('open-login-dialog');
+      document.dispatchEvent(openLoginEvent);
+      sessionStorage.removeItem('openLoginDialog');
+    }
+  }, []);
+
+  useEffect(() => {
     let timer: NodeJS.Timeout;
     if (!canResend && resendTimer > 0) {
       timer = setInterval(() => {

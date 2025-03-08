@@ -1,266 +1,193 @@
-import express from 'express';
-import crypto from 'crypto';
-import nodemailer from 'nodemailer';
-import bcrypt from 'bcrypt'
-import db from './db.js'
-import dotenv from 'dotenv';
-dotenv.config();
+// Добавляем функционал подтверждения аккаунта в существующий файл маршрутов
 
-
+const express = require('express');
 const router = express.Router();
+const db = require('./db');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const { generateVerificationEmail } = require('../utils/emailTemplates');
 
-// ✅ **Вход в аккаунт*
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const queryPromise = new Promise((resolve, reject) => {
-      db.query(
-        'SELECT * FROM users WHERE email = ?',
-        [email],
-        (err, results) => {
-          if (err) {
-            reject({ status: 500, error: 'Ошибка сервера.' });
-          }
-          if (results.length === 0) {
-            reject({ status: 401, error: 'Неверный email или пароль.' });
-          }
-          const user = results[0];
-      
-          if (!user.is_verified) { 
-            return reject({ status: 403, error: 'Аккаунт не подтвержден. Проверьте вашу почту.' });
-          }
-
-          resolve(user); 
-        }
-      );
-    });
-
-    const user = await queryPromise;
-
-    const isPasswordValid = await bcrypt.compare(password, user.Password);
-    console.log(isPasswordValid);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Неверный email или пароль.' });
-    }
-
-    res.status(200).json({ message: 'Вход выполнен успешно!', user });
-
-  } catch (error) {
-    console.error('Ошибка входа:', error);
-    res.status(error.status || 500).json({ error: error.error || 'Ошибка сервера.' });
-  }
+// Настройка транспорта для отправки писем
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com', // заменить на ваш SMTP-сервер
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'your-email@gmail.com', // заменить на ваш email
+    pass: 'your-password', // заменить на ваш пароль
+  },
 });
 
-// ✅ **Регистрация нового пользователя**
-router.post('/register', async (req, res) => {
-  const {name, email, password } = req.body;
-  db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: 'Ошибка сервера' });
-    }
-
-    if (results.length > 0) {
+// Маршрут для регистрации пользователя
+router.post('/api/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    
+    // Проверяем, существует ли пользователь
+    const [existingUsers] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    
+    if (existingUsers.length > 0) {
       return res.status(400).json({ error: 'Пользователь с таким email уже существует' });
     }
-
+    
+    // Хешируем пароль
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    db.query(
-      'INSERT INTO users (name, email, password, is_verified, isAdmin) VALUES (?, ?, ?, ?, ?)',
-      [name, email, hashedPassword, 0, 0],
-      (err, result) => {
-        if (err) {
-          console.debug(err)
-          return res.status(500).json({ error: 'Ошибка сервера при создании пользователя' });
-        }
-
-        const userId = result.insertId;
-        const token = crypto.randomBytes(32).toString('hex');
-        db.query(
-          'INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
-          [userId, token, new Date(Date.now() + 3600000)], // Токен истекает через 1 час
-          (err) => {
-            if (err) {
-              console.error('Ошибка при сохранении токена:', err);
-            }
-
-            sendVerificationEmail(email, token);
-            res.status(201).json({ message: 'Пользователь зарегистрирован. Проверьте почту для подтверждения.' });
-          }
-        );
-      }
+    // Создаем токен для верификации
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + 24); // Токен действителен 24 часа
+    
+    // Сохраняем пользователя в базу данных
+    await db.query(
+      'INSERT INTO users (name, email, password, verification_token, token_expiry, is_verified) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, email, hashedPassword, verificationToken, tokenExpiry, false]
     );
-  });
-});
-
-// New endpoints for account settings
-// ✅ **Изменение пароля пользователя*
-router.post('/change-password', async (req, res) => {
-  const { userId, currentPassword, newPassword } = req.body;
-
-  try {
-    // Получаем текущий пароль пользователя из базы данных
-    const [user] = await new Promise((resolve, reject) => {
-      db.query('SELECT password FROM users WHERE id = ?', [userId], (err, results) => {
-        if (err) reject(err);
-        resolve(results);
-      });
-    });
-
-    // Проверяем текущий пароль
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Неверный текущий пароль' });
-    }
-
-    // Хешируем новый пароль
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-
-    // Обновляем пароль в базе данных
-    await new Promise((resolve, reject) => {
-      db.query('UPDATE users SET password = ? WHERE id = ?', [hashedNewPassword, userId], (err) => {
-        if (err) reject(err);
-        resolve();
-      });
-    });
-
-    res.json({ message: 'Пароль успешно изменен' });
+    
+    // Создаем ссылку для верификации
+    const verificationLink = `http://localhost:5173/verify-account?token=${verificationToken}`;
+    
+    // Отправляем письмо с подтверждением
+    const mailOptions = {
+      from: '"Your App" <your-email@gmail.com>',
+      to: email,
+      subject: 'Подтверждение аккаунта',
+      html: generateVerificationEmail(name, verificationLink),
+    };
+    
+    await transporter.sendMail(mailOptions);
+    
+    res.status(201).json({ message: 'Пользователь зарегистрирован. Проверьте почту для подтверждения.' });
   } catch (error) {
-    console.error('Ошибка при изменении пароля:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('Error during registration:', error);
+    res.status(500).json({ error: 'Ошибка сервера при регистрации' });
   }
 });
 
-// ✅ **Обновление пользовательской информации**
-router.post('/update-user-info', (req, res) => {
-  const { userId, phone, address } = req.body;
-
-  db.query(
-    'UPDATE users SET phone = ?, address = ? WHERE id = ?',
-    [phone, address, userId],
-    (err) => {
-      if (err) {
-        console.error('Ошибка при обновлении информации:', err);
-        return res.status(500).json({ error: 'Ошибка сервера' });
-      }
-      res.json({ message: 'Информация успешно обновлена' });
-    }
-  );
-});
-
-// ✅ **Отправка песьма верификации**
-async function sendVerificationEmail(email, token) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-
-  console.log(process.env.EMAIL_USER)
-  console.log(process.env.EMAIL_PASS)
-
-  transporter.verify((error, success) => {
-    if (error) {
-      console.error('Ошибка проверки соединения:', error);
-    } else {
-      console.log('Соединение установлено:', success);
-    }
-  });
-
-  const verificationLink = `http://localhost:3000/api/verify-email?token=${token}`;
-
-  const mailOptions = {
-    from: 'verifkon@gmail.com',
-    to: email,
-    subject: 'Подтверждение вашей почты',
-    text: `Перейдите по ссылке для подтверждения: ${verificationLink}`,
-    html: `<p>Перейдите по <a href="${verificationLink}">ссылке</a> для подтверждения вашей почты.</p>`
-  };
-
-  await transporter.sendMail(mailOptions);
-  console.log('Письмо отправлено на адрес:', email);
-}
-
-// ✅ **Эндпоинт для верификации пользователя**
-router.get('/verify-email', (req, res) => {
-    const { token } = req.query;
-
-    db.query(
-        'SELECT * FROM email_verification_tokens WHERE token = ?',
-        [token],
-        (err, results) => {
-            if (err) {
-                return res.status(500).json({ error: 'Ошибка сервера.' });
-            }
-
-            if (results.length === 0) {
-                return res.status(400).json({ error: 'Неверный или истекший токен.' });
-            }
-
-            const userId = results[0].user_id;
-
-            db.query(
-                'UPDATE users SET is_verified = 1 WHERE id = ?',
-                [userId],
-                (err) => {
-                    if (err) {
-                        return res.status(500).json({ error: 'Ошибка сервера.' });
-                    }
-
-                    db.query('DELETE FROM email_verification_tokens WHERE token = ?', [token]);
-
-                    res.status(200).json({ message: 'Ваша почта успешно подтверждена!' });
-                }
-            );
-        }
-    );
-});
-
-// ✅ **Повторная верификация*
-router.post('/resend-verification', async (req, res) => {
-  const { email } = req.body;
-
+// Маршрут для повторной отправки письма с подтверждением
+router.post('/api/resend-verification', async (req, res) => {
   try {
-    const [user] = await new Promise((resolve, reject) => {
-      db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-        console.log(err)
-        if (err) reject(err);
-        resolve(results);
-      });
-    });
-
-    if (!user) {
+    const { email } = req.body;
+    
+    // Проверяем существование пользователя
+    const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
-
+    
+    const user = users[0];
+    
+    // Если аккаунт уже подтвержден
     if (user.is_verified) {
-      return res.status(400).json({ error: 'Email уже подтвержден' });
+      return res.status(400).json({ error: 'Аккаунт уже подтвержден' });
     }
-
-    const token = crypto.randomBytes(32).toString('hex');
     
-    await new Promise((resolve, reject) => {
-      db.query(
-        'INSERT INTO email_verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)',
-        [user.id, token, new Date(Date.now() + 3600000)],
-        (err) => {
-          if (err) reject(err);
-          resolve();
-        }
-      );
-    });
-
-    await sendVerificationEmail(email, token);
+    // Создаем новый токен
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiry = new Date();
+    tokenExpiry.setHours(tokenExpiry.getHours() + 24);
     
-    res.json({ message: 'Письмо с подтверждением отправлено' });
+    // Обновляем токен в базе данных
+    await db.query(
+      'UPDATE users SET verification_token = ?, token_expiry = ? WHERE id = ?',
+      [verificationToken, tokenExpiry, user.id]
+    );
+    
+    // Создаем ссылку для верификации
+    const verificationLink = `http://localhost:5173/verify-account?token=${verificationToken}`;
+    
+    // Отправляем письмо
+    const mailOptions = {
+      from: '"Your App" <your-email@gmail.com>',
+      to: email,
+      subject: 'Подтверждение аккаунта (повторная отправка)',
+      html: generateVerificationEmail(user.name, verificationLink),
+    };
+    
+    await transporter.sendMail(mailOptions);
+    
+    res.json({ message: 'Письмо с подтверждением отправлено повторно' });
   } catch (error) {
-    console.error('Ошибка при повторной отправке:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('Error during resend verification:', error);
+    res.status(500).json({ error: 'Ошибка сервера при отправке письма' });
   }
 });
 
-export default router;
+// Маршрут для проверки токена и подтверждения аккаунта
+router.post('/api/verify-account', async (req, res) => {
+  try {
+    const { token } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ error: 'Токен не предоставлен' });
+    }
+    
+    // Ищем пользователя с этим токеном
+    const [users] = await db.query(
+      'SELECT * FROM users WHERE verification_token = ?', 
+      [token]
+    );
+    
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'Недействительный токен' });
+    }
+    
+    const user = users[0];
+    
+    // Проверяем, не истек ли срок действия токена
+    const tokenExpiry = new Date(user.token_expiry);
+    const now = new Date();
+    
+    if (now > tokenExpiry) {
+      return res.status(400).json({ error: 'Срок действия токена истек' });
+    }
+    
+    // Если все проверки пройдены, подтверждаем аккаунт
+    await db.query(
+      'UPDATE users SET is_verified = true, verification_token = NULL, token_expiry = NULL WHERE id = ?',
+      [user.id]
+    );
+    
+    res.json({ message: 'Аккаунт успешно подтвержден' });
+  } catch (error) {
+    console.error('Error during account verification:', error);
+    res.status(500).json({ error: 'Ошибка сервера при подтверждении аккаунта' });
+  }
+});
+
+router.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find user by email
+    const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+
+    if (users.length === 0) {
+      return res.status(401).json({ error: 'Неверный email или пароль' });
+    }
+
+    const user = users[0];
+
+    // Check if the password is correct
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Неверный email или пароль' });
+    }
+
+    if (!user.is_verified) {
+      return res.status(403).json({ error: 'Аккаунт не подтвержден. Пожалуйста, проверьте свою почту.' });
+    }
+
+    // Respond with user data (excluding password)
+    const { id, name, email: userEmail, isAdmin, phone, alternativePhone, address, notificationsEnabled, deliveryNotes } = user;
+    res.json({ user: { id, name, email: userEmail, isAdmin, phone, alternativePhone, address, notificationsEnabled, deliveryNotes } });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Ошибка сервера при входе' });
+  }
+});
+
+module.exports = router;

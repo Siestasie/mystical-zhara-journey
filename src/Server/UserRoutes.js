@@ -1,12 +1,15 @@
-// Добавляем функционал подтверждения аккаунта в существующий файл маршрутов
 
-const express = require('express');
+// Using modern ES6 imports instead of require
+import express from 'express';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import { generateVerificationEmail } from '../utils/serverEmailTemplates.js';
+
 const router = express.Router();
-const db = require('./db');
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-const { generateVerificationEmail } = require('../utils/emailTemplates');
+
+// Import the database connection
+import db from './db.js';
 
 // Настройка транспорта для отправки писем
 const transporter = nodemailer.createTransport({
@@ -190,4 +193,4 @@ router.post('/api/login', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

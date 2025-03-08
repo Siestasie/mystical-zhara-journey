@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt'
 import db from './db.js'
 import dotenv from 'dotenv';
+import { generateVerificationEmail } from './utils/serverEmailTemplates.js'
 dotenv.config();
 
 
@@ -86,7 +87,7 @@ router.post('/register', async (req, res) => {
               console.error('Ошибка при сохранении токена:', err);
             }
 
-            sendVerificationEmail(email, token);
+            sendVerificationEmail(email, token, name);
             res.status(201).json({ message: 'Пользователь зарегистрирован. Проверьте почту для подтверждения.' });
           }
         );
@@ -151,7 +152,7 @@ router.post('/update-user-info', (req, res) => {
 });
 
 // ✅ **Отправка песьма верификации**
-async function sendVerificationEmail(email, token) {
+async function sendVerificationEmail(email, token, name) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -159,9 +160,6 @@ async function sendVerificationEmail(email, token) {
       pass: process.env.EMAIL_PASS
     }
   });
-
-  console.log(process.env.EMAIL_USER)
-  console.log(process.env.EMAIL_PASS)
 
   transporter.verify((error, success) => {
     if (error) {
@@ -171,14 +169,13 @@ async function sendVerificationEmail(email, token) {
     }
   });
 
-  const verificationLink = `http://localhost:3000/api/verify-email?token=${token}`;
+  const verificationLink = `http://localhost:8080/verify-account?token=${token}`;
 
   const mailOptions = {
     from: 'verifkon@gmail.com',
     to: email,
     subject: 'Подтверждение вашей почты',
-    text: `Перейдите по ссылке для подтверждения: ${verificationLink}`,
-    html: `<p>Перейдите по <a href="${verificationLink}">ссылке</a> для подтверждения вашей почты.</p>`
+    html: generateVerificationEmail(name, verificationLink),
   };
 
   await transporter.sendMail(mailOptions);
@@ -186,9 +183,9 @@ async function sendVerificationEmail(email, token) {
 }
 
 // ✅ **Эндпоинт для верификации пользователя**
-router.get('/verify-email', (req, res) => {
-    const { token } = req.query;
-
+router.post('/verify-email', (req, res) => {
+    const { token } = req.body;
+    console.log('Received token:', token);
     db.query(
         'SELECT * FROM email_verification_tokens WHERE token = ?',
         [token],
@@ -254,7 +251,7 @@ router.post('/resend-verification', async (req, res) => {
       );
     });
 
-    await sendVerificationEmail(email, token);
+    await sendVerificationEmail(email, token, user.name);
     
     res.json({ message: 'Письмо с подтверждением отправлено' });
   } catch (error) {

@@ -30,7 +30,7 @@ const AccountVerification = () => {
         }
         
         // Отправляем запрос на сервер для подтверждения
-        const response = await fetch(`http://localhost:3000/api/verify-account`, {
+        const response = await fetch(`http://localhost:3000/api/verify-email`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -38,6 +38,7 @@ const AccountVerification = () => {
           body: JSON.stringify({ token }),
         });
         
+        console.log("token" + token)
         const data = await response.json();
         
         if (response.ok) {

@@ -20,20 +20,12 @@ router.get('/notifications', (req, res) => {
 router.post('/notifications', (req, res) => {
     let { name, phone, email, adress, itemsproduct, totalprice, comments } = req.body;
 
-    console.log('Имя:', name);
     name = name || "Нет данных";
-    console.log('Телефон:', phone);
     phone = phone || "Нет данных";
-    console.log('Email:', email);
     email = email || "Нет данных";
-    console.log('Адрес:', adress);
     adress = adress || "Нет данных";
-    console.log('Товары:', itemsproduct);
     itemsproduct = itemsproduct || "Нет данных";
-    console.log('Итоговая цена:', totalprice);
     totalprice = totalprice || "Нет данных";
-    console.log('Комментарии:', comments);
-    comments = comments || "Нет данных";
 
     db.query(
         'INSERT INTO notifications (name, phone, email, adress, itemsproduct, totalprice, comments, isRead, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, false, NOW())',

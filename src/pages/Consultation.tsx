@@ -14,7 +14,7 @@ const formSchema = z.object({
   name: z.string().optional(),
   phone: z.string().min(10, "Введите корректный номер телефона"),
   email: z.string().email("Введите корректный email").optional().or(z.literal("")),
-  description: z.string().optional(),
+  comments: z.string().optional(),
 });
 
 const ConsultationPage = () => {
@@ -27,7 +27,7 @@ const ConsultationPage = () => {
       name: "",
       phone: "",
       email: "",
-      description: "",
+      comments: "",
     },
   });
 
@@ -120,7 +120,7 @@ const ConsultationPage = () => {
 
               <FormField
                 control={form.control}
-                name="description"
+                name="comments"
                 render={({ field }) => (
                   <FormItem className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
                     <FormLabel className="text-foreground">Описание</FormLabel>

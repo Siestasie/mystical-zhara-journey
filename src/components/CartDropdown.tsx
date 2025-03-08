@@ -100,8 +100,8 @@ export const CartDropdown = () => {
                 itemsproduct: itemsDetail, // Matches database field name
                 totalprice: total.toLocaleString(),
                 comments: orderData.comments || "Комментариев нет",
-                // Add the items as a JSON string in the itemsproduct field
-                items: JSON.stringify(formattedItems) // This will be extracted in AdminNotifications
+                items: JSON.stringify(formattedItems), // This will be extracted in AdminNotifications
+                type: "purchase"
             };
 
             console.log("Sending notification data:", notificationData);

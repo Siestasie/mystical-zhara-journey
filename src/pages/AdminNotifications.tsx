@@ -15,6 +15,7 @@ const AdminNotifications = () => {
   const [expandedNotifications, setExpandedNotifications] = useState<{ [key: number]: boolean }>({});
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [isOrder, setIsOrder] = useState(false);
 
   // Fetch notifications
   const { data: notifications, isLoading, refetch } = useQuery({
@@ -152,7 +153,7 @@ const AdminNotifications = () => {
               ) : (
                 notifications.map((notification) => {
                   const isExpanded = expandedNotifications[notification.id] || false;
-                  const isOrder = isOrderNotification(notification.description || '');
+                  const isOrder = notification.type === 'purchase'; // Проверка на тип уведомления
                   
                   return (
                     <Card 
@@ -171,7 +172,8 @@ const AdminNotifications = () => {
                             )}
                             <div className="flex flex-col">
                               <span>
-                                {isOrder ? "Новый заказ" : `Заявка от ${notification.name || "нового клиента"}`}
+                                {isOrder ? "Новый заказ" : `Заявка от ${notification.name || "нового клиента"}`} 
+                                {isOrder ? " (Тип: Заказ)" : " (Тип: Консультация)"}
                               </span>
                               <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
                                 {new Date(notification.createdAt).toLocaleString('ru-RU', {
@@ -335,8 +337,8 @@ const DetailedNotificationView = ({ notification }: { notification: any }) => {
   
   return (
     <div className="space-y-4 animate-accordion-down transition-all duration-300 ease-in-out">
-      {/* Адрес доставки */}
-      {notification.adress && (
+      {/* Адрес доставки для purchase уведомления */}
+      {notification.type === 'purchase' && notification.adress && (
         <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 animate-slide-in-from-left" style={{ animationDelay: '100ms' }}>
           <div className="flex items-start gap-2">
             <MapPin className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
@@ -348,18 +350,20 @@ const DetailedNotificationView = ({ notification }: { notification: any }) => {
         </div>
       )}
       
-      {/* Заказанные товары */}
-      <div className="border-t dark:border-gray-700 pt-3 animate-slide-in-from-left" style={{ animationDelay: '200ms' }}>
-        <h4 className="font-medium text-gray-800 dark:text-gray-200 flex items-center mb-2">
-          <ShoppingBag className="h-5 w-5 text-blue-500 mr-2" />
-          Заказанные товары:
-        </h4>
-        <div className="mt-2 transition-all duration-500 ease-in-out">
-          {renderProductData()}
+      {/* Заказанные товары для purchase уведомления */}
+      {notification.type === 'purchase' && (
+        <div className="border-t dark:border-gray-700 pt-3 animate-slide-in-from-left" style={{ animationDelay: '200ms' }}>
+          <h4 className="font-medium text-gray-800 dark:text-gray-200 flex items-center mb-2">
+            <ShoppingBag className="h-5 w-5 text-blue-500 mr-2" />
+            Заказанные товары:
+          </h4>
+          <div className="mt-2 transition-all duration-500 ease-in-out">
+            {renderProductData()}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Комментарии */}
+      {/* Комментарии для обоих типов уведомлений */}
       {notification.comments && (
         <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 animate-slide-in-from-left" style={{ animationDelay: '300ms' }}>
           <div className="flex items-start gap-2">
@@ -372,8 +376,8 @@ const DetailedNotificationView = ({ notification }: { notification: any }) => {
         </div>
       )}
       
-      {/* Общая стоимость */}
-      {notification.totalprice && (
+      {/* Общая стоимость для purchase уведомления */}
+      {notification.type === 'purchase' && notification.totalprice && (
         <div className="border-t dark:border-gray-700 pt-3 animate-slide-in-from-left" style={{ animationDelay: '400ms' }}>
           <div className="p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/50 flex justify-between items-center">
             <h4 className="font-bold text-gray-800 dark:text-gray-200 flex items-center">
@@ -385,8 +389,8 @@ const DetailedNotificationView = ({ notification }: { notification: any }) => {
         </div>
       )}
 
-      {/* Дополнительная информация */}
-      {notification.description && (
+      {/* Дополнительная информация для consultation уведомления */}
+      {notification.type === 'consultation' && notification.description && (
         <div className="border-t dark:border-gray-700 pt-3 animate-slide-in-from-left" style={{ animationDelay: '500ms' }}>
           <div className="p-3 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
             <h4 className="font-medium text-gray-800 dark:text-gray-200 flex items-center mb-2">
@@ -430,7 +434,7 @@ const DetailedNotificationView = ({ notification }: { notification: any }) => {
         </Accordion>
       </div>
     </div>
-  );
+  )
 };
 
 // Компонент для отображения товаров из строки

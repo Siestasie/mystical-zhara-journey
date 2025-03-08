@@ -15,6 +15,7 @@ const formSchema = z.object({
   phone: z.string().min(10, "Введите корректный номер телефона"),
   email: z.string().email("Введите корректный email").optional().or(z.literal("")),
   description: z.string().optional(),
+  type: z.string().optional(),
 });
 
 const ConsultationPage = () => {
@@ -28,6 +29,7 @@ const ConsultationPage = () => {
       phone: "",
       email: "",
       description: "",
+      type: "consultation",
     },
   });
 

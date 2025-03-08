@@ -18,7 +18,7 @@ router.get('/notifications', (req, res) => {
 
 // ✅ **Создание нового уведомления**
 router.post('/notifications', (req, res) => {
-    let { name, phone, email, adress, itemsproduct, totalprice, comments } = req.body;
+    let { name, phone, email, adress, itemsproduct, totalprice, comments, type } = req.body;
 
     console.log('Имя:', name);
     name = name || "Нет данных";
@@ -34,12 +34,14 @@ router.post('/notifications', (req, res) => {
     totalprice = totalprice || "Нет данных";
     console.log('Комментарии:', comments);
     comments = comments || "Нет данных";
+    console.log(type)
 
     db.query(
-        'INSERT INTO notifications (name, phone, email, adress, itemsproduct, totalprice, comments, isRead, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, false, NOW())',
-        [name, phone, email, adress, itemsproduct, totalprice, comments],
+        'INSERT INTO notifications (name, phone, email, adress, itemsproduct, totalprice, comments, type, isRead, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, false, NOW())',
+        [name, phone, email, adress, itemsproduct, totalprice, comments, type],
         (err, result) => {
             if (err) {
+                console.log(err)
                 return res.status(500).json({ error: 'Ошибка сервера при создании уведомления.' });
             }
             res.status(201).json({ message: 'Уведомление создано успешно!', id: result.insertId });

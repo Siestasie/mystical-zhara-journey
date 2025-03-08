@@ -34,6 +34,8 @@ const Index = () => {
         isRegisterOpen={isRegisterOpen}
         onLoginClose={() => setIsLoginOpen(false)}
         onRegisterClose={() => setIsRegisterOpen(false)}
+        isResetPasswordOpen={false}
+        onResetPasswordClose={() => {}}
       />
 
       <HeroSection />

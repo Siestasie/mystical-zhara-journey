@@ -14,6 +14,7 @@ import AccountSettings from "./components/AccountSettings";
 import UserProfile from "./pages/UserProfile";
 import Blog from "./pages/Blog";
 import AccountVerification from "./pages/AccountVerification";
+import AccountResetPassword from "./pages/AccountPasswordReset"
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/toaster";
 import { CartProvider } from "./contexts/CartContext";
@@ -40,6 +41,7 @@ function App() {
               <Route path="/user-profile" element={<UserProfile />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/verify-account" element={<AccountVerification />} />
+              <Route path="/reset-password" element={<AccountResetPassword />} />
             </Routes>
           </Router>
           <Toaster />

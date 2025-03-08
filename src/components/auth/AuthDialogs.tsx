@@ -33,13 +33,16 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 interface AuthDialogsProps {
   isLoginOpen: boolean;
   isRegisterOpen: boolean;
+  isResetPasswordOpen: boolean;
   onLoginClose: () => void;
   onRegisterClose: () => void;
+  onResetPasswordClose: () => void;
 }
 
-export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegisterClose }: AuthDialogsProps) {
+export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, onLoginClose, onRegisterClose, onResetPasswordClose}: AuthDialogsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const { setUser } = useAuth();
   const [resendTimer, setResendTimer] = useState(60); // 60 секунд таймер
   const [canResend, setCanResend] = useState(true);
@@ -75,6 +78,12 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
 
   const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+  });
+
+  const resetPasswordForm = useForm<{ email: string }>({
+    resolver: zodResolver(z.object({
+      email: z.string().email("Неверный формат email"),
+    })),
   });
 
   const onLogin = async (data: LoginFormData) => {
@@ -185,6 +194,41 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
     }
   };
 
+  const onResetPassword = async (data: { email: string }) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/request-password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: "Успешно",
+          description: "Инструкции по сбросу пароля отправлены на ваш email"
+        });
+        setShowResetPassword(false);
+      } else {
+        toast({
+          title: "Ошибка",
+          description: result.error,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при отправке запроса",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       <Dialog open={isLoginOpen} onOpenChange={onLoginClose}>
@@ -229,6 +273,19 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
               <Button type="submit" className="w-full" disabled={isLoading}>
                 Войти
               </Button>
+            <div className="flex justify-center mt-2">
+              <Button 
+                type="button" 
+                variant="link" 
+                className="text-muted-foreground hover:text-primary" 
+                onClick={() => {
+                  onLoginClose();
+                  setShowResetPassword(true);
+                }}
+              >
+                Забыли пароль?
+              </Button>
+            </div>
             </form>
           </Form>
         </DialogContent>
@@ -337,6 +394,37 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, onLoginClose, onRegis
               </form>
             </Form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showResetPassword} onOpenChange={setShowResetPassword}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Сброс пароля</DialogTitle>
+          </DialogHeader>
+          <Form {...resetPasswordForm}>
+            <form onSubmit={resetPasswordForm.handleSubmit(onResetPassword)} className="space-y-4">
+              <FormField
+                control={resetPasswordForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input className="pl-9" placeholder="email@example.com" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                Отправить Запрос на сброс пароля
+              </Button>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </>

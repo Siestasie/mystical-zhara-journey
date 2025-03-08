@@ -72,13 +72,6 @@ const AccountVerification = () => {
     navigate("/");
   };
   
-  const goToLogin = () => {
-    // Тут можно добавить логику открытия модального окна логина
-    navigate("/");
-    // Имитируем клик на кнопку входа через sessionStorage
-    sessionStorage.setItem('openLoginDialog', 'true');
-  };
-  
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="max-w-md w-full animate-scale-in">
@@ -103,9 +96,6 @@ const AccountVerification = () => {
               <div className="flex space-x-4 mt-4">
                 <Button onClick={goToHome} variant="outline">
                   На главную
-                </Button>
-                <Button onClick={goToLogin}>
-                  Войти
                 </Button>
               </div>
             </div>

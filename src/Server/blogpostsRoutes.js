@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import db from "./db.js"
 
-const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url); 
 const __dirname = path.dirname(__filename);
 const uploadsDir = path.join(__dirname, 'uploads');
 

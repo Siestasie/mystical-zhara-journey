@@ -27,14 +27,21 @@ const AdminNotifications = () => {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        console.log("Получены уведомления:", data);
-        return data;
+        
+        // Классифицируем уведомления
+        const classifiedData = data.map((notification: any) => ({
+          ...notification,
+          isOrder: isOrderNotification(notification)
+        }));
+        
+        console.log("Получены и классифицированы уведомления:", classifiedData);
+        return classifiedData;
       } catch (error) {
         console.error("Ошибка при получении уведомлений:", error);
         return [];
       }
     },
-    refetchInterval: 15000, // Обновление каждые 15 секунд
+    refetchInterval: 15000,
     refetchOnWindowFocus: true,
   });
 
@@ -97,6 +104,25 @@ const AdminNotifications = () => {
     });
   }, [expandedNotifications, notifications]);
 
+  useEffect(() => {
+    const eventSource = new EventSource('http://localhost:3000/api/notifications/stream');
+
+    eventSource.onmessage = (event) => {
+      const newNotification = JSON.parse(event.data);
+      queryClient.setQueryData(['notifications'], (old: any) => [
+        ...(old || []),
+        {
+          ...newNotification,
+          isOrder: isOrderNotification(newNotification)
+        }
+      ]);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   const handleDeleteNotification = (id: number) => {
     deleteNotificationMutation.mutate(id);
   };
@@ -109,8 +135,9 @@ const AdminNotifications = () => {
   };
 
   // Проверка является ли уведомление заказом
-  const isOrderNotification = (description: string) => {
-    return description && description.includes('###### НОВЫЙ ЗАКАЗ ######');
+  const isOrderNotification = (notification: any) => {
+    return notification.type === 'purchase' || 
+           (notification.description && notification.description.includes('###### НОВЫЙ ЗАКАЗ ######'));
   };
 
   if (isLoading) {
@@ -153,7 +180,7 @@ const AdminNotifications = () => {
               ) : (
                 notifications.map((notification) => {
                   const isExpanded = expandedNotifications[notification.id] || false;
-                  const isOrder = notification.type === 'purchase'; // Проверка на тип уведомления
+                  const isOrder = isOrderNotification(notification);
                   
                   return (
                     <Card 

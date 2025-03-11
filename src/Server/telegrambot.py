@@ -1,4 +1,3 @@
-
 import asyncio
 import logging
 import httpx
@@ -19,12 +18,11 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 CHAT_ID = None
-last_sent_notifications = set()  # Stores IDs of already sent notifications
+last_sent_notifications = set()
 
 keyboard = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="/start"), KeyboardButton(text="Уведомления")]
 ], resize_keyboard=True)
-
 
 @dp.message(Command("start"))
 async def start(message: Message):
@@ -32,7 +30,6 @@ async def start(message: Message):
     CHAT_ID = message.chat.id
     await message.answer("Бот запущен и готов к работе!", reply_markup=keyboard)
     logging.info(f"CHAT_ID установлен: {CHAT_ID}")
-
 
 @dp.message(lambda message: message.text == "Уведомления")
 @dp.message(Command("notifications"))
@@ -44,16 +41,16 @@ async def manual_check(message: Message):
     else:
         await message.answer("Нет новых уведомлений.")
 
-
 async def fetch_notifications():
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get("http://localhost:3000/api/notifications")
             if response.status_code == 200:
                 data = response.json()
+                # Убедимся, что возвращается список
                 if isinstance(data, list):
-                    return data
-                else:
+                    return [n for n in data if isinstance(n, dict)]
+                elif isinstance(data, dict):
                     return [data]
     except Exception as e:
         logging.error(f"Ошибка при запросе уведомлений: {e}")
@@ -64,71 +61,84 @@ def format_notification(notification):
     name = notification.get("name", "—")
     phone = notification.get("phone", "—")
     email = notification.get("email", "—")
-    description = notification.get("description", "—")
-    is_read = "Да" if notification.get("isRead") else "Нет"
-    
-    # Check if this is an order notification
-    is_order = "###### НОВЫЙ ЗАКАЗ ######" in description
-    
-    # Format date
+    address = notification.get("adress", "—")
+    total_price = notification.get("totalprice", "—")
+    comments = notification.get("comments", "—")
     created_at_raw = notification.get("createdAt", "—")
+    notification_type = notification.get("type", "consultation")
+    items = notification.get("items", None)
+    
     try:
         created_at = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
-        created_at = created_at.astimezone(pytz.timezone("Europe/Moscow"))  
+        created_at = created_at.astimezone(pytz.timezone("Europe/Moscow"))
         formatted_date = created_at.strftime("%d.%m.%Y %H:%M")
     except Exception:
         formatted_date = "Неизвестно"
     
+    # Уточненная логика определения заказа
+    is_order = (
+        notification_type == 'purchase' or 
+        (items is not None and items != "—") or
+        (total_price is not None and total_price != "—" and total_price != "Нет данных")
+    )
+    
+    # Формируем сообщение в зависимости от типа
     if is_order:
-        items = notification.get("items", [])
-        address = notification.get("address", "Не указан")
-        comments = notification.get("comments", "Комментариев нет")
-        total = notification.get("total", 0)
-        
-        # Format order items
-        items_text = ""
-        if items and len(items) > 0:
-            for i, item in enumerate(items):
-                items_text += f"📦 Товар {i+1}: {item.get('name')}\n"
-                items_text += f"   Количество: {item.get('quantity')} шт.\n"
-                items_text += f"   Цена: {item.get('price')} ₽\n"
-                items_text += f"   Сумма: {item.get('price') * item.get('quantity')} ₽\n\n"
-        else:
-            # Try to extract items from description if not directly available
-            sections = description.split("======")
-            order_items_section = next((s for s in sections if "ЗАКАЗАННЫЕ ТОВАРЫ" in s), "")
-            if order_items_section:
-                items_text = order_items_section.replace("ЗАКАЗАННЫЕ ТОВАРЫ", "").strip()
-            else:
-                items_text = "Информация о товарах недоступна"
-        
-        # Format total amount
-        total_text = f"{total:,}".replace(",", " ") + " ₽" if total else "Не указана"
-        
-        return (
-            f"🛒 НОВЫЙ ЗАКАЗ\n\n"
-            f"👤 Данные клиента:\n"
-            f"• Имя: {name}\n"
-            f"• Телефон: {phone}\n"
-            f"• Email: {email}\n"
-            f"• Адрес доставки: {address}\n\n"
-            f"📋 Заказанные товары:\n\n{items_text}\n"
-            f"💰 Общая сумма: {total_text}\n\n"
-            f"📝 Комментарии: {comments}\n\n"
-            f"⏰ Время заказа: {formatted_date}"
+        header = "🛒 Новый заказ"
+        message = (
+            f"📢 {header}\n"
+            f"🆔 ID: {id_}\n"
         )
+        
+        # Добавляем только заполненные поля
+        if name != "—":
+            message += f"👤 Имя: {name}\n"
+        if phone != "—":
+            message += f"📞 Телефон: {phone}\n"
+        if email != "—":
+            message += f"📧 Email: {email}\n"
+        if total_price != "—" and total_price != "Нет данных":
+            message += f"💳 Сумма: {total_price} ₽\n"
+        if address != "—" and address != "Нет данных":
+            message += f"🏠 Адрес доставки: {address}\n"
+        if comments != "—" and comments != "Нет данных":
+            message += f"💬 Комментарий: {comments[:200] + '...' if comments and len(comments) > 200 else comments}\n"
+        
+        # Добавляем информацию о товарах, если есть
+        if items and items != "—":
+            try:
+                if isinstance(items, str):
+                    items = json.loads(items)
+                
+                if isinstance(items, list):
+                    message += "\n🛍️ Заказанные товары:"
+                    for i, item in enumerate(items, 1):
+                        message += f"\n  {i}. {item.get('name', 'Без названия')}"
+                        if 'quantity' in item:
+                            message += f" (Кол-во: {item['quantity']})"
+                        if 'price' in item:
+                            message += f" - {item['price']} ₽"
+            except Exception as e:
+                logging.error(f"Ошибка при обработке товаров: {e}")
+                message += "\n⚠️ Не удалось обработать информацию о товарах"
+        
+        message += f"⏰ Дата: {formatted_date}"
     else:
-        return (
-            f"📌 Новое уведомление\n\n"
-            f"ID: {id_}\n"
-            f"Имя: {name}\n"
-            f"Телефон: {phone}\n"
-            f"Email: {email}\n"
-            f"Описание: {description}\n"
-            f"Прочитано: {is_read}\n"
-            f"Дата создания: {formatted_date}"
+        # Формат для консультации
+        header = "📨 Новая заявка на консультацию"
+        message = (
+            f"📢 {header}\n"
+            f"🆔 ID: {id_}\n"
+            f"👤 Имя: {name}\n"
+            f"📞 Телефон: {phone}\n"
         )
-
+        if email != "—":
+            message += f"📧 Email: {email}\n"
+        if comments != "—":
+            message += f"💬 Комментарий: {comments[:200] + '...' if comments and len(comments) > 200 else comments}\n"
+        message += f"⏰ Дата: {formatted_date}"
+    
+    return message
 
 async def poll_notifications():
     global CHAT_ID, last_sent_notifications
@@ -140,7 +150,6 @@ async def poll_notifications():
 
         try:
             notifications = await fetch_notifications()
-
             new_notifications = []
             for notification in notifications:
                 notif_id = notification.get("id", str(notification))
@@ -148,7 +157,6 @@ async def poll_notifications():
                     new_notifications.append(notification)
                     last_sent_notifications.add(notif_id)
                     
-                    # Keep set size manageable
                     if len(last_sent_notifications) > 1000:
                         last_sent_notifications = set(list(last_sent_notifications)[-500:])
 
@@ -158,12 +166,10 @@ async def poll_notifications():
         except Exception as e:
             logging.error(f"Error in poll_notifications: {e}")
 
-
 async def main():
     loop = asyncio.get_event_loop()
     loop.create_task(poll_notifications())
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     asyncio.run(main())

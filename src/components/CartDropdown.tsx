@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,6 +30,14 @@ interface OrderFormData {
     comments: string;
 }
 
+const fetchProduct = async (id: number) => {
+    const response = await fetch(`http://localhost:3000/api/products/${id}`);
+    if (!response.ok) {
+        throw new Error("Ошибка при получении данных о продукте");
+    }
+    return response.json();
+};
+
 export const CartDropdown = () => {
     const { items, total, removeItem, updateQuantity, clearCart } = useCart();
     const { toast } = useToast();
@@ -43,6 +50,32 @@ export const CartDropdown = () => {
         comments: "",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [productImages, setProductImages] = useState<{ [key: string]: string }>({});
+
+    useEffect(() => {
+        const fetchImagesForCartItems = async () => {
+            const imagesMap: { [key: string]: string } = {};
+            try {
+                await Promise.all(items.map(async (item) => {
+                    const productData = await fetchProduct(item.id);
+                    const images = typeof productData.image === "string" ? JSON.parse(productData.image) : productData.image;
+                    imagesMap[item.id] = Array.isArray(images) ? images[0] : "/placeholder.jpg"; // Установите изображение или плейсхолдер
+                }));
+                setProductImages(imagesMap);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                toast({
+                    title: "Ошибка!",
+                    description: "Не удалось загрузить изображения товаров.",
+                    variant: "destructive",
+                });
+            }
+        };
+
+        if (items.length > 0) {
+            fetchImagesForCartItems();
+        }
+    }, [items]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -61,6 +94,27 @@ export const CartDropdown = () => {
             toast({
                 title: "Ошибка",
                 description: "Пожалуйста, заполните все обязательные поля",
+                variant: "destructive",
+            });
+            return;
+        }
+  
+        // Updated validation for phone number format
+        const phoneRegex = /^\+7\s?\(?\d{3}\)?\s?\d{3}-?\d{2}-?\d{2}$|^\+7\d{10}$/; // Обновленный формат с разбросом
+        if (!phoneRegex.test(orderData.phone)) {
+            toast({
+                title: "Ошибка",
+                description: "Пожалуйста, введите корректный номер телефона в формате: +7 (999) 999-99-99",
+                variant: "destructive",
+            });
+            return;
+        }
+  
+        // New validation for comments length
+        if (orderData.comments.length > 200) {
+            toast({
+                title: "Ошибка",
+                description: "Комментарии не должны превышать 200 символов",
                 variant: "destructive",
             });
             return;
@@ -201,11 +255,17 @@ export const CartDropdown = () => {
                                 <DropdownMenuItem key={item.id} className="flex flex-col items-start p-4">
                                     <div className="flex w-full gap-4">
                                         <div className="w-16 h-16 overflow-hidden rounded">
-                                            <img 
-                                                src={`http://localhost:3000${item.image[0]}`} 
-                                                alt={item.name} 
-                                                className="w-full h-full object-cover"
-                                            />
+                                            {productImages[item.id] ? (
+                                                <img 
+                                                    src={`http://localhost:3000${productImages[item.id]}`} 
+                                                    alt={item.name} 
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                                    <span>Изображение отсутствует</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex-1">
                                             <div className="font-medium">{item.name}</div>

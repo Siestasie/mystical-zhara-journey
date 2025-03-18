@@ -1,4 +1,3 @@
-
 import mysql from 'mysql2'
 
 // Create a connection pool instead of a single connection for better performance

@@ -68,7 +68,7 @@ interface OrderStats {
 
 const AdminPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [inputDiscount, setInputDiscount] = useState('');
+  const [inputDiscount, setInputDiscount] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [completedOrders, setCompletedOrders] = useState<Order[]>([]);
@@ -117,7 +117,7 @@ const AdminPanel = () => {
           totalOrders: data.length,
           totalRevenue: data
             .filter((order: Order) => order.status === 'completed')
-            .reduce((sum: number, order: Order) => sum + order.total_price, 0)
+            .reduce((sum: number, order: Order) => sum + Number(order.total_price), 0)
         };
         
         setOrderStats(stats);
@@ -268,51 +268,42 @@ const AdminPanel = () => {
   };
 
   const applyDiscount = async () => {
-    const numericDiscount = parseFloat(inputDiscount);
-    if (isNaN(numericDiscount)) {
-      toast({
-        title: "Ошибка",
-        description: "Введите корректное число",
-        variant: "destructive",
-      });
-      return;
-    }
-  
-    const updatedProducts = discountTarget === 'all' 
-      ? products.map((p) => ({ ...p, discount: parseFloat(numericDiscount.toFixed(2)) })) 
-      : products.map((p) => (p.selected ? { ...p, discount: parseFloat(numericDiscount.toFixed(2)) } : p));
-  
-    setProducts(updatedProducts);
-  
+    const updatedProducts = products.map((p) => ({
+        id: p.id,
+        discount: p.discount,
+    }));
+
+    console.log("Updated Products:", updatedProducts);
+
     try {
-      setLoading(true);
-      const response = await fetch("http://localhost:3000/api/update-discounts", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ products: updatedProducts }),
-      });
-  
-      if (response.ok) {
-        toast({
-          title: "Успех",
-          description: `Скидка ${numericDiscount}% успешно применена`,
+        setLoading(true);
+        const response = await fetch("http://localhost:3000/api/update-discounts", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ products: updatedProducts }),
         });
-      } else {
-        toast({
-          title: "Ошибка",
-          description: "Ошибка при обновлении скидок",
-          variant: "destructive",
-        });
-      }
+
+        if (response.ok) {
+            toast({
+                title: "Успех",
+                description: "Скидки успешно обновлены",
+            });
+        } else {
+            toast({
+                title: "Ошибка",
+                description: "Ошибка при обновлении скидок",
+                variant: "destructive",
+            });
+        }
     } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Ошибка при отправке данных",
-        variant: "destructive",
-      });
-      console.error("Ошибка:", error);
+        console.error("Ошибка при отправке данных:", error);
+        toast({
+            title: "Ошибка",
+            description: "Ошибка при отправке данных",
+            variant: "destructive",
+        });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -357,6 +348,84 @@ const AdminPanel = () => {
   const viewOrderDetails = (order: Order) => {
     setSelectedOrderDetails(order);
     setShowOrderDetails(true);
+  };
+
+  const addNewOrder = async (newOrder: Order) => {
+    try {
+        const response = await fetch("http://localhost:3000/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newOrder),
+        });
+
+        if (response.ok) {
+            toast({
+                title: "Успех",
+                description: "Заказ успешно добавлен",
+            });
+            // Обновляем заказы после добавления нового
+            fetchOrders();
+        } else {
+            toast({
+                title: "Ошибка",
+                description: "Ошибка при добавлении заказа",
+                variant: "destructive",
+            });
+        }
+    } catch (error) {
+        console.error("Ошибка при добавлении заказа:", error);
+        toast({
+            title: "Ошибка",
+            description: "Ошибка при добавлении заказа",
+            variant: "destructive",
+        });
+    }
+  };
+
+  const handleDiscountChange = (id, value) => {
+    const discountValue = parseFloat(value);
+    setProducts((prev) =>
+        prev.map((product) =>
+            product.id === id ? { ...product, discount: isNaN(discountValue) ? 0 : discountValue } : product
+        )
+    );
+  };
+
+  const applyDiscountToAll = async () => {
+    const discountValue = parseFloat(inputDiscount);
+
+    // Проверка на корректность числа
+    if (isNaN(discountValue)) {
+        alert("Введите корректное число для применения ко всем товарам");
+        return;
+    }
+
+    const updatedProducts = products.map((product) => {
+        if (product.selected) {
+            return { ...product, discount: discountValue }; // Применяем скидку только к выбранным
+        }
+        return product; // Возвращаем товар без изменений
+    });
+
+    console.log("Updated Products:", updatedProducts); // Логируем обновленные продукты
+
+    try {
+        const response = await fetch("http://localhost:3000/api/update-discounts", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ products: updatedProducts }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Ошибка при обновлении скидок");
+        }
+
+        const data = await response.json();
+        alert(data.message);
+    } catch (error) {
+        console.error("Ошибка:", error);
+        alert("Ошибка при обновлении скидок");
+    }
   };
 
   return (
@@ -418,10 +487,10 @@ const AdminPanel = () => {
                     <Button
                       variant="outline"
                       className="w-full mt-2"
-                      onClick={applyDiscount}
+                      onClick={applyDiscountToAll}
                       disabled={loading}
                     >
-                      Применить скидку
+                      Применить скидки ко всем товарам
                     </Button>
                   </CardContent>
                 </Card>
@@ -478,7 +547,7 @@ const AdminPanel = () => {
                             type="number"
                             step="0.01"
                             value={p.discount}
-                            onChange={(e) => updateDiscount(p.id, Number(e.target.value))}
+                            onChange={(e) => handleDiscountChange(p.id, e.target.value)}
                             className="w-16 h-8 text-sm text-center"
                           />
                         </div>
@@ -487,6 +556,15 @@ const AdminPanel = () => {
                   );
                 })}
               </div>
+
+              <Button
+                variant="outline"
+                className="w-full mt-2"
+                onClick={applyDiscount}
+                disabled={loading}
+              >
+                Применить скидки
+              </Button>
             </TabsContent>
             
             <TabsContent value="orders" className="mt-0">
@@ -645,7 +723,9 @@ const AdminPanel = () => {
                 <CardContent className="p-4">
                   <div className="mb-4">
                     <h4 className="text-lg font-medium">Общая выручка с выполненных заказов</h4>
-                    <div className="text-3xl font-bold mt-2">{orderStats.totalRevenue.toLocaleString()} ₽</div>
+                    <div className="text-3xl font-bold mt-2">
+                      {Math.round(orderStats.totalRevenue).toLocaleString()} ₽
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -11,8 +11,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const uploadsDir = path.join(__dirname, 'uploads');
 
-console.log(__dirname)
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`)
@@ -205,54 +203,75 @@ router.delete('/products/:id', (req, res) => {
 
 // ✅ **Обновление скидок для нескольких продуктов**
 router.put("/update-discounts", (req, res) => {
-  const products = req.body.products;
+    const products = req.body.products;
 
-  if (!Array.isArray(products)) {
-    return res.status(400).json({ error: "Неверный формат данных" });
-  }
-
-  // Начинаем транзакцию
-  db.beginTransaction((err) => {
-    if (err) {
-      return res.status(500).json({ error: "Ошибка начала транзакции: " + err.message });
+    // Проверка на корректный формат данных
+    if (!Array.isArray(products) || products.length === 0) {
+        return res.status(400).json({ error: "Неверный формат данных или пустой массив" });
     }
 
-    // Создаем массив промисов для обновления скидок
-    const queries = products.map((product) => {
-      return new Promise((resolve, reject) => {
-        db.execute(
-          "UPDATE products SET discount = ? WHERE id = ?",
-          [parseFloat(product.discount.toFixed(2)), product.id], // Округляем скидку до 2 знаков
-          (error, results) => {
-            if (error) {
-              return reject(error);
-            }
-            resolve(results);
-          }
-        );
-      });
-    });
+    // Начинаем транзакцию
+    db.getConnection((err, connection) => {
+        if (err) {
+            console.error("Ошибка при получении соединения:", err);
+            return res.status(500).json({ error: "Ошибка при получении соединения" });
+        }
 
-    // Выполняем все запросы параллельно
-    Promise.all(queries)
-      .then(() => {
-        // Фиксируем транзакцию, если все запросы прошли успешно
-        db.commit((commitErr) => {
-          if (commitErr) {
-            return db.rollback(() => {
-              res.status(500).json({ error: "Ошибка при фиксации транзакции: " + commitErr.message });
+        connection.beginTransaction((err) => {
+            if (err) {
+                console.error("Ошибка начала транзакции:", err);
+                connection.release();
+                return res.status(500).json({ error: "Ошибка начала транзакции" });
+            }
+
+            const queries = products.map((product) => {
+                const { id, discount } = product;
+
+                // Проверка на наличие id и корректность discount
+                if (!id || (discount !== undefined && isNaN(discount))) {
+                    return Promise.reject(new Error(`Неверные данные для продукта: ${JSON.stringify(product)}`));
+                }
+
+                // Преобразуем discount в число, если он определен
+                const discountValue = discount !== undefined ? parseFloat(discount) : 0;
+
+                return new Promise((resolve, reject) => {
+                    connection.query(
+                        "UPDATE products SET discount = ? WHERE id = ?",
+                        [discountValue.toFixed(2), id], // Округляем скидку до 2 знаков
+                        (error, results) => {
+                            if (error) {
+                                return reject(error);
+                            }
+                            resolve(results);
+                        }
+                    );
+                });
             });
-          }
-          res.json({ message: "Скидки успешно обновлены" });
+
+            // Выполняем все запросы параллельно
+            Promise.all(queries)
+                .then(() => {
+                    connection.commit((err) => {
+                        if (err) {
+                            connection.rollback(() => {
+                                connection.release();
+                                return res.status(500).json({ error: "Ошибка при фиксации транзакции" });
+                            });
+                        }
+                        connection.release();
+                        res.json({ message: "Скидки успешно обновлены" });
+                    });
+                })
+                .catch((error) => {
+                    connection.rollback(() => {
+                        connection.release();
+                        console.error("Ошибка обновления скидок:", error);
+                        res.status(500).json({ error: "Ошибка обновления скидок: " + error.message });
+                    });
+                });
         });
-      })
-      .catch((error) => {
-        // Откатываем транзакцию при ошибке
-        db.rollback(() => {
-          res.status(500).json({ error: "Ошибка обновления скидок: " + error.message });
-        });
-      });
-  });
+    });
 });
 
 export default router;

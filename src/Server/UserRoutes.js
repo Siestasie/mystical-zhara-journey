@@ -283,13 +283,11 @@ async function sendVerificationEmail(email, token, name) {
   };
 
   await transporter.sendMail(mailOptions);
-  console.log('Письмо отправлено на адрес:', email);
 }
 
 // ✅ **Эндпоинт для верификации пользователя**
 router.post('/verify-email', (req, res) => {
     const { token } = req.body;
-    console.log('Received token:', token);
     db.query(
         'SELECT * FROM email_verification_tokens WHERE token = ?',
         [token],
@@ -328,7 +326,6 @@ router.post('/resend-verification', async (req, res) => {
   try {
     const [user] = await new Promise((resolve, reject) => {
       db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-        console.log(err)
         if (err) reject(err);
         resolve(results);
       });

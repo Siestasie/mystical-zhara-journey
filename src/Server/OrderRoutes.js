@@ -1,10 +1,9 @@
-
 import express from 'express';
 import db from './db.js';
 
 const router = express.Router();
 
-// Create a new order
+// ✅ **Создание нового заказа**
 router.post('/orders', async (req, res) => {
   try {
     const { 
@@ -40,7 +39,7 @@ router.post('/orders', async (req, res) => {
   }
 });
 
-// Get orders for a specific user
+// ✅ **Получение заказов для конкретного пользователя**
 router.get('/orders/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -67,7 +66,7 @@ router.get('/orders/user/:userId', async (req, res) => {
   }
 });
 
-// Get all orders (for admin)
+// ✅ **Получение всех заказов (для администратора)**
 router.get('/orders/all', async (req, res) => {
   try {
     // Get all orders sorted by most recent first
@@ -91,13 +90,11 @@ router.get('/orders/all', async (req, res) => {
   }
 });
 
-// Update order status (for admin)
+// ✅ **Обновление статуса заказа (для администратора)**
 router.put('/orders/:orderId/status', async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-    
-    console.log(`Server received request to update order ${orderId} to status: ${status}`);
     
     // Validate status
     const validStatuses = ['processing', 'shipped', 'delivered', 'cancelled', 'completed'];
@@ -110,8 +107,6 @@ router.put('/orders/:orderId/status', async (req, res) => {
       'UPDATE orders SET status = ? WHERE id = ?',
       [status, orderId]
     );
-    
-    console.log("Update result:", result);
     
     if (result[0].affectedRows === 0) {
       return res.status(404).json({ message: `Order with ID ${orderId} not found` });

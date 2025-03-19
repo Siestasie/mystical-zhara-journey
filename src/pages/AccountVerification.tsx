@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import useConfig from "@/config";
+
+const { apiUrl, mode } = useConfig();
 
 const AccountVerification = () => {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -30,7 +33,7 @@ const AccountVerification = () => {
         }
         
         // Отправляем запрос на сервер для подтверждения
-        const response = await fetch(`http://localhost:3000/api/verify-email`, {
+        const response = await fetch(`${apiUrl}/api/verify-email`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

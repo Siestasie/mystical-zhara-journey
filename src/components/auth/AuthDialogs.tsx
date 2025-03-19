@@ -9,6 +9,9 @@ import { useState, useEffect } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import useConfig from "@/config";
+
+const { apiUrl, mode } = useConfig();
 
 const loginSchema = z.object({
   email: z.string().email("Неверный формат email"),
@@ -89,7 +92,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
   const onLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/login', {
+      const response = await fetch(`${apiUrl}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +132,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
   const onRegister = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/register', {
+      const response = await fetch(`${apiUrl}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -163,7 +166,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
     
     try {
       setCanResend(false);
-      const response = await fetch('http://localhost:3000/api/resend-verification', {
+      const response = await fetch(`${apiUrl}/api/resend-verification`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: registeredEmail }),
@@ -197,7 +200,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
   const onResetPassword = async (data: { email: string }) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/request-password-reset', {
+      const response = await fetch(`${apiUrl}/api/request-password-reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

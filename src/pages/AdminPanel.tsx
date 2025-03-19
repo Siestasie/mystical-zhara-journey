@@ -29,6 +29,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import useConfig from "@/config";
+
 interface Product {
   id: number;
   name: string;
@@ -84,9 +86,12 @@ const AdminPanel = () => {
   });
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const { apiUrl, mode } = useConfig();
+
+  console.log(apiUrl);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/products")
+    fetch('${apiUrl}/api/products')
       .then((res) => res.json())
       .then((data) => setProducts(data));
     
@@ -101,7 +106,7 @@ const AdminPanel = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/orders/all");
+      const response = await fetch(`${apiUrl}/api/orders/all`);
       if (response.ok) {
         const data = await response.json();
         
@@ -109,6 +114,8 @@ const AdminPanel = () => {
           !['completed', 'cancelled'].includes(order.status)
         );
         
+        
+
         setOrders(activeOrders);
         
         const stats: OrderStats = {
@@ -143,7 +150,7 @@ const AdminPanel = () => {
   const fetchCompletedOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/orders/all");
+      const response = await fetch(`${apiUrl}/api/orders/all`);
       if (response.ok) {
         const data = await response.json();
         
@@ -180,7 +187,7 @@ const AdminPanel = () => {
         console.log("This is a completion request from the Завершить button");
       }
       
-      const response = await fetch(`http://localhost:3000/api/orders/${orderId}/status`, {
+      const response = await fetch(`${apiUrl}/api/orders/${orderId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -210,7 +217,7 @@ const AdminPanel = () => {
           if (activeTab === "history") {
             fetchCompletedOrders();
           } else {
-            const completedResponse = await fetch("http://localhost:3000/api/orders/all");
+            const completedResponse = await fetch(`${apiUrl}/api/orders/all`);
             if (completedResponse.ok) {
               const allOrders = await completedResponse.json();
               const finishedOrders = allOrders.filter((order: Order) => 
@@ -277,7 +284,7 @@ const AdminPanel = () => {
 
     try {
         setLoading(true);
-        const response = await fetch("http://localhost:3000/api/update-discounts", {
+        const response = await fetch(`${apiUrl}/api/update-discounts`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ products: updatedProducts }),
@@ -309,7 +316,7 @@ const AdminPanel = () => {
 
   const updatePriceListDiscount = async () => {
     const numericDiscount = parseInt(pricelistDiscount);
-    const response = await fetch("http://localhost:3000/api/update-discount-Pricelist", {
+    const response = await fetch(`${apiUrl}/api/update-discount-Pricelist`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ Discount: numericDiscount }),
@@ -352,7 +359,7 @@ const AdminPanel = () => {
 
   const addNewOrder = async (newOrder: Order) => {
     try {
-        const response = await fetch("http://localhost:3000/api/orders", {
+        const response = await fetch(`${apiUrl}/api/orders`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newOrder),
@@ -410,7 +417,7 @@ const AdminPanel = () => {
     console.log("Updated Products:", updatedProducts); // Логируем обновленные продукты
 
     try {
-        const response = await fetch("http://localhost:3000/api/update-discounts", {
+        const response = await fetch(`${apiUrl}/update-discounts`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ products: updatedProducts }),

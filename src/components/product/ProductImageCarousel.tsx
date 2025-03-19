@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import useConfig from "@/config";
+
+const { apiUrl, mode } = useConfig();
 
 interface ProductImageCarouselProps {
   images: string[];
@@ -25,7 +28,7 @@ export const ProductImageCarousel = ({ images, productName }: ProductImageCarous
     <>
       <div className="aspect-video relative overflow-hidden rounded-lg">
         <img
-          src={`http://localhost:3000${images[currentImageIndex]}`}
+          src={`${apiUrl}${images[currentImageIndex]}`}
           alt={`${productName} изображение ${currentImageIndex + 1}`}
           className="w-full h-full object-cover cursor-pointer transition-transform duration-300 hover:scale-105"
           onClick={() => setIsImageFullscreen(true)}
@@ -64,7 +67,7 @@ export const ProductImageCarousel = ({ images, productName }: ProductImageCarous
       <Dialog open={isImageFullscreen} onOpenChange={setIsImageFullscreen}>
         <DialogContent className="max-w-4xl">
           <img
-            src={`http://localhost:3000${images[currentImageIndex]}`}
+            src={`${apiUrl}${images[currentImageIndex]}`}
             alt={`${productName} изображение ${currentImageIndex + 1}`}
             className="w-full h-auto"
           />

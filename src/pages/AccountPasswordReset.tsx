@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import useConfig from "@/config";
+
+const { apiUrl, mode } = useConfig();
 
 const AccountPasswordReset = () => {
   const [status, setStatus] = useState<"loading" | "success" | "error" | "ready">("loading");
@@ -27,7 +30,7 @@ const AccountPasswordReset = () => {
 
     const verifyToken = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/verify-token`, {
+        const response = await fetch(`${apiUrl}/api/verify-token`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -71,7 +74,7 @@ const AccountPasswordReset = () => {
     }
     
     try {
-      const response = await fetch(`http://localhost:3000/api/reset-password`, {
+      const response = await fetch(`${apiUrl}/api/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

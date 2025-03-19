@@ -9,6 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import useConfig from "@/config";
+
+const { apiUrl, mode } = useConfig();
 
 const AccountSettings = () => {
   const { user, setUser } = useAuth();
@@ -25,7 +28,7 @@ const AccountSettings = () => {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3000/api/change-password', {
+      const response = await fetch(`${apiUrl}/api/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +55,7 @@ const AccountSettings = () => {
   const handleInfoUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3000/api/update-user-info', {
+      const response = await fetch(`${apiUrl}/api/update-user-info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

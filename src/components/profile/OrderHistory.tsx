@@ -18,6 +18,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import useConfig from "@/config";
+
+const { apiUrl, mode } = useConfig();
 
 interface OrderItem {
   id: number;
@@ -50,7 +53,7 @@ export const OrderHistory = () => {
     queryFn: async () => {
       if (!user || !user.id) return [];
       
-      const response = await fetch(`http://localhost:3000/api/orders/user/${user.id}`);
+      const response = await fetch(`${apiUrl}/api/orders/user/${user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
       }
@@ -61,7 +64,7 @@ export const OrderHistory = () => {
 
   const cancelOrderMutation = useMutation({
     mutationFn: async (orderId: number) => {
-      const response = await fetch(`http://localhost:3000/api/orders/${orderId}/status`, {
+      const response = await fetch(`${apiUrl}/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

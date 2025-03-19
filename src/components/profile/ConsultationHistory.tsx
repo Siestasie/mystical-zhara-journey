@@ -19,6 +19,9 @@ import {
 import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import useConfig from "@/config";
+
+const { apiUrl, mode } = useConfig();
 
 interface Consultation {
   id: number;
@@ -42,7 +45,7 @@ export function ConsultationHistory() {
       if (!user) return;
       
       try {
-        const response = await fetch(`http://localhost:3000/api/notifications/user/${user.id}`);
+        const response = await fetch(`${apiUrl}/api/notifications/user/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           setConsultations(data);

@@ -22,6 +22,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import useConfig from "@/config";
+
+const { apiUrl, mode } = useConfig();
 
 interface OrderFormData {
     name: string;
@@ -31,7 +34,7 @@ interface OrderFormData {
 }
 
 const fetchProduct = async (id: number) => {
-    const response = await fetch(`http://localhost:3000/api/products/${id}`);
+    const response = await fetch(`${apiUrl}/api/products/${id}`);
     if (!response.ok) {
         throw new Error("Ошибка при получении данных о продукте");
     }
@@ -161,7 +164,7 @@ export const CartDropdown = () => {
             console.log("Sending notification data:", notificationData);
 
             // Send notification to admin
-            const notificationResponse = await fetch('http://localhost:3000/api/notifications', {
+            const notificationResponse = await fetch('${apiUrl}/api/notifications', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -187,7 +190,7 @@ export const CartDropdown = () => {
                     name: item.name
                 }));
         
-                const orderResponse = await fetch('http://localhost:3000/api/orders', {
+                const orderResponse = await fetch('${apiUrl}/api/orders', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -257,7 +260,7 @@ export const CartDropdown = () => {
                                         <div className="w-16 h-16 overflow-hidden rounded">
                                             {productImages[item.id] ? (
                                                 <img 
-                                                    src={`http://localhost:3000${productImages[item.id]}`} 
+                                                    src={`${apiUrl}${productImages[item.id]}`} 
                                                     alt={item.name} 
                                                     className="w-full h-full object-cover"
                                                 />

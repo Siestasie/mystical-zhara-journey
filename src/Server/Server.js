@@ -38,18 +38,30 @@ app.use('/api', PricelistRoutes);
 app.use('/api', BlogpostsRoutes);
 app.use('/api', orderRoutes);
 
-// === Разделяем режимы работы: Разработка vs Продакшен ===
 if (process.env.NODE_ENV === 'production') {
   const buildPath = path.resolve(__dirname, '../../dist');
+
+  // Обрабатываем API-запросы до отдачи статики
+  app.get("/config", (req, res) => {
+    console.log("Запрос на /config получен");
+
+    // Отдаем конфигурацию в формате JSON
+    res.json({
+      mode: process.env.NODE_ENV || "development",
+      apiUrl: process.env.PRODATCION_URL || "http://localhost:5000",
+    });
+  });
+
+  // Раздаём статику только в режиме продакшн
   app.use(express.static(buildPath));
 
-  // Отдаём index.html для любых маршрутов (SPA)
-  app.get('*', (req, res) => {
+  // Отдаём index.html для любых маршрутов, которые не являются API-запросами
+  app.get("*", (req, res) => {
     res.sendFile(path.join(buildPath, 'index.html'));
   });
 } else {
-  // В режиме разработки просто показываем сообщение
-  app.get('*', (req, res) => {
+  // В режиме разработки показываем сообщение
+  app.get("*", (req, res) => {
     res.send('⚡ Сервер API работает! Запусти React отдельно: "npm start" или "npm run dev"');
   });
 }

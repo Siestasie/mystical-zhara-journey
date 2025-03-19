@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import useConfig from "@/config";
 
 interface Product {
   id: number;
@@ -14,13 +15,15 @@ interface Product {
   image: string | string[];
   discount: number;
 }
+const { apiUrl, mode } = useConfig();
 
 interface ProductCardProps {
   product: Product;
 }
 
 const fetchProduct = async (id: number) => {
-  const response = await fetch(`http://localhost:3000/api/products/${id}`);
+  
+  const response = await fetch(`${apiUrl}/api/products/${id}`);
   if (!response.ok) {
     throw new Error("Ошибка при получении данных о продукте");
   }
@@ -40,7 +43,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+      const response = await fetch(`${apiUrl}/api/products/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Ошибка при удалении продукта");
@@ -80,7 +83,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <CardHeader className="space-y-2">
         <div className="aspect-video relative overflow-hidden rounded-t-lg">
           <img
-            src={`http://localhost:3000${imageUrl}`}
+            src={`${apiUrl}${imageUrl}`}
             alt={productData.name}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />

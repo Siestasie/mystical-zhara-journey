@@ -46,7 +46,7 @@ export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDial
         formData.append('image', file);
       });
 
-      const response = await fetch('http://localhost:3000/api/products', {
+      const response = await fetch('http://109.107.189.168:3000/api/products', {
         method: 'POST',
         body: formData, // Браузер сам установит `multipart/form-data`
       });

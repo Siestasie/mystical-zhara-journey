@@ -34,7 +34,7 @@ const Shop = () => {
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3000/api/products');
+      const response = await fetch('http://109.107.189.168:3000/api/products');
       if (!response.ok) throw new Error('Failed to fetch products');
       return response.json();
     }

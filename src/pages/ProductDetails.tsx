@@ -35,7 +35,7 @@ const ProductDetails = () => {
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3000/api/products/${id}`);
+      const response = await fetch(`http://109.107.189.168:3000/api/products/${id}`);
       if (!response.ok) throw new Error('Failed to fetch product');
       const data = await response.json();
 

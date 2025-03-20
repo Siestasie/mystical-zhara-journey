@@ -89,7 +89,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
   const onLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/login', {
+      const response = await fetch('http://109.107.189.168:3000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
   const onRegister = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/register', {
+      const response = await fetch('http://109.107.189.168:3000/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -163,7 +163,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
     
     try {
       setCanResend(false);
-      const response = await fetch('http://localhost:3000/api/resend-verification', {
+      const response = await fetch('http://109.107.189.168:3000/api/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: registeredEmail }),
@@ -197,7 +197,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
   const onResetPassword = async (data: { email: string }) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/request-password-reset', {
+      const response = await fetch('http://109.107.189.168:3000/api/request-password-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

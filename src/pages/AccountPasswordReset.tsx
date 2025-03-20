@@ -27,7 +27,7 @@ const AccountPasswordReset = () => {
 
     const verifyToken = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/verify-token`, {
+        const response = await fetch(`http://109.107.189.168:3000/api/verify-token`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -71,7 +71,7 @@ const AccountPasswordReset = () => {
     }
     
     try {
-      const response = await fetch(`http://localhost:3000/api/reset-password`, {
+      const response = await fetch(`http://109.107.189.168:3000/api/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

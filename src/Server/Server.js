@@ -1,9 +1,9 @@
 import express from 'express';
+import https from 'https';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 const app = express();
@@ -54,8 +54,11 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Запуск сервера
-app.listen(port, () => {
-  console.log(`🚀 Сервер API запущен на порту ${port}`);
-  console.log(`🗂  Директория сервера: ${__dirname}`);
+const options = {
+  key: fs.readFileSync('./Certificate/key.pem'),
+  cert: fs.readFileSync('./Certificate/cert.pem')
+};
+
+https.createServer(options, app).listen(3000, () => {
+  console.log('Сервер запущен: https://localhost');
 });

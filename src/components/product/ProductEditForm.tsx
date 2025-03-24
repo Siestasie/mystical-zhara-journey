@@ -67,7 +67,7 @@ export const ProductEditForm = ({
       formData.append('index', String(index));
   
       try {
-        const response = await fetch(`http://85.192.30.34:3000/api/products/${id}/image`, {
+        const response = await fetch(`https://85.192.30.34:3000/api/products/${id}/image`, {
           method: 'PUT',
           body: formData, // Используем FormData
         });
@@ -95,7 +95,7 @@ export const ProductEditForm = ({
 
   const updateProductMutation = useMutation({
     mutationFn: async (productData: typeof editProduct) => {
-      const response = await fetch(`http://85.192.30.34:3000/api/products/${id}`, {
+      const response = await fetch(`https://85.192.30.34:3000/api/products/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ export const ProductEditForm = ({
           {product.image.map((_: string, index: number) => (
             <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded-lg">
               <img
-                src={`http://85.192.30.34:3000${product.image[index]}`}
+                src={`https://85.192.30.34:3000${product.image[index]}`}
                 alt={`Image ${index + 1}`}
                 className="w-16 h-16 object-cover rounded"
               />

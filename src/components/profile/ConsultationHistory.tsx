@@ -42,7 +42,7 @@ export function ConsultationHistory() {
       if (!user) return;
       
       try {
-        const response = await fetch(`http://85.192.30.34:3000/api/notifications/user/${user.id}`);
+        const response = await fetch(`https://85.192.30.34:3000/api/notifications/user/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           setConsultations(data);

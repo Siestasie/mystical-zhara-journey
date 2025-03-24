@@ -31,7 +31,7 @@ interface OrderFormData {
 }
 
 const fetchProduct = async (id: number) => {
-    const response = await fetch(`http://85.192.30.34:3000/api/products/${id}`);
+    const response = await fetch(`https://85.192.30.34:3000/api/products/${id}`);
     if (!response.ok) {
         throw new Error("Ошибка при получении данных о продукте");
     }
@@ -161,7 +161,7 @@ export const CartDropdown = () => {
             console.log("Sending notification data:", notificationData);
 
             // Send notification to admin
-            const notificationResponse = await fetch('http://85.192.30.34:3000/api/notifications', {
+            const notificationResponse = await fetch('https://85.192.30.34:3000/api/notifications', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ export const CartDropdown = () => {
                     name: item.name
                 }));
         
-                const orderResponse = await fetch('http://85.192.30.34:3000/api/orders', {
+                const orderResponse = await fetch('https://85.192.30.34:3000/api/orders', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -257,7 +257,7 @@ export const CartDropdown = () => {
                                         <div className="w-16 h-16 overflow-hidden rounded">
                                             {productImages[item.id] ? (
                                                 <img 
-                                                    src={`http://85.192.30.34:3000${productImages[item.id]}`} 
+                                                    src={`https://85.192.30.34:3000${productImages[item.id]}`} 
                                                     alt={item.name} 
                                                     className="w-full h-full object-cover"
                                                 />

@@ -20,7 +20,7 @@ interface ProductCardProps {
 }
 
 const fetchProduct = async (id: number) => {
-  const response = await fetch(`http://85.192.30.34:3000/api/products/${id}`);
+  const response = await fetch(`https://85.192.30.34:3000/api/products/${id}`);
   if (!response.ok) {
     throw new Error("Ошибка при получении данных о продукте");
   }
@@ -40,7 +40,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`http://85.192.30.34:3000/api/products/${id}`, {
+      const response = await fetch(`https://85.192.30.34:3000/api/products/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Ошибка при удалении продукта");
@@ -80,7 +80,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <CardHeader className="space-y-2">
         <div className="aspect-video relative overflow-hidden rounded-t-lg">
           <img
-            src={`http://85.192.30.34:3000${imageUrl}`}
+            src={`https://85.192.30.34:3000${imageUrl}`}
             alt={productData.name}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />

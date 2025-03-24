@@ -22,7 +22,7 @@ const AdminNotifications = () => {
     queryKey: ['notifications'],
     queryFn: async () => {
       try {
-        const response = await fetch('http://85.192.30.34:3000/api/notifications');
+        const response = await fetch('https://85.192.30.34:3000/api/notifications');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -48,7 +48,7 @@ const AdminNotifications = () => {
   // Mark notification as read
   const markAsReadMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`http://85.192.30.34:3000/api/notifications/${id}/read`, {
+      const response = await fetch(`https://85.192.30.34:3000/api/notifications/${id}/read`, {
         method: 'PUT',
       });
       if (!response.ok) {
@@ -67,7 +67,7 @@ const AdminNotifications = () => {
   // Delete notification mutation
   const deleteNotificationMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`http://85.192.30.34:3000/api/notifications/${id}/delete`, {
+      const response = await fetch(`https://85.192.30.34:3000/api/notifications/${id}/delete`, {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -105,7 +105,7 @@ const AdminNotifications = () => {
   }, [expandedNotifications, notifications]);
 
   useEffect(() => {
-    const eventSource = new EventSource('http://85.192.30.34:3000/api/notifications/stream');
+    const eventSource = new EventSource('https://85.192.30.34:3000/api/notifications/stream');
 
     eventSource.onmessage = (event) => {
       const newNotification = JSON.parse(event.data);

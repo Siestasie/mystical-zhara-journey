@@ -35,7 +35,7 @@ const ConsultationPage = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const response = await fetch('http://109.107.189.168:3000/api/notifications', {
+      const response = await fetch('http://85.192.30.34:3000/api/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

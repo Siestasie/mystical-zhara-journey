@@ -50,7 +50,7 @@ export const OrderHistory = () => {
     queryFn: async () => {
       if (!user || !user.id) return [];
       
-      const response = await fetch(`http://109.107.189.168:3000/api/orders/user/${user.id}`);
+      const response = await fetch(`http://85.192.30.34:3000/api/orders/user/${user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
       }
@@ -61,7 +61,7 @@ export const OrderHistory = () => {
 
   const cancelOrderMutation = useMutation({
     mutationFn: async (orderId: number) => {
-      const response = await fetch(`http://109.107.189.168:3000/api/orders/${orderId}/status`, {
+      const response = await fetch(`http://85.192.30.34:3000/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

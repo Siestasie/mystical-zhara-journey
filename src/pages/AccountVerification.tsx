@@ -30,7 +30,7 @@ const AccountVerification = () => {
         }
         
         // Отправляем запрос на сервер для подтверждения
-        const response = await fetch(`http://109.107.189.168:3000/api/verify-email`, {
+        const response = await fetch(`http://85.192.30.34:3000/api/verify-email`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

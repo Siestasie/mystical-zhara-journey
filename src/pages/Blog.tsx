@@ -34,7 +34,7 @@ const Blog = () => {
   const { data: posts = [] } = useQuery<BlogPost[]>({
     queryKey: ['blog-posts'],
     queryFn: async () => {
-      const response = await fetch('http://109.107.189.168:3000/api/blog-posts');
+      const response = await fetch('http://85.192.30.34:3000/api/blog-posts');
       if (!response.ok) throw new Error('Failed to fetch posts');
       return response.json();
     }
@@ -42,7 +42,7 @@ const Blog = () => {
 
   const deletePostMutation = useMutation({
     mutationFn: async (postId: number) => {
-      const response = await fetch(`http://109.107.189.168:3000/api/blog-posts/${postId}`, {
+      const response = await fetch(`http://85.192.30.34:3000/api/blog-posts/${postId}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete post');
@@ -79,7 +79,7 @@ const Blog = () => {
       }
   
       // Отправляем данные на сервер
-      const response = await fetch('http://109.107.189.168:3000/api/blog-posts', {
+      const response = await fetch('http://85.192.30.34:3000/api/blog-posts', {
         method: 'POST',
         body: formData, // Отправляем данные в формате FormData
       });
@@ -151,7 +151,7 @@ const Blog = () => {
                 {post.image && (
                   <div className="aspect-video relative overflow-hidden rounded-lg">
                     <img 
-                      src={`http://109.107.189.168:3000${post.image}`}
+                      src={`http://85.192.30.34:3000${post.image}`}
                       alt={post.title}
                       className="w-full h-full object-cover"
                     />

@@ -31,7 +31,7 @@ const PriceList = () => {
   useEffect(() => {
     const GetPrice = async () => {
       try {
-        const response = await fetch('http://109.107.189.168:3000/api/price', {
+        const response = await fetch('http://85.192.30.34:3000/api/price', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

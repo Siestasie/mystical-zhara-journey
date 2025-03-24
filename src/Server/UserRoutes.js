@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'
 import db from './db.js'
 import dotenv from 'dotenv';
 import { generateVerificationEmail, generatePasswordResetEmail } from './utils/serverEmailTemplates.js'
+import { generateVerificationMail, generatePasswordResetMail } from './utils/serverMailTemplates.js'
 dotenv.config();
 
 const router = express.Router();

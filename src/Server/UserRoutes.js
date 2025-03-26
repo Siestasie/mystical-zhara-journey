@@ -55,7 +55,14 @@ router.post('/login', async (req, res) => {
 
 // ✅ **Регистрация нового пользователя**
 router.post('/register', async (req, res) => {
-  const {name, email, password } = req.body;
+  const { name, email, password } = req.body;
+
+  // Валидация адреса электронной почты
+  const emailPattern = /^(.*@gmail\.com|.*@mail\.ru)$/; // Поддержка Gmail и Mail
+  if (!emailPattern.test(email)) {
+    return res.status(400).json({ error: 'Пожалуйста, используйте адрес электронной почты Gmail или Mail.' });
+  }
+
   db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
     if (err) {
       return res.status(500).json({ error: 'Ошибка сервера' });
@@ -72,7 +79,7 @@ router.post('/register', async (req, res) => {
       [name, email, hashedPassword, 0, 0],
       (err, result) => {
         if (err) {
-          console.debug(err)
+          console.debug(err);
           return res.status(500).json({ error: 'Ошибка сервера при создании пользователя' });
         }
 
@@ -167,7 +174,7 @@ router.post('/request-password-reset', async (req, res) => {
     });
 
     // Отправляем email со ссылкой для сброса пароля
-    const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
+    const resetLink = `https://localhost:8080/reset-password?token=${resetToken}`;
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -255,7 +262,7 @@ router.post('/update-user-info', (req, res) => {
   );
 });
 
-// ✅ **Отправка песьма верификации**
+// ✅ **Отправка песьма верификации Mail**
 async function sendVerificationEmail(email, token, name) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -273,7 +280,7 @@ async function sendVerificationEmail(email, token, name) {
     }
   });
 
-  const verificationLink = `http://localhost:8080/verify-account?token=${token}`;
+  const verificationLink = `https://85.192.30.34:3000/verify-account?token=${token}`;
 
   const mailOptions = {
     from: 'verifkon@gmail.com',

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useState, useEffect } from "react";
-import { Mail, Lock, User, Gmail, Mail as MailIcon } from "lucide-react";
+import { Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { API_URL } from "@/config/appConfig";
@@ -245,9 +245,9 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
     if (!email) return <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />;
     
     if (email.endsWith('@gmail.com')) {
-      return <Gmail className="absolute left-3 top-3 h-4 w-4 text-red-500" />;
+      return <GmailIcon className="absolute left-3 top-3 h-4 w-4 text-red-500" />;
     } else if (email.endsWith('@mail.ru')) {
-      return <MailIcon className="absolute left-3 top-3 h-4 w-4 text-blue-500" />;
+      return <Mail className="absolute left-3 top-3 h-4 w-4 text-blue-500" />;
     } else if (email.endsWith('@yandex.ru')) {
       return <YandexIcon className="absolute left-3 top-3 h-4 w-4 text-yellow-500" />;
     }
@@ -277,8 +277,8 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
                       </div>
                     </FormControl>
                     <div className="flex justify-end gap-2 mt-1">
-                      <Gmail className="h-4 w-4 text-red-500" />
-                      <MailIcon className="h-4 w-4 text-blue-500" />
+                      <GmailIcon className="h-4 w-4 text-red-500" />
+                      <Mail className="h-4 w-4 text-blue-500" />
                       <YandexIcon className="h-4 w-4 text-yellow-500" />
                     </div>
                     <FormMessage />
@@ -384,8 +384,8 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
                         </div>
                       </FormControl>
                       <div className="flex justify-end gap-2 mt-1">
-                        <Gmail className="h-4 w-4 text-red-500" />
-                        <MailIcon className="h-4 w-4 text-blue-500" />
+                        <GmailIcon className="h-4 w-4 text-red-500" />
+                        <Mail className="h-4 w-4 text-blue-500" />
                         <YandexIcon className="h-4 w-4 text-yellow-500" />
                         <span className="text-xs text-muted-foreground">Поддерживаемые почтовые сервисы</span>
                       </div>
@@ -454,8 +454,8 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
                       </div>
                     </FormControl>
                     <div className="flex justify-end gap-2 mt-1">
-                      <Gmail className="h-4 w-4 text-red-500" />
-                      <MailIcon className="h-4 w-4 text-blue-500" />
+                      <GmailIcon className="h-4 w-4 text-red-500" />
+                      <Mail className="h-4 w-4 text-blue-500" />
                       <YandexIcon className="h-4 w-4 text-yellow-500" />
                     </div>
                     <FormMessage />
@@ -472,6 +472,22 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
     </>
   );
 }
+
+const GmailIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M22 5V19C22 19.5523 21.5523 20 21 20H3C2.44772 20 2 19.5523 2 19V5C2 4.44772 2.44772 4 3 4H21C21.5523 4 22 4.44772 22 5Z" />
+    <path d="M2 5L12 13L22 5" />
+  </svg>
+);
 
 const YandexIcon = (props) => (
   <svg

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -19,6 +18,7 @@ import {
 import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/config/appConfig";
 
 interface Consultation {
   id: number;
@@ -42,7 +42,7 @@ export function ConsultationHistory() {
       if (!user) return;
       
       try {
-        const response = await fetch(`http://localhost:3000/api/notifications/user/${user.id}`);
+        const response = await fetch(`${API_URL}/api/notifications/user/${user.id}`);
         if (response.ok) {
           const data = await response.json();
           setConsultations(data);

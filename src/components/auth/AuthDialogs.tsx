@@ -18,7 +18,18 @@ const loginSchema = z.object({
 const registerSchema = z
   .object({
     name: z.string().min(2, "Минимум 2 символа"),
-    email: z.string().email("Неверный формат email"),
+    email: z
+      .string()
+      .email("Неверный формат email")
+      .refine((email) => 
+        email.endsWith("@gmail.com") || 
+        email.endsWith("@mail.ru") || 
+        email.endsWith("@yandex.ru"), 
+        {
+          message: "Поддерживаются только почты gmail.com, mail.ru и yandex.ru",
+          path: ["email"],
+        }
+      ),
     password: z.string().min(6, "Минимум 6 символов"),
     confirmPassword: z.string().min(6, "Минимум 6 символов"),
   })
@@ -26,7 +37,6 @@ const registerSchema = z
     message: "Пароли не совпадают",
     path: ["confirmPassword"],
   });
-
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 

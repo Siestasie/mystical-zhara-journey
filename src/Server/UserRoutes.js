@@ -87,7 +87,19 @@ router.post('/register', async (req, res) => {
               console.error('Ошибка при сохранении токена:', err);
             }
 
-            sendVerificationEmail(email, token, name);
+            if (email.endsWith("@gmail.com")) {
+              console.log(`📩 Отправка через Gmail на ${email}`);
+              sendVerificationGmail(email, token, name);
+            } else if (email.endsWith("@mail.ru")) {
+              console.log(`📩 Отправка через Mail.ru на ${email}`);
+              sendVerificationEmail(email, token, name);
+            } else if (email.endsWith("@yandex.ru")) {
+              console.log(`📩 Отправка через Yandex.ru на ${email}`);
+              sendVerificationYandexEmail(email, token, name);
+            } else {
+              res.status(201).json({ message: 'Данный почтовый сервис на поддерживается.' });
+              return;
+            }
             res.status(201).json({ message: 'Пользователь зарегистрирован. Проверьте почту для подтверждения.' });
           }
         );
@@ -167,24 +179,85 @@ router.post('/request-password-reset', async (req, res) => {
       );
     });
 
-    // Отправляем email со ссылкой для сброса пароля
     const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
 
-    const mailOptions = {
-      from: 'verifkon@gmail.com',
-      to: email,
-      subject: 'Сброс пароля',
-      html: generatePasswordResetEmail(user.name, resetLink)
-    };
+    if (email.endsWith("@gmail.com")) {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_PASS
+        }
+      });
+  
+      const mailOptions = {
+        from: 'verifkon@gmail.com',
+        to: email,
+        subject: 'Сброс пароля',
+        html: generatePasswordResetEmail(user.name, resetLink)
+      };
+  
+      await transporter.sendMail(mailOptions);
 
-    await transporter.sendMail(mailOptions);
+    } else if (email.endsWith("@mail.ru")) {
+      const transporter = nodemailer.createTransport({
+        host: 'smtp.mail.ru',
+        port: 465,
+        secure: true, // Используем SSL
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+
+      transporter.verify((error, success) => {
+        if (error) {
+          console.error('Ошибка проверки соединения:', error);
+        } else {
+          console.log('Соединение установлено:', success);
+        }
+      });
+  
+      const mailOptions = {
+        from: 'verification.email.verif@mail.ru',
+        to: email,
+        subject: 'Сброс пароля',
+        html: generatePasswordResetEmail(user.name, resetLink)
+      };
+  
+      await transporter.sendMail(mailOptions);
+    } else if (email.endsWith("@yandex.ru")) {
+
+      const transporter = nodemailer.createTransport({
+        host: 'smtp.yandex.ru',
+        port: 465,
+        secure: true, // Используем SSL
+        auth: {
+          user: process.env.YANDEX_EMAIL_USER,
+          pass: process.env.YANDEX_EMAIL_PASS
+        }
+      });
+
+      transporter.verify((error, success) => {
+        if (error) {
+          console.error('Ошибка проверки соединения:', error);
+        } else {
+          console.log('Соединение установлено:', success);
+        }
+      })
+  
+      const mailOptions = {
+        from: 'vladyslav.necrasov@yandex.ru',
+        to: email,
+        subject: 'Сброс пароля',
+        html: generatePasswordResetEmail(user.name, resetLink)
+      };
+  
+      await transporter.sendMail(mailOptions);
+    }
+
+    // Отправляем email со ссылкой для сброса пароля
+    
     res.json({ message: 'Инструкции по сбросу пароля отправлены на email' });
 
   } catch (error) {
@@ -256,10 +329,42 @@ router.post('/update-user-info', (req, res) => {
   );
 });
 
-// ✅ **Отправка песьма верификации**
-async function sendVerificationEmail(email, token, name) {
+// ✅ **Отправка песьма верификации на Gmail**
+async function sendVerificationGmail(email, token, name) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS
+    }
+  });
+
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('Ошибка проверки соединения:', error);
+    } else {
+      console.log('Соединение установлено:', success);
+    }
+  });
+
+  const verificationLink = `http://localhost:8080/verify-account?token=${token}`;
+
+  const mailOptions = {
+    from: 'verifkon@gmail.com',
+    to: email,
+    subject: 'Подтверждение вашей почты',
+    html: generateVerificationEmail(name, verificationLink),
+  };
+
+  await transporter.sendMail(mailOptions);
+}
+
+// ✅ **Отправка песьма верификации на Email**
+async function sendVerificationEmail(email, token, name) {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.mail.ru',
+    port: 465,
+    secure: true, // Используем SSL
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
@@ -277,7 +382,41 @@ async function sendVerificationEmail(email, token, name) {
   const verificationLink = `http://localhost:8080/verify-account?token=${token}`;
 
   const mailOptions = {
-    from: 'verifkon@gmail.com',
+    from: 'verification.email.verif@mail.ru',
+    to: email,
+    subject: 'Подтверждение вашей почты',
+    html: generateVerificationEmail(name, verificationLink),
+  };
+
+  await transporter.sendMail(mailOptions);
+}
+
+async function sendVerificationYandexEmail(email, token, name) {
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.yandex.ru', // Исправленный хост
+    port: 465,
+    secure: true, // Используем SSL
+    auth: {
+      user: process.env.YANDEX_EMAIL_USER,
+      pass: process.env.YANDEX_EMAIL_PASS
+    }
+  });
+
+  console.log(process.env.YANDEX_EMAIL_USER)
+  console.log(process.env.YANDEX_EMAIL_PASS)
+
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('Ошибка проверки соединения:', error);
+    } else {
+      console.log('Соединение установлено:', success);
+    }
+  });
+
+  const verificationLink = `http://localhost:8080/verify-account?token=${token}`;
+
+  const mailOptions = {
+    from: 'vladyslav.necrasov@yandex.ru',
     to: email,
     subject: 'Подтверждение вашей почты',
     html: generateVerificationEmail(name, verificationLink),
@@ -353,8 +492,17 @@ router.post('/resend-verification', async (req, res) => {
       );
     });
 
-    await sendVerificationEmail(email, token, user.name);
-    
+    if (email.endsWith("@gmail.com")) {
+      console.log(`📩 Отправка через Gmail на ${email}`);
+      sendVerificationGmail(email, token, user.name);
+    } else if (email.endsWith("@mail.ru")) {
+      console.log(`📩 Отправка через Mail.ru на ${email}`);
+      sendVerificationEmail(email, token, user.name);
+    } else if (email.endsWith("@yandex.ru")) {
+      console.log(`📩 Отправка через Yandex.ru на ${email}`);
+      sendVerificationYandexEmail(email, token, user.name);
+    }
+
     res.json({ message: 'Письмо с подтверждением отправлено' });
   } catch (error) {
     console.error('Ошибка при повторной отправке:', error);

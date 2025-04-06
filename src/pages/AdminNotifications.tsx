@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { API_URL } from "@/config/appConfig";
 
 const AdminNotifications = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,7 +23,7 @@ const AdminNotifications = () => {
     queryKey: ['notifications'],
     queryFn: async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/notifications');
+        const response = await fetch(`${API_URL}/api/notifications`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -48,7 +49,7 @@ const AdminNotifications = () => {
   // Mark notification as read
   const markAsReadMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`http://localhost:3000/api/notifications/${id}/read`, {
+      const response = await fetch(`${API_URL}/api/notifications/${id}/read`, {
         method: 'PUT',
       });
       if (!response.ok) {
@@ -67,7 +68,7 @@ const AdminNotifications = () => {
   // Delete notification mutation
   const deleteNotificationMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`http://localhost:3000/api/notifications/${id}/delete`, {
+      const response = await fetch(`${API_URL}/api/notifications/${id}/delete`, {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -105,7 +106,7 @@ const AdminNotifications = () => {
   }, [expandedNotifications, notifications]);
 
   useEffect(() => {
-    const eventSource = new EventSource('http://localhost:3000/api/notifications/stream');
+    const eventSource = new EventSource(`${API_URL}/api/notifications/stream`);
 
     eventSource.onmessage = (event) => {
       const newNotification = JSON.parse(event.data);

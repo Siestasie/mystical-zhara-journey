@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import { API_URL } from "@/config/appConfig";
 
 interface ProductEditFormProps {
   id: string;
@@ -67,7 +68,7 @@ export const ProductEditForm = ({
       formData.append('index', String(index));
   
       try {
-        const response = await fetch(`http://localhost:3000/api/products/${id}/image`, {
+        const response = await fetch(`${API_URL}/api/products/${id}/image`, {
           method: 'PUT',
           body: formData, // Используем FormData
         });
@@ -95,7 +96,7 @@ export const ProductEditForm = ({
 
   const updateProductMutation = useMutation({
     mutationFn: async (productData: typeof editProduct) => {
-      const response = await fetch(`http://localhost:3000/api/products/${id}`, {
+      const response = await fetch(`${API_URL}/api/products/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -213,7 +214,7 @@ export const ProductEditForm = ({
           {product.image.map((_: string, index: number) => (
             <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded-lg">
               <img
-                src={`http://localhost:3000${product.image[index]}`}
+                src={`${API_URL}${product.image[index]}`}
                 alt={`Image ${index + 1}`}
                 className="w-16 h-16 object-cover rounded"
               />

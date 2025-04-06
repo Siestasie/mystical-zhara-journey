@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import * as z from "zod";
 import { ArrowLeft, Mail, Phone } from "lucide-react";
+import { API_URL } from "@/config/appConfig";
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -35,7 +36,7 @@ const ConsultationPage = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const response = await fetch('http://localhost:3000/api/notifications', {
+      const response = await fetch(`${API_URL}/api/notifications`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

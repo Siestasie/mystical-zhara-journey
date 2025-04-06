@@ -10,6 +10,7 @@ import { CartDropdown } from "@/components/CartDropdown";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductFilters } from "@/components/shop/ProductFilters";
 import { AddProductDialog } from "@/components/shop/AddProductDialog";
+import { API_URL } from "@/config/appConfig";
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ const Shop = () => {
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3000/api/products');
+      const response = await fetch(`${API_URL}/api/products`);
       if (!response.ok) throw new Error('Failed to fetch products');
       return response.json();
     }

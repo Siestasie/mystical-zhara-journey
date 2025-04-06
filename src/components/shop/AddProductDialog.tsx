@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { API_URL } from "@/config/appConfig";
 
 interface AddProductDialogProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const AddProductDialog = ({ isOpen, onClose, categories }: AddProductDial
         formData.append('image', file);
       });
 
-      const response = await fetch('http://localhost:3000/api/products', {
+      const response = await fetch(`${API_URL}/api/products`, {
         method: 'POST',
         body: formData, // Браузер сам установит `multipart/form-data`
       });

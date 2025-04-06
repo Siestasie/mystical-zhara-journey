@@ -20,6 +20,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import "@/additionally.css";
+import { API_URL } from "@/config/appConfig";
 
 const PriceList = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const PriceList = () => {
   useEffect(() => {
     const GetPrice = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/price', {
+        const response = await fetch(`${API_URL}/api/price`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

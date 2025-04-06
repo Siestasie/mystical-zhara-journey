@@ -1,11 +1,11 @@
 
 // Определяем базовый URL API в зависимости от окружения
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const API_URL = import.meta.env.MODE === 'production' ? import.meta.env.VITE_API_URL : 'http://localhost:3000';
 
 // Определяем базовый URL приложения в зависимости от окружения
 export const APP_URL = import.meta.env.MODE === 'production' 
   ? 'https://yourdomainname.com'
-  : 'http://localhost:8080';
+  : 'http://localhost:3000';
 
 // Другие настройки приложения, зависящие от окружения
 export const IS_PRODUCTION = import.meta.env.MODE === 'production';

@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ProductImageCarousel } from "@/components/product/ProductImageCarousel";
 import { ProductEditForm } from "@/components/product/ProductEditForm";
 import { useCart } from "@/contexts/CartContext";
+import { API_URL } from "@/config/appConfig";
 
 const ProductDetails = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const ProductDetails = () => {
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3000/api/products/${id}`);
+      const response = await fetch(`${API_URL}/api/products/${id}`);
       if (!response.ok) throw new Error('Failed to fetch product');
       const data = await response.json();
 

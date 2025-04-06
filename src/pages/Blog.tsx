@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/config/appConfig";
 
 interface BlogPost {
   id: number;
@@ -34,7 +35,7 @@ const Blog = () => {
   const { data: posts = [] } = useQuery<BlogPost[]>({
     queryKey: ['blog-posts'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3000/api/blog-posts');
+      const response = await fetch(`${API_URL}/api/blog-posts`);
       if (!response.ok) throw new Error('Failed to fetch posts');
       return response.json();
     }
@@ -42,7 +43,7 @@ const Blog = () => {
 
   const deletePostMutation = useMutation({
     mutationFn: async (postId: number) => {
-      const response = await fetch(`http://localhost:3000/api/blog-posts/${postId}`, {
+      const response = await fetch(`${API_URL}/api/blog-posts/${postId}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete post');
@@ -79,7 +80,7 @@ const Blog = () => {
       }
   
       // Отправляем данные на сервер
-      const response = await fetch('http://localhost:3000/api/blog-posts', {
+      const response = await fetch(`${API_URL}/api/blog-posts`, {
         method: 'POST',
         body: formData, // Отправляем данные в формате FormData
       });
@@ -151,7 +152,7 @@ const Blog = () => {
                 {post.image && (
                   <div className="aspect-video relative overflow-hidden rounded-lg">
                     <img 
-                      src={`http://localhost:3000${post.image}`}
+                      src={`${API_URL}${post.image}`}
                       alt={post.title}
                       className="w-full h-full object-cover"
                     />

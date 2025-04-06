@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useState, useEffect } from "react";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, Gmail, Mail as MailIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { API_URL } from "@/config/appConfig";
@@ -38,6 +38,7 @@ const registerSchema = z
     message: "Пароли не совпадают",
     path: ["confirmPassword"],
   });
+
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -55,7 +56,7 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const { setUser } = useAuth();
-  const [resendTimer, setResendTimer] = useState(60); // 60 секунд таймер
+  const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(true);
 
   useEffect(() => {
@@ -240,6 +241,20 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
     }
   };
 
+  const getEmailIcon = (email) => {
+    if (!email) return <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />;
+    
+    if (email.endsWith('@gmail.com')) {
+      return <Gmail className="absolute left-3 top-3 h-4 w-4 text-red-500" />;
+    } else if (email.endsWith('@mail.ru')) {
+      return <MailIcon className="absolute left-3 top-3 h-4 w-4 text-blue-500" />;
+    } else if (email.endsWith('@yandex.ru')) {
+      return <YandexIcon className="absolute left-3 top-3 h-4 w-4 text-yellow-500" />;
+    }
+    
+    return <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />;
+  };
+
   return (
     <>
       <Dialog open={isLoginOpen} onOpenChange={onLoginClose}>
@@ -257,10 +272,15 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        {getEmailIcon(field.value)}
                         <Input className="pl-9" placeholder="email@example.com" {...field} />
                       </div>
                     </FormControl>
+                    <div className="flex justify-end gap-2 mt-1">
+                      <Gmail className="h-4 w-4 text-red-500" />
+                      <MailIcon className="h-4 w-4 text-blue-500" />
+                      <YandexIcon className="h-4 w-4 text-yellow-500" />
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -284,19 +304,19 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 Войти
               </Button>
-            <div className="flex justify-center mt-2">
-              <Button 
-                type="button" 
-                variant="link" 
-                className="text-muted-foreground hover:text-primary" 
-                onClick={() => {
-                  onLoginClose();
-                  setShowResetPassword(true);
-                }}
-              >
-                Забыли пароль?
-              </Button>
-            </div>
+              <div className="flex justify-center mt-2">
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  className="text-muted-foreground hover:text-primary" 
+                  onClick={() => {
+                    onLoginClose();
+                    setShowResetPassword(true);
+                  }}
+                >
+                  Забыли пароль?
+                </Button>
+              </div>
             </form>
           </Form>
         </DialogContent>
@@ -359,10 +379,16 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          {getEmailIcon(field.value)}
                           <Input className="pl-9" placeholder="email@example.com" {...field} />
                         </div>
                       </FormControl>
+                      <div className="flex justify-end gap-2 mt-1">
+                        <Gmail className="h-4 w-4 text-red-500" />
+                        <MailIcon className="h-4 w-4 text-blue-500" />
+                        <YandexIcon className="h-4 w-4 text-yellow-500" />
+                        <span className="text-xs text-muted-foreground">Поддерживаемые почтовые сервисы</span>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -423,10 +449,15 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        {getEmailIcon(field.value)}
                         <Input className="pl-9" placeholder="email@example.com" {...field} />
                       </div>
                     </FormControl>
+                    <div className="flex justify-end gap-2 mt-1">
+                      <Gmail className="h-4 w-4 text-red-500" />
+                      <MailIcon className="h-4 w-4 text-blue-500" />
+                      <YandexIcon className="h-4 w-4 text-yellow-500" />
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -441,3 +472,20 @@ export function AuthDialogs({ isLoginOpen, isRegisterOpen, isResetPasswordOpen, 
     </>
   );
 }
+
+const YandexIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M14 2H10V22H14V13L20 22H24L18 13L24 2H20L14 13V2Z" />
+  </svg>
+);

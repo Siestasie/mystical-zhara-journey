@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -8,6 +9,7 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Определяем пути
 const __filename = fileURLToPath(import.meta.url);
@@ -39,7 +41,8 @@ app.use('/api', BlogpostsRoutes);
 app.use('/api', orderRoutes);
 
 // === Разделяем режимы работы: Разработка vs Продакшен ===
-if (process.env.NODE_ENV === 'production') {
+if (NODE_ENV === 'production') {
+  console.log('🚀 Запуск в режиме PRODUCTION');
   const buildPath = path.resolve(__dirname, '../../dist');
   app.use(express.static(buildPath));
 
@@ -49,6 +52,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 } else {
   // В режиме разработки просто показываем сообщение
+  console.log('🛠️ Запуск в режиме DEVELOPMENT');
   app.get('*', (req, res) => {
     res.send('⚡ Сервер API работает! Запусти React отдельно: "npm start" или "npm run dev"');
   });
@@ -58,4 +62,5 @@ if (process.env.NODE_ENV === 'production') {
 app.listen(port, () => {
   console.log(`🚀 Сервер API запущен на порту ${port}`);
   console.log(`🗂  Директория сервера: ${__dirname}`);
+  console.log(`🔧 Текущий режим: ${NODE_ENV}`);
 });

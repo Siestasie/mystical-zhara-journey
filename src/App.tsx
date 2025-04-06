@@ -18,6 +18,7 @@ import AccountResetPassword from "./pages/AccountPasswordReset"
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/toaster";
 import { CartProvider } from "./contexts/CartContext";
+import { CookieConsent } from "./components/common/CookieConsent";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ function App() {
             </Routes>
           </Router>
           <Toaster />
+          <CookieConsent />
         </CartProvider>
       </ThemeProvider>
     </QueryClientProvider> 
